@@ -116,16 +116,12 @@ eval "use lib modules";
 if ($@) {
     print "<span style='color:red;'>Error loading library directory modules : $! </span><br>";
 } else {
-    print "Local libraries: <span style='color:red;'>OK</span>; ";
+    print "Local libraries: <span style='color:green;'>OK</span>; ";
 }
 
+my $dirname = dirname(__FILE__);
+require $dirname . "/grsshopper.pl";
 
-eval "require grsshopper.pl";
-if ($@) {
-    print "<span style='color:red;'>Error loading grsshopper.pl : $! </span> <br>";
-} else {
-    print "gRSShopper: <span style='color:red;'>OK</span>; ";
-}
 
 
 # -------------
