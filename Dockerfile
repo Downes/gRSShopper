@@ -62,10 +62,6 @@ RUN apt-get install curl -y
 RUN apt-get install ftp -y
 
 
-RUN npm install -g bower
-RUN npm install -g grunt-cli
-RUN npm install -g gulp
-
 ENV LOG_STDOUT **Boolean**
 ENV LOG_STDERR **Boolean**
 ENV LOG_LEVEL warn
