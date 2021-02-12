@@ -111,22 +111,18 @@ if ($missing eq "1") {
 # Test local libraries and require gRSShopper.pl
 #
 
-my $dirname = dirname(__FILE__);
-eval "use lib $dirname";
+#my $dirname = dirname(__FILE__);
+eval "use lib modules";
 if ($@) {
-    print "<span style='color:red;'>Error loading library directory $dirname : $! </span><br>";
-    $missing=1;
-    push @missing_list,$module;
+    print "<span style='color:red;'>Error loading library directory modules : $! </span><br>";
 } else {
     print "Local libraries: <span style='color:red;'>OK</span>; ";
 }
 
 
-eval "require $dirname/grsshopper.pl";
+eval "require grsshopper.pl";
 if ($@) {
-    print "<span style='color:red;'>Error loading $dirname/grsshopper.pl : $! </span> <br>";
-    $missing=1;
-    push @missing_list,$module;
+    print "<span style='color:red;'>Error loading grsshopper.pl : $! </span> <br>";
 } else {
     print "gRSShopper: <span style='color:red;'>OK</span>; ";
 }
