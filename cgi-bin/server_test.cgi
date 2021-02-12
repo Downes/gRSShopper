@@ -112,9 +112,26 @@ if ($missing eq "1") {
 #
 
 my $dirname = dirname(__FILE__);
-use lib $dirname or print "Error using local lib: $! <br>";
-print "Local directory: $dirname <br>";
-require $dirname . "/grsshopper.pl";
+eval "use lib $dirname";
+if ($@) {
+    print "Error loading library directory $dirname : $! <br>";
+    $missing=1;
+    push @missing_list,$module;
+} else {
+    print "Local libraries: OK; ";
+}
+
+
+eval "require $dirname/grsshopper.pl";
+my $dirname = dirname(__FILE__);
+eval "use lib $dirname";
+if ($@) {
+    print "Error loading grsshopper.pl : $! <br>";
+    $missing=1;
+    push @missing_list,$module;
+} else {
+    print "gRSShopper: OK; ";
+}
 
 
 # -------------
