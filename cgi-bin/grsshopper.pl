@@ -2,6 +2,7 @@
 
 my $dirname = dirname(__FILE__);
 require $dirname . "/analyze.pl";
+our $gRSShopper_version = "1.0";
 
 
 #-------------------------------------------------------------------------------

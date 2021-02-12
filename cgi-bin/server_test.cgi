@@ -116,13 +116,13 @@ eval "use lib modules";
 if ($@) {
     print "<span style='color:red;'>Error loading library directory modules : $! </span><br>";
 } else {
-    print "Local libraries: <span style='color:green;'>OK</span>; ";
+    print "Local libraries: <span style='color:green;'>OK</span> ";
 }
 
 my $dirname = dirname(__FILE__);
 require $dirname . "/grsshopper.pl";
-
-
+if ($gRSShopper_version) { print "gRSShopper: <span style='color:green;'>version $gRSShopper_version</span>";}
+else { print "<span style='color:red;'>Error loading gRSShopper : $! </span><br>"; }
 
 # -------------
 # Test database access (from default config in Dockerfile)
