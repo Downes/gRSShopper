@@ -156,9 +156,9 @@ function appendData(request,data) {
 
 function removeElementsByClass(className){
     var elements = document.getElementsByClassName(className);
-    while(elements.length > 0){
-        elements[0].parentNode.removeChild(elements[0]);
-    }
+    //while(elements.length > 0){
+      //  elements[0].parentNode.removeChild(elements[0]);
+   // }
 }
 
 function selectTemplate(request,data,i) {
