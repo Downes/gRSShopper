@@ -73,6 +73,8 @@ ENV ALLOW_OVERRIDE All
 ENV DATE_TIMEZONE UTC
 ENV TERM dumb
 
+ENV PERLTEST="successful"
+
 COPY cgi-enabled.conf /etc/apache2/conf-available/
 COPY ssl-params.conf /etc/apache2/conf-available/
 COPY default-ssl.conf /etc/apache2/conf-available/
