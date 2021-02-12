@@ -15,10 +15,10 @@ gRSShopper is a tool that aggregates, organizes and distributes resources to sup
 
 Docker image is here: https://hub.docker.com/r/downes/grsshopper-ple
 
-Note: don't use Docker imagejust now, run from this GitHub repository 
+**Note: don't use Docker imagejust now, run from this GitHub repository**
 
 To run:
-```
+shell```
 docker pull downes/grsshopper
 
 docker run -p 80:80 -p 443:443 --detach --name gr1 grsshopper
@@ -29,15 +29,15 @@ OR, run from the GitHub repository as follows:
 
 Process:
 
-```
-git clone  https://github.com/Downes/grsshopper
+shell```
+git clone  https://github.com/Downes/gRSShopper
 ```
 
         (or git pull origin master if reloading the changed repo)
 
 
-```
-cd grsshopper
+shell```
+cd gRSShopper
 
 docker build --tag grsshopper .
 
