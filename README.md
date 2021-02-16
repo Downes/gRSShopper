@@ -15,10 +15,11 @@ gRSShopper is a tool that aggregates, organizes and distributes resources to sup
 
 Docker image is here: https://hub.docker.com/r/downes/grsshopper-ple
 
-**Note: don't use Docker imagejust now, run from this GitHub repository**
+**Note: don't use Docker image just now, run from this GitHub repository**
 
-To run:
-shell 
+To run from Docker Image:
+=========================
+ 
 ```
 docker pull downes/grsshopper
 
@@ -26,11 +27,12 @@ docker run -p 80:80 -p 443:443 --detach --name gr1 grsshopper
 ```
 
 
-OR, run from the GitHub repository as follows:
+OR, run from the GitHub repository:
+==================================
 
 Process:
 
-shell 
+ 
 ```
 git clone  https://github.com/Downes/gRSShopper
 ```
@@ -38,23 +40,43 @@ git clone  https://github.com/Downes/gRSShopper
         (or git pull origin master if reloading the changed repo)
 
 
-shell 
+
 ```
 cd gRSShopper
 
 docker build --tag grsshopper .
 
-docker run -p 80:80 -p 443:443 --detach --name gr1 grsshopper
+docker run -p 443:443 --detach --name gr1 grsshopper
 ```
 
-Testing the server on localhost
+Start cron
+==========
 
-http://localhost  (should show gRSShopper start page)
+Cron: cron *should* be starting automatically, but for reasons unknown to me, it is not. Therefore, to start cron, you need to enter the container and start it manually:
 
-http://localhost/cgi-bin/server_test.cgi  (should show Perl test page)     
+```
+docker exec -e TERM=xterm -i -t gr1 bash
+cron
+crontab /etc/cron.d/cronfile
+exit
+```
+
+The first command opens a terminal in the container. Then 'cron' starts cron, and the crontab loads instructions into the cron table. Exit closes the terminal in the container. Sorry this doesn't work automatically.
+
+
+Testing the server 
+==================
+
+http://[your domain]  (should show gRSShopper start page)
+
+http://[your domain]/cgi-bin/server_test.cgi  (should show Perl test page)     
 
 (Note: on localhost you will run into CORS problems running the PLE
 engine at PLE.htm - the Docker image should be placed in the cloud and run under SSL) 
+
+
+Restart the Apache server
+=========================
 
 If Perl CGI isn't running properly, try:
 ```
@@ -65,7 +87,9 @@ docker exec -it gr1 /etc/init.d/apache2 reload
 
    ( if you crash it, docker start bb3 )
 
-Open a shell inside
+
+Open a terminal in the container
+================================
 ```
 docker exec -e TERM=xterm -i -t gr1 bash
 ```
