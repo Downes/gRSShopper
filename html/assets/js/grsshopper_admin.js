@@ -58,7 +58,7 @@ function loadListHeaders(request) {
     var templatetext;
     switch (request.table) {
         case 'link': templatetext = linkSearchTemplate(request,panel); break;
-        case 'feed': templatetext = feedSearchTemplate(request,panel); break;        
+        //case 'feed': templatetext = feedSearchTemplate(request,panel); break;        
     }
     headers.innerHTML = templatetext;
     mainContainer.appendChild(headers);
