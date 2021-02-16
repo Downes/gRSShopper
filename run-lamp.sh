@@ -66,9 +66,6 @@ else
     &>/dev/null /usr/sbin/apachectl -DFOREGROUND -k start
 fi
 
-# Run Cron
-touch /var/log/cron.log
-cron && tail -f /var/log/cron.log
-crontab /etc/cron.d/cronfile
+
 
 

@@ -137,4 +137,4 @@ EXPOSE 80
 EXPOSE 443
 EXPOSE 3306
 
-CMD ["/usr/sbin/run-lamp.sh"]
+CMD cron && tail -f /var/log/cron.log && /usr/sbin/run-lamp.sh
