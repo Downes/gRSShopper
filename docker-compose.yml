@@ -1,0 +1,7 @@
+services:
+   build: .
+   ports:
+      - "443:443"
+   volumes:
+      - .:/code
+      - logvolume01:/var/log

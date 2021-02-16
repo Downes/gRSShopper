@@ -120,11 +120,6 @@ RUN crontab /etc/cron.d/cronfile
 # Create the log file to be able to run tail
 RUN touch /var/log/cron.log
 
-# Run the command on container startup
-#CMD cron && tail -f /var/log/cron.log
-CMD /usr/sbin/cron -f
-
-
 
 # Run startup script
 RUN chmod +x /usr/sbin/run-lamp.sh
@@ -143,3 +138,6 @@ EXPOSE 443
 EXPOSE 3306
 
 CMD ["/usr/sbin/run-lamp.sh"]
+# Run the command on container startup
+#CMD cron && tail -f /var/log/cron.log
+CMD ["/usr/sbin/cron -f"]
