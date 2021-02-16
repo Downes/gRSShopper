@@ -34,8 +34,8 @@ cat << EOB
     
     **********************************************
     *                                            *
-    *    Docker image: downes/lamp               *
-    *    https://github.com/downes/docker-lamp   *
+    *    Docker image: downes/gRSShopper               *
+    *    https://github.com/downes/gRSShopper   *
     *                                            *
     **********************************************
     SERVER SETTINGS
@@ -65,3 +65,7 @@ if [ $LOG_LEVEL == 'debug' ]; then
 else
     &>/dev/null /usr/sbin/apachectl -DFOREGROUND -k start
 fi
+
+# Run Cron
+cron 
+
