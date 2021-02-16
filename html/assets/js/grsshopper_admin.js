@@ -1,4 +1,5 @@
 var url = 'cgi-bin/api.cgi';
+var version = '0.5';
 
 // Stores current status of the Reader
 var readerTable;
@@ -58,7 +59,7 @@ function loadListHeaders(request) {
     var templatetext;
     switch (request.table) {
         case 'link': templatetext = linkSearchTemplate(request,panel); break;
-        //case 'feed': templatetext = feedSearchTemplate(request,panel); break;        
+        case 'feed': templatetext = feedSearchTemplate(request,panel); break;        
     }
     headers.innerHTML = templatetext;
     mainContainer.appendChild(headers);

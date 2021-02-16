@@ -1310,7 +1310,8 @@ sub list_records {
 
 
 
-	if ($table eq "media" || $table eq "link" || $table eq "feed") {
+	#if ($table eq "media" || $table eq "link" || $table eq "feed") {
+	if ($table eq "media" || $table eq "link") {
 		my $listarray;
 		my $feeds_data;	# Cache, so we don't reload feed info for each item
 		while (my $list_record = $sthl -> fetchrow_hashref()) {
