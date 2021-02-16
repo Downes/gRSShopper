@@ -87,6 +87,7 @@ RUN a2enconf cgi-enabled
 
 COPY html/index.html /var/www/html/index.html
 COPY html/index.html /var/www/html/index.htm
+COPY html/PLE.html /var/www/html/PLE.html
 COPY html/PLE.html /var/www/html/PLE.htm
 ADD html/assets /var/www/html/assets/
 ADD cgi-bin /var/www/html/cgi-bin/
