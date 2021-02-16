@@ -123,7 +123,8 @@ use CGI::Carp qw(fatalsToBrowser);
 		}
 	}
 
-	if ($vars->{cmd} eq "list" && ($vars->{table} eq "link" || $vars->{table} eq "feed")) {
+	if ( ($vars->{cmd} eq "list" && $vars->{table} eq "link") ||
+	   ( $vars->{cmd} eq "list" && $vars->{table} eq "feed" ) ) {
 
 
 
