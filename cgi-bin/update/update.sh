@@ -3,7 +3,7 @@
 repository="https://github.com/Downes/gRSShopper"
 repoFolder="./update/repofolder"
 repoCGI="./update/repofolder/cgi-bin/*"
-repoJS="./update/repofolder/html/assets/js*"
+repoJS="./update/repofolder/html/assets/js/*"
 cgbackup="./cgbackup"
 cgbackup="./jsbackup"
 cp -R /var/www/html/cgi-bin/* $cgbackup
