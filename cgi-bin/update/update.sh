@@ -8,5 +8,5 @@ cp -R /var/www/html/cgi-bin/* $backup
 rm -R -f $repoFolder
 git clone $repository $repoFolder
 cp -R $repoCGI /var/www/html/cgi-bin
-chmod 775 /var/www/html/cgi-bin/update.sh
+chmod 775 /var/www/html/cgi-bin/update/update.sh
 echo "Updated CGI"
