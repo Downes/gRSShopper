@@ -138,6 +138,3 @@ EXPOSE 443
 EXPOSE 3306
 
 CMD ["/usr/sbin/run-lamp.sh"]
-# Run the command on container startup
-#CMD cron && tail -f /var/log/cron.log
-CMD ["/usr/sbin/cron -f"]

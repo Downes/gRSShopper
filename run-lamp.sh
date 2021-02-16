@@ -68,4 +68,6 @@ fi
 
 # Run Cron
 cron 
+crontab /etc/cron.d/cronfile
+
 
