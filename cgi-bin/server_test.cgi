@@ -103,72 +103,64 @@ if ($missing eq "1") {
   print qq|</ul>		$newline$newline
 		<b>Getting Perl Modules</b>$newlineFor more information, please see:$newline
 		<a href="https://www.cpan.org/modules/INSTALL.html">https://www.cpan.org/modules/INSTALL.html</a> $newline
-		<a href="https://www.rcbowen.com/imho/perl/modules.html">https://www.rcbowen.com/imho/perl/modules.html</a> $newline|;
-
+		<a href="https://www.rcbowen.com/imho/perl/modules.html">https://www.rcbowen.com/imho/perl/modules.html</a> 
+    $newline$newline|;
 }
 
 # 
-# Test local libraries and require gRSShopper.pl
+# Test local libraries 
 #
 
 #my $dirname = dirname(__FILE__);
 eval "use lib modules";
 if ($@) {
-    print "<span style='color:red;'>Error loading library directory modules : $! </span><br>";
+    print "<span style='color:red;'>Error loading library directory modules : $! </span>$newline";
 } else {
-    print "Local libraries: <span style='color:green;'>OK</span> ";
+    print "Local libraries: <span style='color:green;'>OK</span>; ";
 }
+
+#
+# Require gRSShopper.pl
+#
 
 my $dirname = dirname(__FILE__);
 require $dirname . "/grsshopper.pl";
-if ($gRSShopper_version) { print "gRSShopper: <span style='color:green;'>version $gRSShopper_version</span>";}
+if ($gRSShopper_version) { print "gRSShopper: <span style='color:green;'>version $gRSShopper_version</span>; ";}
 else { print "<span style='color:red;'>Error loading gRSShopper : $! </span><br>"; }
 
-# -------------
-# Test database access (from default config in Dockerfile)
+#
+# Create a new Site object 
+#
 
-print "<p><b>Testing database access (from default config in Dockerfile)</b></p>";
-use DBI;
+our $Site = gRSShopper::Site->new({
+		context		=>	'server test',
+		data_dir	=>	'./data/',				# Location of site configuration files
+		secure => 1,							# Turns on SSH
+});
+die "Unable to create gRSShopper object" unless ($Site);
+print "gRSShopper object created.$newline$newline";
 
-    	# Make variables easy to read :)
-    	my $dbname = "grsshopper";
-    	my $dbhost = "localhost";
-    	my $usr = "grsshopper_user";
-    	my $pwd = "user_password";
+# 
+# Test database access (from from values in multisite.txt)
+#
 
-	# Connect to the Database
-  	my $dbh = DBI->connect("DBI:mysql:database=$dbname;host=$dbhost;port=3306",$usr,$pwd);
+my $dbh = $Site->{dbh};
+die "<span style='color:red;'>Database access failed<br></span>\n" unless ($Site);
+print "Database access successful.<br>";
+&get_config($dbh);
+$Site->{database}="";		# Clearing values for security purposes
+$_ = "";
 
-	# Catch connection error
-	if( ! $dbh ) {
 
-              print "Content-type: text/html\n\n";
-	      print "Database connection error for db '$dbname'. Please contact the site administrator.<br>";   
 
-		# Print error report and exit
-		print "Error String Reported: $DBI::errstr <br>";
-		exit;
-
-	# I'll put more error-checking here
-	} else {
-	
-	        print "<p>Database successfully connected.</p>";
-		eval {
-		#$dbh->do( whatever );
-		#$dbh->{dbh}->do( something else );
-		};
-
-		if( $@ ) {
-			print "Ugg, problem: $@\n";
-		}
-	}
-
-# -------------
+# 
 # Test sessions
+#
+
 print "<p><b>Testing user authentication</b></p>";
 print "<p>Note that this may create a new Admin user is one is needed; please be sure to take note of the admin user name and password for later logins.</p>";
 
-print qq|<iframe src="login_widget.cgi" height="100" width="500" title="Iframe Example"></iframe>|;
+print qq|<iframe src="login_widget.cgi" height="100" width="500" title="Login Widget"></iframe>|;
 
 print qq|<p>Once you have logged in, try out <a href="../PLE.html">your new PLE</a></p>|;
 
