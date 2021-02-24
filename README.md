@@ -164,3 +164,8 @@ https://www.howtogeek.com/howto/42980/the-beginners-guide-to-nano-the-linux-comm
 https://forums.docker.com/t/cannot-use-vim-vi-nano-yum-inside-docker-container/14905 - Help using Nano
 
 https://www.digitalocean.com/community/tutorials/how-to-use-cron-to-automate-tasks-ubuntu-1804 - Setting up cron
+
+https://blog.codewithdan.com/docker-volumes-and-print-working-directory-pwd/ - PWD commands for Docker volumes
+
+https://git.oeru.org/oeru/docker-wpms/-/blob/master/docker-compose.yml-sample - OERu Docker compase sample
+

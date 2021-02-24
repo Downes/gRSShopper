@@ -70,9 +70,9 @@ ENV DATE_TIMEZONE UTC
 ENV TERM dumb
 
 
-COPY cgi-enabled.conf /etc/apache2/conf-available/
-COPY ssl-params.conf /etc/apache2/conf-available/
-COPY default-ssl.conf /etc/apache2/conf-available/
+COPY ../cgi-enabled.conf /etc/apache2/conf-available/
+COPY ../ssl-params.conf /etc/apache2/conf-available/
+COPY ../default-ssl.conf /etc/apache2/conf-available/
 
 RUN a2enmod rewrite
 RUN a2enmod ssl
@@ -84,24 +84,31 @@ RUN mkdir /var/www/html/cgi-bin
 RUN a2enconf cgi-enabled 
 
 
-VOLUME ./html:/var/www/html
-VOLUME /var/log/httpd
-VOLUME /etc/apache2
 
-COPY html/index.html /var/www/html/index.html
-COPY html/index.html /var/www/html/index.htm
-COPY html/PLE.html /var/www/html/PLE.html
-COPY html/PLE.html /var/www/html/PLE.htm
-ADD html/assets /var/www/html/assets/
-ADD html/cgi-bin /var/www/html/cgi-bin/
+COPY ../html/index.html /var/www/html/index.html
+COPY ../html/index.html /var/www/html/index.htm
+COPY ../html/PLE.html /var/www/html/PLE.html
+COPY ../html/PLE.html /var/www/html/PLE.htm
+ADD ../html/assets /var/www/html/assets/
+ADD ../cgi-bin /var/www/html/cgi-bin/
 RUN chmod 705 /var/www/html/cgi-bin/*.cgi
-COPY html/cgi-bin/server_test.cgi /var/www/html/cgi-bin
+COPY ../cgi-bin/server_test.cgi /var/www/html/cgi-bin
 RUN chmod 705 /var/www/html/cgi-bin/server_test.cgi
 COPY run-lamp.sh /usr/sbin/
+
+
 
 # Run startup script
 RUN chmod +x /usr/sbin/run-lamp.sh
 RUN chown -R www-data:www-data /var/www/html
+
+
+
+VOLUME /var/www/html
+VOLUME /var/log/httpd
+VOLUME /var/lib/mysql
+VOLUME /var/log/mysql
+VOLUME /etc/apache2
 
 EXPOSE 80
 EXPOSE 443

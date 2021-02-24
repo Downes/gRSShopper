@@ -1,0 +1,29 @@
+<ul class="table-list"><li class="table-list-element"> [<a href="#" onClick="openDiv('https://localhost/cgi-bin/api.cgi','main','edit','box','new','','Edit');">New</a>][<a href="#" onClick="openTab(event,'List','tablinks','list-button');
+			read_into({div:'List',url:'https://localhost/cgi-bin/api.cgi',cmd:'list',table:'box'});">List</a>] Box </li>
+		<li class="table-list-element"> [<a href="#" onClick="openDiv('https://localhost/cgi-bin/api.cgi','main','edit','course','new','','Edit');">New</a>][<a href="#" onClick="openTab(event,'List','tablinks','list-button');
+			read_into({div:'List',url:'https://localhost/cgi-bin/api.cgi',cmd:'list',table:'course'});">List</a>] Course </li>
+		<li class="table-list-element"> [<a href="#" onClick="openDiv('https://localhost/cgi-bin/api.cgi','main','edit','event','new','','Edit');">New</a>][<a href="#" onClick="openTab(event,'List','tablinks','list-button');
+			read_into({div:'List',url:'https://localhost/cgi-bin/api.cgi',cmd:'list',table:'event'});">List</a>] Event </li>
+		<li class="table-list-element"> [<a href="#" onClick="openDiv('https://localhost/cgi-bin/api.cgi','main','edit','feed','new','','Edit');">New</a>][<a href="#" onClick="openTab(event,'List','tablinks','list-button');
+			read_into({div:'List',url:'https://localhost/cgi-bin/api.cgi',cmd:'list',table:'feed'});">List</a>] Feed </li>
+		<li class="table-list-element"> [<a href="#" onClick="openDiv('https://localhost/cgi-bin/api.cgi','main','edit','form','new','','Edit');">New</a>][<a href="#" onClick="openTab(event,'List','tablinks','list-button');
+			read_into({div:'List',url:'https://localhost/cgi-bin/api.cgi',cmd:'list',table:'form'});">List</a>] Form </li>
+		<li class="table-list-element"> [<a href="#" onClick="openDiv('https://localhost/cgi-bin/api.cgi','main','edit','media','new','','Edit');">New</a>][<a href="#" onClick="openTab(event,'List','tablinks','list-button');
+			read_into({div:'List',url:'https://localhost/cgi-bin/api.cgi',cmd:'list',table:'media'});">List</a>] Media </li>
+		<li class="table-list-element"> [<a href="#" onClick="openDiv('https://localhost/cgi-bin/api.cgi','main','edit','optlist','new','','Edit');">New</a>][<a href="#" onClick="openTab(event,'List','tablinks','list-button');
+			read_into({div:'List',url:'https://localhost/cgi-bin/api.cgi',cmd:'list',table:'optlist'});">List</a>] Optlist </li>
+		<li class="table-list-element"> [<a href="#" onClick="openDiv('https://localhost/cgi-bin/api.cgi','main','edit','page','new','','Edit');">New</a>][<a href="#" onClick="openTab(event,'List','tablinks','list-button');
+			read_into({div:'List',url:'https://localhost/cgi-bin/api.cgi',cmd:'list',table:'page'});">List</a>] Page </li>
+		<li class="table-list-element"> [<a href="#" onClick="openDiv('https://localhost/cgi-bin/api.cgi','main','edit','post','new','','Edit');">New</a>][<a href="#" onClick="openTab(event,'List','tablinks','list-button');
+			read_into({div:'List',url:'https://localhost/cgi-bin/api.cgi',cmd:'list',table:'post'});">List</a>] Post </li>
+		<li class="table-list-element"> [<a href="#" onClick="openDiv('https://localhost/cgi-bin/api.cgi','main','edit','presentation','new','','Edit');">New</a>][<a href="#" onClick="openTab(event,'List','tablinks','list-button');
+			read_into({div:'List',url:'https://localhost/cgi-bin/api.cgi',cmd:'list',table:'presentation'});">List</a>] Presentation </li>
+		<li class="table-list-element"> [<a href="#" onClick="openDiv('https://localhost/cgi-bin/api.cgi','main','edit','project','new','','Edit');">New</a>][<a href="#" onClick="openTab(event,'List','tablinks','list-button');
+			read_into({div:'List',url:'https://localhost/cgi-bin/api.cgi',cmd:'list',table:'project'});">List</a>] Project </li>
+		<li class="table-list-element"> [<a href="#" onClick="openDiv('https://localhost/cgi-bin/api.cgi','main','edit','publication','new','','Edit');">New</a>][<a href="#" onClick="openTab(event,'List','tablinks','list-button');
+			read_into({div:'List',url:'https://localhost/cgi-bin/api.cgi',cmd:'list',table:'publication'});">List</a>] Publication </li>
+		<li class="table-list-element"> [<a href="#" onClick="openDiv('https://localhost/cgi-bin/api.cgi','main','edit','template','new','','Edit');">New</a>][<a href="#" onClick="openTab(event,'List','tablinks','list-button');
+			read_into({div:'List',url:'https://localhost/cgi-bin/api.cgi',cmd:'list',table:'template'});">List</a>] Template </li>
+		<li class="table-list-element"> [<a href="#" onClick="openDiv('https://localhost/cgi-bin/api.cgi','main','edit','view','new','','Edit');">New</a>][<a href="#" onClick="openTab(event,'List','tablinks','list-button');
+			read_into({div:'List',url:'https://localhost/cgi-bin/api.cgi',cmd:'list',table:'view'});">List</a>] View </li>
+		</ul>
