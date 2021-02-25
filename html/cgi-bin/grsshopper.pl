@@ -5776,6 +5776,49 @@ sub process_field_types {
 		$output .=  &form_textinput($table,$id_number,$col,$value,40,$fieldlable);
 	}
 
+
+	# provide styling; this is temporary before I move this to a style sheet
+	
+	$output .=qq|<style>
+
+		label {
+  			padding: 12px 12px 0px 12px;
+  			margin:0;
+  			display: inline-block;
+  			color:green;
+		}
+
+		.graph-list-element {
+			font-family: Arial, Helvetica, sans-serif;
+			font-size: 0.875em; /* 14px/16=0.875em */
+			margin-left:1em;
+		}
+		.keylist-input {
+
+		}
+		.keylist-input-form {
+			font-family: Arial, Helvetica, sans-serif;
+			font-size: 0.875em; /* 14px/16=0.875em */
+			margin-left:10px;
+		}
+
+		.keylist-input-field {
+			margin:0;
+			padding:10;
+			width: 40%;
+			height: 1.6em;
+			line-height: 1.6em;
+		}
+
+		.keylist-input-button {
+			margin:0;
+			padding:0;
+			padding-left:5px;padding-right:5px;
+			height: 1.6em;
+			line-height: 1.6em;
+		}
+	</style>|;
+
   return $output;
 
 }
@@ -6003,29 +6046,31 @@ sub form_keylist {
 
 	my $keylist_text = &form_graph_list($table,$id,$key);
 
-  my $input_field;
-  my $count = &db_count($dbh,$key);
-  if ($count < 50) {
+    my $input_field;
+    $input_field = qq|<input list="$key_title" class="keylist-input-field empty-after" placeholder="Add $key_title" id="|.$col.qq|" style="width:|.$size.qq|em;max-width:100%;">|;
+
+  	my $count = &db_count($dbh,$key);
+
+	# Add autofill if there aren't too many items
+  	if ($count < 50) {
+		$input_field .= qq|\n<datalist id="$key_title">\n|;
 		my $titles = &db_get_column($dbh,$key,$key."_title");
-    $input_field = qq|<select id="|.$col.qq|" name="$col">\n<option value="">Add $key_title</option>\n|;
-    foreach my $t (@$titles) {  $input_field .= qq|<option value="$t">$t</option>\n|; }
-    $input_field .= qq|</select>\n|;
-  } else {
-    $input_field = qq|<input type="text" class="empty-after" placeholder="Add $key_title" id="|.$col.qq|" style="width:|.$size.qq|em;max-width:100%;">|;
-  }
+		unless ($titles) { $titles = &db_get_column($dbh,$key,$key."_name");}
+    	foreach my $t (@$titles) { 
+			$input_field .= qq|<option value="$t">\n|; }
+    	$input_field .= qq|</datalist>\n|;
+  	}	 
 
 	return qq|
-		<div style="border-top:solid lightgrey 1px;padding-bottom:0.5em;" >
-      <div>
-         <div id="keylist-title" style="float:left;border:solid white 1px;width:5em;">$key_title</div>
-         <div id="|.$col.qq|_liveupdate" style="margin-left:2em;" >$keylist_text</div>
-      </div>
-      <div id="keylist-input-field" style="margin-left:5em;">
-		    $input_field
-        <span id="|.$col.qq|_button"  style="line-heinght:100%;" ><button type="button" class="btn btn-outline-secondary btn-sm" >Update</button></span>
-      </div>
-    </div>
 
+	<div class="keylist-input">
+	   <label for="$key_title">$key_title</label>
+       <div id="|.$col.qq|_liveupdate" class="keylist-text">$keylist_text</div>
+       <div id="keylist-input-field" class="keylist-input-form">
+		    $input_field
+			<button type="button" id="|.$col.qq|_button" class="keylist-input-button" >Update</button>
+       </div>
+    </div>
 
 
 
@@ -6475,7 +6520,7 @@ sub form_graph_list {
 			$removelink = qq|[<a href="#" onClick="removeKey('$onclickurl','$table','$id','$key','$keyid');">Remove</a>] |;
 			#$removelink = qq| [<a href="$Site->{st_cgi}admin.cgi?table=$table&id=$id&remove=$key/$keyid&action=remove_key">Remove</a>]|;
 		}
-		$output .= qq|<li class="graph_list_element"><a href="$Site->{st_url}$key/$keyid">$keyname</a> $editlink $removelink</li>|;
+		$output .= qq|<li class="graph-list-element"><a href="$Site->{st_url}$key/$keyid" target="new">$keyname</a> $editlink $removelink</li>|;
 		#$output .= $keyid." ".$keyname."<p>";
 	}
 
@@ -10165,7 +10210,7 @@ sub arrays {
 sub check_user {
 #print "Content-type: text/html\n\n";
 #print "Checking user <p>";
-
+	my ($output_format) = @_;
     my $cgi = $query;	# get from the global value
     my $session = new CGI::Session(undef, $cgi, {Directory=>'/tmp'});
     $session->expires("+1y");
@@ -10179,7 +10224,7 @@ sub check_user {
     } 
 	#   $session->clear(["~logged-in"]);
 #print "Into init_login()<p>";	
-    &init_login($session,$cgi);
+    &init_login($session);
 
 
 #print "Back from init_login()";
@@ -10193,9 +10238,9 @@ sub check_user {
 #	    -expires=>"Wed, 22 Oct 2025 07:28:00 GMT",
 #	    -secure=>0);
 
-
+	$output_format ||= "text/html";	# default mime type
     unless ($Site->{context} eq "cron" || $Site->{context} eq "rcomment") {
-		print $cgi->header(-cookie=>$cookie,-charset => 'utf-8');
+		print $cgi->header(-type => $output_format,-cookie=>$cookie,-charset => 'utf-8');
 	}
 
 #print "Content-type: text/html\n\n OK";
@@ -10276,7 +10321,7 @@ sub init_login {
   
 #  print "About to load profile <p>";
        
-    if ( my $profile = _load_profile($lg_name, $lg_psswd) ) {     
+    if ( my $profile = _load_profile($lg_name, $lg_psswd,$output_format) ) {     
         $session->param("~profile", $profile);
         $session->param("~logged-in", 1);
         $session->clear(["~login-trials"]);
@@ -10295,7 +10340,7 @@ sub init_login {
 
 	# Check password, Load profile from profiles file on new login
 sub _load_profile {
-    my ($lg_name, $lg_psswd) = @_;
+    my ($lg_name, $lg_psswd,$output_format) = @_;
     my $cgi = $query;
 #print "Loading profile <p>";
     my $persondata = &db_get_record($dbh,"person",{person_title=>$lg_name});

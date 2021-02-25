@@ -1,5 +1,6 @@
 #!/usr/bin/perl
 use CGI::Carp qw(fatalsToBrowser);
+# Print OK for blank api request
 
 #    gRSShopper 0.7  API 0.01  -- gRSShopper api module
 #    30 December 2017 - Stephen Downes
@@ -325,17 +326,26 @@ use CGI::Carp qw(fatalsToBrowser);
 
 	}
 
+
+
+
+
 # Load User
 	my ($session,$username) = &check_user();
+	#my ($session,$username) = &check_user("application/json");
 	our $Person = {}; bless $Person;
 	&get_person($Person,$username);
 	my $person_id = $Person->{person_id};
 	# print &show_login($session);
 	
 
+
 	
 # Admin Only
-	die "Admin Only" unless (&admin_only());
+	unless (&admin_only()) {
+		print sprintf(qq|{"status":"Error","Message":"Admin Login Required"}|);
+		exit;
+	}
 	
 
 
@@ -351,9 +361,20 @@ use CGI::Carp qw(fatalsToBrowser);
 #
 # -------------------------------------------------------------------------------------
 
+
+
 if ($vars->{app}) { $vars->{cmd} = $vars->{app}; }        #  temporary
 if ($vars->{db}) { $vars->{table} = $vars->{db}; }        #  temporary
 if ($vars->{cmd} eq "list_tables") { $vars->{cmd} = "list"; $vars->{obj}="tables"; }
+
+
+my $cmd = $vars->{cmd};
+my $table = $vars->{table};
+
+if (0) {
+print sprintf(qq|{"cmd":"$cmd","table":"$table"}|);
+exit;
+}
 
 # COMMANDS
 
@@ -920,9 +941,10 @@ if ($vars->{table} eq "media") {
 	}
 
 
-   print "Command $vars->{cmd} not recognized.";
+   print sprintf(qq|{status:"Error",Message: "Command not recognized."}|, $vars->{cmd});
 	 exit;
 }
+
 
 # "
 # API Show ----------------------------------------------------------
@@ -2681,6 +2703,7 @@ if ($vars->{updated} || $vars->{cmd} eq "update") {
 }
 
 # Print OK for blank api request
-print "Content-type: text/html\n\n";
-print "OK";
+print "Content-type: text/json\n\n";
+print sprintf(qq|{status:"OK"}|);
+	
 exit;
