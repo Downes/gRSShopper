@@ -167,5 +167,10 @@ https://www.digitalocean.com/community/tutorials/how-to-use-cron-to-automate-tas
 
 https://blog.codewithdan.com/docker-volumes-and-print-working-directory-pwd/ - PWD commands for Docker volumes
 
-https://git.oeru.org/oeru/docker-wpms/-/blob/master/docker-compose.yml-sample - OERu Docker compase sample
+https://git.oeru.org/oeru/docker-wpms/-/blob/master/docker-compose.yml-sample - OERu 
+Docker compase sample
+
+https://medium.com/@chrischuck35/how-to-create-a-mysql-instance-with-docker-compose-1598f3cc1bee - Chris Chuck - How to Create a MySql Instance with Docker Compose
+
+https://deninet.com/blog/2015/09/01/docker-scratch-part-4-compose-and-volumes - Docker from Scratch, Part 4: Compose and Volumes
 
