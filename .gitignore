@@ -18,3 +18,5 @@ tiny_mce/
 cgi-bin/sql/packs/
 web-data/
 db-data/
+html/author/
+html/post/
