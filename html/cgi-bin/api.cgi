@@ -124,8 +124,8 @@ use CGI::Carp qw(fatalsToBrowser);
 		}
 	}
 
-	if ( ($vars->{cmd} eq "list" && $vars->{table} eq "link") ||
-	   ( $vars->{cmd} eq "list" && $vars->{table} eq "feed" ) ) {
+#	if ( ($vars->{cmd} eq "list" && $vars->{table} eq "link") ||
+#	   ( $vars->{cmd} eq "list" && $vars->{table} eq "feed" ) ) {
 
 
 
@@ -136,7 +136,7 @@ use CGI::Carp qw(fatalsToBrowser);
 
    		my $json = encode_json $data;
    		print $json;exit;
-	}
+#	}
 
 
 	if ($vars->{cmd} eq "list" && $vars->{table} eq "media") {

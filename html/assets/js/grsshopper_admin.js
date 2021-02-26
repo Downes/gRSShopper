@@ -168,6 +168,7 @@ function selectTemplate(request,data,i) {
        if (request.table == 'link') { return linkListTemplate(data,i); }
        if (request.table == 'media') { return mediaListTemplate(data,i); }
        if (request.table == 'feed') { return feedListTemplate(data,i); }       
+       if (request.table == 'post') { return postListTemplate(data,i); }        
     } else if (request.cmd == 'show') {
        if (request.table == 'link') { return linkShowTemplate(request,data,i); }
        if (request.table == 'feed') { return feedShowTemplate(request,data,i); }       
@@ -182,7 +183,7 @@ function mediaListTemplate(data,i) {
 }
 
 function feedListTemplate(data,i) {
-    return `<div class="table-list-element">
+    return `<div class="table-list-element">HH
     <a href="#" onClick="loadData({div:'Reader',cmd:'show',table:'feed',id:'${data[i].id}'});">
     <img src="assets/img/${data[i].status}.jpg"> ${data[i].title}
     <span style="font-size:8pt;"><br/>
@@ -190,6 +191,14 @@ function feedListTemplate(data,i) {
  }
 
 function linkListTemplate(data,i) {
+    return `<div class="table-list-element">
+    <a href="#" onClick="loadData({div:'Reader',cmd:'show',table:'link',id:'${data[i].id}'});">
+    ${data[i].title}</a>
+    <span style="font-size:8pt;"><br/>
+    ${data[i].section} - ${data[i].genre} - ${data[i].category} - ${data[i].status}</span></div>`;
+}
+
+function postListTemplate(data,i) {
     return `<div class="table-list-element">
     <a href="#" onClick="loadData({div:'Reader',cmd:'show',table:'link',id:'${data[i].id}'});">
     ${data[i].title}</a>

@@ -1206,14 +1206,17 @@ sub list_tables {
 		my $onclickurl = $Site->{st_cgi}."api.cgi";
 		$output .= qq|<li class="table-list-element">|;
 		if ($tab eq "make") { $output .= qq| [<a href="#" onClick="openDiv('$onclickurl','main','edit','$tname','new','','Edit');">New</a>]|; }
+
 		if ($tab eq "find") { $output .= qq| [<a href="#" onClick="openDiv('$onclickurl','main','import','$tname','','','Import');">Import</a>]|; }
+
+# loadList({div:'Read',cmd:'list',table:'link'});
 
 
 		$output .= qq|[<a href="#" onClick="openTab(event,'List','tablinks','list-button');
-			read_into({div:'List',url:'$onclickurl',cmd:'list',table:'$tname'});">List</a>] |.
+			loadList({div:'List',cmd:'list',table:'$tname'});">List</a>] |.
     	ucfirst($tname).qq| </li>\n		|;
 
-
+# read_into({div:'List',url:'$onclickurl',cmd:'list',table:'$tname'});
 	}
 
 	# Return nicely formatted output
@@ -1311,7 +1314,7 @@ sub list_records {
 
 
 	#if ($table eq "media" || $table eq "link" || $table eq "feed") {
-	if ($table eq "media" || $table eq "link") {
+	#if ($table eq "media" || $table eq "link" || $table eq "feed") {
 		my $listarray;
 		my $feeds_data;	# Cache, so we don't reload feed info for each item
 		while (my $list_record = $sthl -> fetchrow_hashref()) {
@@ -1372,7 +1375,7 @@ sub list_records {
 			push @$listarray,$itemdata;
 		}
 		return $listarray;
-	}
+	#}
 
 
 
@@ -4701,21 +4704,10 @@ sub Tab_Left_Sidebar {
   my ($window) = @_;
 
  return qq|<!-- Open Sidebar Button --><li class="nav-item"><span class="nav-link" style="cursor:pointer" data-toggle="tab"
-onclick="openNav();"><i class="fa fa-database" style="color:green;font-size:1.2em;"></i></span></li>|.&Tab_Reader_Modal();
+onclick="openNav();"><i class="fa fa-database" style="color:green;font-size:1.2em;"></i></span></li>|;
 
 }
 
-sub Tab_Reader_Modal {
-
-   return sprintf(qq|<!-- Reader Tab -->
-	 <li class="nav-item">
-	   <span class="nav-link" style="cursor:pointer" data-toggle="modal" data-target="#readerModal"
-		     onclick="if (modalLoaded !== 1) { \$('#reader-modal-content').load('%sviewer.cgi?action=viewer&table=link'); modalLoaded = 1;}">
-	    <img src="%sassets/icons/grssicon.JPG" border=0 width=20 alt="Open Reader" title="Open Reader">
-	   </span>
-	 </li>|,$Site->{st_cgi},$Site->{st_url});
-
-}
 
 sub Tab_Right_Sidebar {
 	my ($window) = @_;
@@ -5793,6 +5785,25 @@ sub process_field_types {
 			font-size: 0.875em; /* 14px/16=0.875em */
 			margin-left:1em;
 		}
+
+		.text-input {
+
+		}
+
+		.text-input-form {
+			font-family: Arial, Helvetica, sans-serif;
+			font-size: 0.875em; /* 14px/16=0.875em */
+			margin-left:10px;
+		}
+
+		.text-input-field {
+			margin:0;
+			padding:10;
+			width: 40%;
+			height: 1.6em;
+			line-height: 1.6em;
+		}
+
 		.keylist-input {
 
 		}
@@ -5817,6 +5828,26 @@ sub process_field_types {
 			height: 1.6em;
 			line-height: 1.6em;
 		}
+
+		.optlist-input {
+
+		}
+
+		.optlist-input-form {
+			font-family: Arial, Helvetica, sans-serif;
+			font-size: 0.875em; /* 14px/16=0.875em */
+			margin-left:10px;
+		}
+
+		.row button {
+			margin:0;
+			margin-right:3px;
+			padding:0;
+			padding-left:5px;padding-right:5px;
+			height: 1.6em;
+			line-height: 1.6em;
+		}
+
 	</style>|;
 
   return $output;
@@ -5835,21 +5866,27 @@ sub process_field_types {
 
 sub form_textinput {
 	my ($table,$id,$col,$value,$size,$fieldlable,$advice) = @_;
-  my $url = $Site->{st_cgi}."api.cgi";
+  	my $url = $Site->{st_cgi}."api.cgi";
 	$value =~ s/"/\\"/sg;
 	my $placeholder = ucfirst($col); $placeholder =~ s/_/ /g;
-  if ($fieldlable) { $fieldlable = qq|<span class="fieldlable" id="$col-fieldlable">$fieldlable</span>|;}
+	unless ($fieldlable) { $fieldlable = $col; }
+	$fieldlable =~ s/$table//i;
+	$fieldlable =~ s/_//i;
+	$fieldlable = ucfirst($fieldlable);
 
 	# Old-Style Form Alternative
 	if (defined($vars->{raw_form})) { return qq|<tr><td class="column-name" align="right" width="200">$col</td><td><input type="text" name="$col" value="$value"></td></tr>|; }
 
 	return qq|
-		<div>
-		$fieldlable
-		<input type="text" placeholder="$placeholder" id="|.$col.qq|" value="$value" style="width:|.$size.qq|em;max-width:100%;">$advice
+		<div class="text-input">
+			<label for="$col">$fieldlable</label>
+			<div class="text-input-form">
+				<input type="text" class="text-input-field" placeholder="$placeholder" id="|.$col.qq|" value="$value" style="width:|.$size.qq|em;max-width:90%;">$advice
+			
+				<div id="|.$col.qq|_div" class="spinner-donut"></div>
+				<div id="|.$col.qq|_result"></div>
+			</div>
 		</div>
-		<div id="|.$col.qq|_div" class="spinner-donut"></div>
-		<div id="|.$col.qq|_result"></div>
 		<script>
 			\$('#|.$col.qq|').on('change',function(){
 				  var content = \$('#|.$col.qq|').val();
@@ -6840,8 +6877,11 @@ sub form_select {
 	my ($window,$table,$id,$col,$selected_value,$fieldsize,$advice,$options,$fieldlable,$defined) = @_;
 	unless ($window->{form_defined}) { $fieldsize=1;}
 
-  my $url = $Site->{st_cgi}."api.cgi";
-  if ($fieldlable) { $fieldlable = qq|<span class="fieldlable" id="$col-fieldlable">$fieldlable</span>|;}
+  	my $url = $Site->{st_cgi}."api.cgi";
+	unless ($fieldlable) { $fieldlable = $col;}
+	$fieldlable =~ s/_/ /;
+	$fieldlable = ucfirst($fieldlable);
+
 	my $multiple; if ($window->{form_defined} && $fieldsize>1) { $multiple = " multiple size=$fieldsize";}
   if ($defined) { $defined = "defined";} else { $defined = "undefined"; }  #Was this field defined in a form table for the current table
   # Uses plugin from
@@ -6849,10 +6889,16 @@ sub form_select {
 
 	# $fieldlable
 	return qq|
-	  <div>
-	      <div class="row form-group" style="margin-left:5px;"> <select id="$col" $multiple>$options</select></div>
-		 </div><div id="|.$col.qq|_result"></div>
-		  <div id="|.$col.qq|_div" class="spinner-donut"></div>
+		<div class="optlist-input">
+	  		<label for="$col">$fieldlable</label>
+			<div class="optlist-input-form">
+	      		<div class="row form-group" style="margin-left:5px;"> 		
+		  			<select id="$col" $multiple>$options</select>
+				</div>
+				<div id="|.$col.qq|_result"></div>
+		  		<div id="|.$col.qq|_div" class="spinner-donut"></div>
+			</div>
+		</div>
 		 <script>
        \$( document ).ready(function() {
 		    \$('#|.$col.qq|').togglebutton();
