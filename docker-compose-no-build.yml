@@ -20,27 +20,15 @@ services:
     networks:
       - grss  
   grsshopper:
-    build: 
-      context: .
-      dockerfile: Dockerfile
-    volumes:
-      - ./html:/var/www/html
+    image: downes/grsshopper 
     ports:
       - "443:443"   
     networks:
       - grss          
-  adminer:
-    image: adminer
-    restart: always
-    ports: 
-      - 8080:8080
-    networks:
-      - grss 
+
 volumes:
   db-data: {}
 
 networks:
   grss:
-
-
-
+  
