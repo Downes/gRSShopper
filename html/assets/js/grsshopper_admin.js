@@ -184,7 +184,7 @@ function mediaListTemplate(data,i) {
 
 function feedListTemplate(data,i) {
     return `<div class="table-list-element">HH
-    <a href="#" onClick="loadData({div:'Reader',cmd:'show',table:'feed',id:'${data[i].id}'});">
+    <a href="#" onClick="openDiv(url,'main','edit','feed','${data[i].id}','Edit');">
     <img src="assets/img/${data[i].status}.jpg"> ${data[i].title}
     <span style="font-size:8pt;"><br/>
     ${data[i].section} - ${data[i].genre} - ${data[i].category} - ${data[i].status}</span></div>`;
@@ -200,10 +200,9 @@ function linkListTemplate(data,i) {
 
 function postListTemplate(data,i) {
     return `<div class="table-list-element">
-    <a href="#" onClick="loadData({div:'Reader',cmd:'show',table:'link',id:'${data[i].id}'});">
+    <a href="#" openDiv(url,'main','edit','post','${data[i].id}','Edit');">
     ${data[i].title}</a>
-    <span style="font-size:8pt;"><br/>
-    ${data[i].section} - ${data[i].genre} - ${data[i].category} - ${data[i].status}</span></div>`;
+    </div>`;
 }
 
 function feedShowTemplate(request,data,i) {
@@ -282,7 +281,7 @@ function templater(strings, ...keys) {
 function openDiv(url,div,app,db,id,title,starting_tab,autopost) {
 //alert("Cmd: "+app+", Table: "+db+", ID: "+id+", Title: "+title+", Starting Tab: "+starting_tab+"Autopost: "+autopost);
     // Assign a URL to main add an "active" class to the button that opened the tab
-
+alert(url+","+div+","+app+","+db+","+id+","+title+","+starting_tab);
     if (title) { url = url + "?cmd="+app+"&app="+app+"&db="+db+"&id="+id+"&title="+title+"&autopost="+autopost; }
     else if (id) { url = url + "?cmd="+app+"&app="+app+"&db="+db+"&id="+id+"&autopost="+autopost; }
     else { url = url + "?cmd="+app+"&app="+app+"&db="+db; }
