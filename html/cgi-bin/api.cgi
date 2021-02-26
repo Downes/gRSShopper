@@ -127,7 +127,9 @@ use CGI::Carp qw(fatalsToBrowser);
 #	if ( ($vars->{cmd} eq "list" && $vars->{table} eq "link") ||
 #	   ( $vars->{cmd} eq "list" && $vars->{table} eq "feed" ) ) {
 
-
+	# these if statements are all temporary as I work to replace 'list'
+	if ($vars->{cmd} eq "list" && $vars->{table}) {
+	unless ($vars->{table} eq "tables" || $vars->{table} eq "general") {
 
 		print "Content-type: text/json\n\n";
    		$vars->{format} = "json";
@@ -136,7 +138,7 @@ use CGI::Carp qw(fatalsToBrowser);
 
    		my $json = encode_json $data;
    		print $json;exit;
-#	}
+	} }
 
 
 	if ($vars->{cmd} eq "list" && $vars->{table} eq "media") {
