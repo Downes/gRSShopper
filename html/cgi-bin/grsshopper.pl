@@ -4597,7 +4597,7 @@ sub main_window {
 			$form_tabs_content .= qq|
 			<!-- $tab -->
 			<div class="tab-pane fade $window->{show_active}" id="$tab_div" role="tabpanel" aria-labelledby="$tab_div-tab"  style="height:100%;">
-				<div style="height:100%;">$tab_content</div>
+				<div style="z-index:-1;height:100%;">$tab_content</div>
 			</div>|;
 
 	}
@@ -5787,13 +5787,14 @@ sub process_field_types {
 		}
 
 		.text-input {
-
+			z-index: 1;
 		}
 
 		.text-input-form {
 			font-family: Arial, Helvetica, sans-serif;
 			font-size: 0.875em; /* 14px/16=0.875em */
 			margin-left:10px;
+			max-width: 60em;
 		}
 
 		.text-input-field {
@@ -5801,7 +5802,7 @@ sub process_field_types {
 			padding:10;
 			width: 40%;
 			height: 1.6em;
-			line-height: 1.6em;
+			line-height: 1.8em;
 		}
 
 		.keylist-input {
@@ -5882,11 +5883,9 @@ sub form_textinput {
 			<label for="$col">$fieldlable</label>
 			<div class="text-input-form">
 				<input type="text" class="text-input-field" placeholder="$placeholder" id="|.$col.qq|" value="$value" style="width:|.$size.qq|em;max-width:90%;">$advice
-			
-				<div id="|.$col.qq|_div" class="spinner-donut"></div>
-				<div id="|.$col.qq|_result"></div>
 			</div>
 		</div>
+		<div id="|.$col.qq|_result"></div>
 		<script>
 			\$('#|.$col.qq|').on('change',function(){
 				  var content = \$('#|.$col.qq|').val();
@@ -5932,8 +5931,7 @@ sub form_textarea {
 		<div>
 		   <textarea id="|.$col.qq|" placeholder="$placeholder" contenteditable="true"
 		   style="width:|.$width.qq|em; max-width:100%; height:|.$height.qq|em; line-height:1.8em;">$value</textarea>
-			 <br><span id="|.$col.qq|_result"></span>$advice
-		<div id="|.$col.qq|_div" class="spinner-donut"></div>	 
+			 <br><span id="|.$col.qq|_result"></span>$advice 
 		</div>
 
 
@@ -6192,7 +6190,6 @@ sub form_file_select {
 	    	id="|.$col.qq|" style="width:|.$size.qq|em;max-width:100%;">
     	<span id="|.$col.qq|_button"><button>Update</button></span>
   		<span id="|.$col.qq|_result" style="float:left;"></span>$advice<br><br>
-		  <div id="|.$col.qq|_div" class="spinner-donut"></div>
   	</div>
 
  		<script>
@@ -6594,8 +6591,8 @@ sub form_date_select {
 	  <div>
 		$fieldlable
 		<input type="text" id="$col" value="$value" style="width:|.$size.qq|em;max-width:100%;">
-		<span id="|.$col.qq|_result"><div id="|.$col.qq|_div" class="spinner-donut"></div>
-
+		<span id="|.$col.qq|_result">
+		
 		<script>
 		\$( function() {
 
@@ -6639,8 +6636,8 @@ sub form_date_time_select {
 	 <div>
 	 $fieldlable
 	 <input type="text" id="$col" value="$dpvalue" style="width:|.$size.qq|em;max-width:100%;">
-	 <span id="|.$col.qq|_result"></span><div id="|.$col.qq|_div" class="spinner-donut"></div>
-
+	 <span id="|.$col.qq|_result"></span>
+	 
 	 <script>
    \$( document ).ready(function() {
 		 \$('#$col').datetimepicker({
@@ -6795,7 +6792,6 @@ sub form_yesno {
 		  <input type="checkbox" id="$col-checkbox" class="toggle-check-input" $checked/>
 		  <span class="toggle-check-text"></span> $advice
 		</label>
-		   <div id="|.$col.qq|_div" class="spinner-donut"></div>
 		</div>
 		<script>
 		var url = "$url";
@@ -6896,7 +6892,6 @@ sub form_select {
 		  			<select id="$col" $multiple>$options</select>
 				</div>
 				<div id="|.$col.qq|_result"></div>
-		  		<div id="|.$col.qq|_div" class="spinner-donut"></div>
 			</div>
 		</div>
 		 <script>

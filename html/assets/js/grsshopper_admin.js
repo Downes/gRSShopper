@@ -580,9 +580,18 @@ function list_form_submit(url,formid) {
 // API Input Submission Function
 //
 
+function spin_on() {
+    var spinner = document.getElementById("spinner-donut");
+    spinner.style.display = "block";
+}
+
+function spin_off() {
+    var spinner = document.getElementById("spinner-donut");
+    setTimeout(() => { spinner.style.display = "none"; }, 500);
+}
 
 function api_submit(url,div,cmd,obj,table,id,col,content) {
-        $('#'+div+"_div").addClass('spinner');
+        spin_on();
         $.ajax({
             url: url,
             data: {cmd:cmd,obj:obj,table:table,id:id,col:col,content:content},
@@ -593,7 +602,7 @@ function api_submit(url,div,cmd,obj,table,id,col,content) {
             success: function(value) {
                 $('#'+div+'_result').html("<div class=\"success\">"+value+"</div>");
                 $('#'+div+'_liveupdate').html(value);
-                $('#'+div+'_result').show();
+               // $('#'+div+'_result').show();
 // alert(previewURL);
                 var previewUrl= url+"?cmd=show&table="+table+"&id="+id+"&format=summary";
                 $('#Preview').load(previewUrl);
@@ -601,8 +610,8 @@ function api_submit(url,div,cmd,obj,table,id,col,content) {
                },
             type: "post",
         });
-        setTimeout(function(){$('#'+div+"_div").removeClass('spinner');}, 1000);
-        setTimeout(function(){$('#'+div+"_result").hide();}, 100000);
+        spin_off();
+        //setTimeout(function(){$('#'+div+"_result").hide();}, 100000);
 }
 
 
@@ -613,7 +622,7 @@ function api_submit(url,div,cmd,obj,table,id,col,content) {
 
 function submit_function(url,table,id,col_name,content,type) {
 //alert("Called"+table+id+col_name+content+type);
-        $('#'+col_name+"_div").addClass('spinner');
+        spin_on();
         $.ajax({
             url: url,
             data: {cmd:'update',type:type,table_id:id,table_name:table,updated:1,value:content,col_name:col_name,type:type},
@@ -626,7 +635,7 @@ function submit_function(url,table,id,col_name,content,type) {
                 $('#'+col_name+'_result').hide();
                 $('#'+col_name+'_result').html("<div class=\"success\">"+value+"</div>");
                 $('#'+col_name+'_liveupdate').html(value);
-                $('#'+col_name+'_result').show();
+                //$('#'+col_name+'_result').show();
                 var previewUrl= url+"?cmd=show&table="+table+"&id="+id+"&format=summary";
                 $('#Preview').load(previewUrl);
                 $('.empty-after').val("");
@@ -634,8 +643,8 @@ function submit_function(url,table,id,col_name,content,type) {
             type: "post",
         });
 
-        setTimeout(function(){$('#'+col_name+"_div").removeClass('spinner');}, 1000);
-        setTimeout(function(){$('#'+col_name+"_result").hide();}, 100000);
+        spin_off();
+        //setTimeout(function(){$('#'+col_name+"_result").hide();}, 100000);
 }
 
 function record_delete(url,table,id,col_name,content,type) {
@@ -680,7 +689,7 @@ function removeKey(url,table,id,key,keyid) {
 
 function submit_column(url,table,id,col_name,content,type) {
         $('#submit_column_result').hide();
-        $('#columns_table').addClass('spinner');
+        spin_on();
         $.ajax({
             url: url,
             data: {type:type,table_id:id,table_name:table,updated:1,value:content,col_name:col_name,type:type},
@@ -689,17 +698,17 @@ function submit_column(url,table,id,col_name,content,type) {
                 $('#submit_column_result').show(); },
             success: function(value) {
                 $('#submit_columns_result').html("<div class=\"success\">"+value+"</div>");
-                $('#submit_columns_result').show();
+                //$('#submit_columns_result').show();
                },
             type: "post",
         });
-        setTimeout(function(){$('#columns_table').removeClass('spinner');}, 1000);
+        spin_off();
 }
 
 function alter_column(url,table,col_name) {
 
         $('#submit_column_result').hide();
-        $('#columns_table').addClass('spinner');
+        spin_on();
 
         var content = col_name +';'+
             $('#'+col_name+'_type').val() +';'+
@@ -712,16 +721,16 @@ function alter_column(url,table,col_name) {
                 $('#submit_column_result').show(); },
             success: function(value) {
                 $('#submit_columns_result').html("<div class=\"success\">"+value+"</div>");
-                $('#submit_columns_result').show();
+               // $('#submit_columns_result').show();
                },
             type: "post",
         });
-        setTimeout(function(){$('#columns_table').removeClass('spinner');}, 1000);
+        spin_off();
 }
 
 function remove_column(url,table,col_name,content) {
         $('#submit_column_result').hide();
-        $('#columns_table').addClass('spinner');
+        spin_on();
 
         $.ajax({
             url: url,
@@ -731,11 +740,11 @@ function remove_column(url,table,col_name,content) {
                 $('#submit_column_result').show(); },
             success: function(value) {
                 $('#submit_columns_result').html("<div class=\"success\">"+value+"</div>");
-                $('#submit_columns_result').show();
+              //  $('#submit_columns_result').show();
                },
             type: "post",
         });
-        setTimeout(function(){$('#columns_table').removeClass('spinner');}, 1000);
+        spin_off();
 }
 
 

@@ -84,6 +84,7 @@ a {color:#a85038; }
 #main {
     transition: margin-left .5s;
     padding: 0px;
+    position: absolute;
 }
 
 /* Tab-Pane - tabs in main window */
@@ -284,31 +285,24 @@ a {color:#a85038; }
 
 /* Spinner CSS */
 
-.thing {
-  position: relative;
-  width: 100%;
-}
+#spinner-donut {
 
-@keyframes spinner {
-  to {transform: rotate(360deg);}
-}
-
-
-.spinner:before {
-  content: '';
-  box-sizing: border-box;
   position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 20px;
-  height: 20px;
-  margin-top: -10px;
-  margin-left: -10px;
-  border-radius: 50%;
-  border: 2px solid #ccc;
-  border-top-color: #333;
-  animation: spinner .6s linear infinite;
+  top:30%;
+  left:50%;
+  width:50px;
+  height:50px;
+  background-image:url('../img/ajax-loader.gif');
+  background-size: 50px;
+  background-repeat:no-repeat;
+  background-position:center;
+  z-index:10000000;
+  opacity: 0.4;
+  filter: alpha(opacity=40);
+  display:none;
+  
 }
+
 
 #myModal4 .modal-dialog  {width:75%;}
 @media screen and (min-width: 768px) {
