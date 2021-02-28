@@ -9,6 +9,10 @@ LABEL Description="Cutting-edge LAMP stack, based on Ubuntu 20.10 LTS. Includes 
 RUN apt-get update
 RUN apt-get upgrade -y
 
+RUN apt-get install systemd -y
+RUN apt-get install cron -y
+RUN systemctl enable cron
+
 COPY debconf.selections /tmp/
 RUN debconf-set-selections /tmp/debconf.selections
 
@@ -99,6 +103,12 @@ COPY html/cgi-bin/server_test.cgi /var/www/html/cgi-bin
 RUN chmod 705 /var/www/html/cgi-bin/server_test.cgi
 COPY run-lamp.sh /usr/sbin/
 
+# Set up cron
+COPY cronfile /etc/cron.d/cronfile
+RUN chmod 0644 /etc/cron.d/cronfile
+RUN crontab /etc/cron.d/cronfile
+RUN touch /var/log/cron.log
+
 # Run startup script
 RUN chmod +x /usr/sbin/run-lamp.sh
 RUN chown -R www-data:www-data /var/www/html
@@ -107,4 +117,6 @@ EXPOSE 80
 EXPOSE 443
 EXPOSE 3306
 
-CMD ["/usr/sbin/run-lamp.sh"]
+# Run everything in parallel
+COPY entrypoint.sh /entrypoint.sh
+CMD /entrypoint.sh & cron & /usr/sbin/run-lamp.sh

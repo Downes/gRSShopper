@@ -1,2 +1,2 @@
-*   *   *   *   *   /var/www/html/cgi-bin/admin.cgi localhost   /var/www/html/cgi-bin/data/multisite.txt >/dev/null 2>&1
+*   *   *   *   *   /var/www/html/cgi-bin/admin.cgi localhost   /var/www/html/cgi-bin/data/multisite.txt
 # An empty line is required at the end of this file for a valid cron file.
