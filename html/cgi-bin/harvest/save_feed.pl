@@ -439,7 +439,7 @@ sub find_author_information {
 	&diag(4,qq|<div class="function">Find Author Information<div class="info">|);
 
 	# Find author information
-	if (not defined(@{$item->{authors}}) || @{$item->{authors}} == 0) {						# If no author inormation in item
+	if (not (@{$item->{authors}}) || @{$item->{authors}} == 0) {						# If no author inormation in item
 		if (@{$feed->{authors}} > 0) {					# then use feed author information
 			foreach my $aut (@{$feed->{authors}}) { push @{$item->{authors}}, $aut; }
 		} else {							# or use values from the feed record
