@@ -577,7 +577,7 @@ CREATE TABLE `link` (
   `link_status` varchar(250) COLLATE utf8_unicode_ci DEFAULT NULL,
   `link_post` varchar(250) COLLATE utf8_unicode_ci DEFAULT NULL,
   `link_genre` varchar(250) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `link_section` varchar(24) COLLATE utf8_unicode_ci NOT NULL,
+  `link_section` varchar(24) COLLATE utf8_unicode_ci DEFAULT NULL,
   `link_read` varchar(5) COLLATE utf8_unicode_ci NOT NULL DEFAULT 'no',
   `link_rating` varchar(5) COLLATE utf8_unicode_ci NOT NULL DEFAULT '0',
   `link_star` int(11) NOT NULL DEFAULT '0'
