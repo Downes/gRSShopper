@@ -174,3 +174,5 @@ https://medium.com/@chrischuck35/how-to-create-a-mysql-instance-with-docker-comp
 
 https://deninet.com/blog/2015/09/01/docker-scratch-part-4-compose-and-volumes - Docker from Scratch, Part 4: Compose and Volumes
 
+https://5balloons.info/overlay-a-div-with-loading-spinner-image-in-center/ - spinner image
+
