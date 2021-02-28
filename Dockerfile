@@ -118,5 +118,4 @@ EXPOSE 443
 EXPOSE 3306
 
 # Run everything in parallel
-COPY entrypoint.sh /entrypoint.sh
-CMD /entrypoint.sh & cron & /usr/sbin/run-lamp.sh
+CMD cron & /usr/sbin/run-lamp.sh
