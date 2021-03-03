@@ -21,7 +21,11 @@ a {color:#a85038; }
 .email_byline { font: 400 12pt/16pt Verdana,Arial, sans-serif;color:#000040;line-height:120%;}
 
 
+/* Containers */
 
+.container {
+  width:100%;
+}
 
 
 
