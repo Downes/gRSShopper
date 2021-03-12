@@ -47,18 +47,20 @@
 <link rel="stylesheet" href="assets/css/font-awesome.5.0.6.all.css">
   
 
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/mini.css/3.0.1/mini-default.min.css">
+
 <!-- gRSShopper -->
 <script src="assets/js/gRSShopper_dataTemplates.js"></script>
 <script src="assets/js/grsshopper_admin.js"></script>
 <link rel="stylesheet" href="assets/css/grsshopper_admin.css">
 
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/mini.css/3.0.1/mini-default.min.css">
+
 
 </head>
  
 
-<body onload="startUp('cgi-bin/api.cgi');" style="background-color:#ccc;">
+<body onload="startUp('cgi-bin/api.cgi');" style="background-color:white;">
 
 <div id="spinner-donut" class="spinner-donut"></div>
 <div id="page_frame" style="position:absolute;z-index:1;width:100vw;">
@@ -71,13 +73,13 @@
 <div id="mySidenav" class="sidenav">
 
   <!-- Tabs -->
-  <div class="tab">
-    <div tabindex="0" role="button" class="small" aria-pressed="false" onclick="openTab(event, 'Read', 'tablinks')">Read</div>
-    <div tabindex="1" role="button" class="small" aria-pressed="false" onclick="openTab(event, 'Make', 'tablinks')">Make</div>
-    <div tabindex="2" role="button" class="small" aria-pressed="false" onclick="openTab(event, 'Find', 'tablinks')">Find</div>
-    <div tabindex="3" role="button" class="small" aria-pressed="false" onclick="openTab(event, 'Listen', 'tablinks')">Listen</div>
-    <div tabindex="4" role="button" class="small" id="list-button" aria-pressed="false" onclick="openTab(event, 'List', 'tablinks')">List</div>
-    <div tabindex="5" role="button"  class="small" aria-pressed="false" onclick="closeNav()">«</div>
+  <div class="tabPanel">
+    <div tabindex="0" role="button" class="tab tablinks" aria-pressed="false" onclick="openTab(event, 'Read', 'tablinks')">Read</div>
+    <div tabindex="1" role="button" class="tab tablinks" aria-pressed="false" onclick="openTab(event, 'Make', 'tablinks')">Make</div>
+    <div tabindex="2" role="button" class="tab tablinks" aria-pressed="false" onclick="openTab(event, 'Find', 'tablinks')">Find</div>
+    <div tabindex="3" role="button" class="tab tablinks" aria-pressed="false" onclick="openTab(event, 'Listen', 'tablinks')">Listen</div>
+    <div tabindex="4" role="button" class="tab tablinks" id="list-button" aria-pressed="false" onclick="openTab(event, 'List', 'tablinks')">List</div>
+    <div tabindex="5" role="button"  class="tab tablinks" aria-pressed="false" onclick="closeNav()">«</div>
   </div>
 
   <!-- Tab contents -->
@@ -128,6 +130,7 @@
     <!-- List Tab -->
     <div id="List" class="tabcontent"></div>
   </div>     <!-- End Tab Contents  -->
+
 </div>     <!-- End Side Nav -->
 
 <!-- ----------------------- -->
@@ -136,14 +139,12 @@
 <div id="myTalknav" class="talknav">
 
   <!-- Tabs -->
-  <div class="tab">
-    
-    <button class="small" onclick="closeTalkNav()">»</button>
-    <button class="small" onclick="openTab(event, 'Myself','sociallinks')">Myself</button>
-    <button class="small" onclick="openTab(event, 'Discuss','sociallinks')">Discuss</button>
-    <button class="small" onclick="$('#chatframe').attr('src','cgi-bin/cchat.cgi');openTab(event, 'Chatter','sociallinks')">Chatter</button>
-    <button class="small" onclick="openTab(event, 'Email','sociallinks')">Email</button>
-
+  <div class="tabPanel">
+    <div tabindex="0" role="button" class="tab sociallinks" aria-pressed="false" onclick="closeTalkNav()">»</div>
+    <div tabindex="0" role="button" class="tab sociallinks" aria-pressed="false" onclick="openTab(event, 'Myself', 'sociallinks')">Myself</div>
+    <div tabindex="0" role="button" class="tab sociallinks" aria-pressed="false" onclick="openTab(event, 'Discuss', 'sociallinks')">Discuss</div>
+    <div tabindex="0" role="button" class="tab sociallinks" aria-pressed="false" onclick="$('#chatframe').attr('src','cgi-bin/cchat.cgi');openTab(event, 'Chatter', 'sociallinks')">Chatter</div>
+    <div tabindex="0" role="button" class="tab sociallinks" aria-pressed="false" onclick="openTab(event, 'Email', 'sociallinks')">Email</div>
   </div>
 
   <!-- Tab contents -->
@@ -153,6 +154,8 @@
     <div id="Myself" class="talktabcontent">
       
       <div style="width:100%;padding:15px;">
+        <iframe id="loginWidget" src="cgi-bin/login_widget.cgi" height="80" width="100%" title="Login" style="border:0;"></iframe>
+
         <div style="background-color:#cecece;width:100%;height:50px;padding:12px;">
           Personal Profile: 
           <button class="small" type="button" onClick="openDiv('page/Profile','main');">View</button> 
@@ -202,6 +205,7 @@
 
     <!-- Chatter Tab Content -->
     <div id="Chatter" class="talktabcontent" style="margin:0; padding:0; height:100%;border 0px none !important;">
+
       <iframe id="chatframe"  frameBorder="0" style="width:100%;height:100%;border 0px none !important;"></iframe>
     </div>
 
@@ -211,6 +215,7 @@
       <p>Nothing here yet.</p>
     </div>
   </div> <!-- End Tab contents -->
+
 </div> <!-- End Right Pane -->
 
 
@@ -219,98 +224,53 @@
 <!-- Main Content -->
 <div id="main">
 
-  <!-- Main Content Tabs -->
-  <span class="nav-link" style="cursor:pointer;float:right!important;" data-toggle="tab" onclick="openTalkNav()"><i class="fa fa-user" style="color:green;font-size:1.2em;"></i></span>
+  <!-- Begin Main Content Tabs -->
+  <div class="tabPanel">
+    <div class="tab mainlinks" style="float:right!important;" data-toggle="tab" 
+    onclick="openTalkNav(); openTab('', 'Myself', 'sociallinks');"><i class="fa fa-user" style="color:green;font-size:1.2em;"></i></div>
 
-  <span class="nav-link" style="cursor:pointer;float:right!important;" data-toggle="tab"  onclick="openDiv('cgi-bin/api.cgi','main','admin','general','general','');"><i class="fa fa-gear" style="color:green;font-size:1.2em;"></i></span>
+  <div class="tab mainlinks" style="float:right!important;" data-toggle="tab" onclick="openTab(event, 'Admin', 'mainlinks','admin-button');openDiv('cgi-bin/api.cgi','Admin','admin','general','general','');"><i class="fa fa-gear" style="color:green;font-size:1.2em;"></i></div>
 
-  <ul class="nav nav-tabs" id="myTab" role="tablist">
-
-    <li class="nav-item"><span class="nav-link" style="cursor:pointer" data-toggle="tab" onclick="openNav();"><i class="fa fa-database" style="color:green;font-size:1.2em;"></i></span></li>
-
-    <li class="nav-item"><a class="nav-link active" id="Reader-tab" data-toggle="tab" href="#Reader" role="tab" aria-controls="Reader" aria-selected="true">Reader</a>
-    </li>
-    
-    <li class="nav-item"><a class="nav-link" id="profile-tab" data-toggle="tab" href="#profile" role="tab" aria-controls="profile" aria-selected="false">Profile</a>
-    </li>
-    
-    <li class="nav-item"><a class="nav-link" id="contact-tab" data-toggle="tab" href="#contact" role="tab" aria-controls="contact" aria-selected="false">Contact</a>
-    </li>
-
-  </ul>
-
+    <div tabindex="0" role="button" class="tab mainlinks" onclick="openNav();"><i class="fa fa-database" style="color:green;font-size:1.2em;"></i></div>
+    <div tabindex="0" role="button" class="tab mainlinks" onclick="
+        loadHTML({div:'Reader',cmd:'show',table:'page',id:'gRSShopper: Start'});
+        openTab(event, 'Reader', 'mainlinks');
+    "><img src="assets/img/gRSSicon.png"></div>
+    <div tabindex="1" role="button" class="tab mainlinks" aria-pressed="false" onclick="openTab(event, 'Reader', 'mainlinks')">Reader</div>
+    <div tabindex="2" role="button" id="editorButton" class="tab mainlinks" aria-pressed="false" onclick="openTab(event, 'editor', 'mainlinks')">Editor</div>
+    <div tabindex="3" role="button" class="tab mainlinks" aria-pressed="false" onclick="openTab(event, 'Profile', 'mainlinks')">Profile</div>
+    <div tabindex="3" role="button" class="tab mainlinks"  style="display:none;" aria-pressed="false" onclick="openTab(event, 'Admin', 'mainlinks')" id="admin-button">Admin</div>
+  </div>
   <!-- End Main Content Tabs -->
 
-  <!-- Main Content Tab Contents -->
-  <div class="tab-content" id="myTabContent">
 
-    <!-- A -->
-    <div class="tab-pane fade show active" id="Reader" role="tabpanel" aria-labelledby="Reader-tab">
 
-    <!-- This is the welcome screen for the gRSShopper PLE -->
+<!-- Begin Main Content Panes -->
+<div class="tabcontents">
 
-    <!-- It uses Javascript to provide an interface to the API, displayed in various parts of the PLE environment -->
+  <div id="Reader" class="tabcontents" style="width:95vw;height:100vh; background-color:white;">
 
-      <h1>Welcome to gRSShopper</h1>
-
-      <div style="margin:10px;">
-        <iframe src="cgi-bin/login_widget.cgi" height="40" width="500" title="Iframe Example"></iframe>
-      </div>
-
-      <div style="width:800px;max-width:100%;">
-        
-        <button class="small"   type="button" class="btn btn-outline-secondary  btn-block"  data-toggle="modal"  data-target="#readerModal" onClick="$('#reader-modal-content').load('cgi-bin/viewer.cgi?action=viewer&table=link');modalLoaded = 1;">Read what's new</button>
-
-        <button class="small" type="button" class="btn btn-outline-secondary  btn-block"  onClick="
-          openNav();
-          openTab(event, 'Find', 'tablinks');
-          openTab(event, 'findSchool','findlinks');
-          read_into({div:'findSchool',cmd:'list',table:'course',tab:'findSchool'});">
-          Find online courses
-        </button>
-
-        <button class="small"   type="button" class="btn btn-outline-secondary  btn-block" onClick="
-          openDiv('cgi-bin/api.cgi','main','edit','feed','new','','Edit');
-          read_into({div:'List',url:'cgi-bin/api.cgi',cmd:'list',table:'feed'});">
-          Add a new content source
-        </button>
-
-        <button class="small"   type="button" class="btn btn-outline-secondary  btn-block" onClick="
-          openDiv('cgi-bin/api.cgi','main','edit','post','new','','Edit');
-          read_into({div:'List',url:'cgi-bin/api.cgi',cmd:'list',table:'post'});">
-        Write a new post
-        </button>
-
-        <button class="small"   type="button" class="btn btn-outline-secondary  btn-block" onClick="
-          openDiv('cgi-bin/api.cgi','main','edit','page','new','','Edit');
-          read_into({div:'List',url:'cgi-bin/api.cgi',cmd:'list',table:'page'});">
-          Make a new web page
-        </button>
-
-        <button class="small"   type="button" class="btn btn-outline-secondary  btn-block" onClick="
-          openDiv('cgi-bin/api.cgi','main','edit','person','me','','Identity');">
-          Edit personal profile
-        </button>
-
-        <button class="small"   type="button" class="btn btn-outline-secondary  btn-block" onClick="
-          openDiv('cgi-bin/api.cgi','main','social','','','','Accounts');">
-          Configure Social Media Accounts
-        </button>
-      </div>
-
-    </div> <!-- end A -->
-
-    <!-- B -->
-    <div class="tab-pane fade" id="profile" role="tabpanel" aria-labelledby="profile-tab">
-    </div>
-
-    <!-- C -->
-    <div class="tab-pane fade" id="contact" role="tabpanel" aria-labelledby="contact-tab">
-    </div>
-
-  <!-- End Main Content Tab Contents -->
   </div>
+  <div id="editor" class="tabcontent">
+Opening Editor... Please wait
+  </div>
+  <div id="Profile" class="tabcontent"  style="width:95vw;height:100vh; background-color:white;>
 
+    <div class="tab-panel">
+      <div id="login-panel" style="display:none;">
+       <h1 style="color:green;"><em>Welcome to gRSShopper</em></h1>
+       <iframe id="loginWidget" src="cgi-bin/login_widget.cgi" height="80" width="100%" title="Login" style="border:0;"></iframe>
+      </div>
+     </div>
+
+ </div>    
+
+  <div id="Admin" class="tabcontent">
+Opening Admin... Please wait   
+  </div>
+</div>
+<!-- End Main Content Panes -->
+  
 </div>
 
 <!-- End Page Frame-->

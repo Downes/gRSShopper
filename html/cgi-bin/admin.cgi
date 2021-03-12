@@ -30,7 +30,7 @@ use CGI::Carp qw(fatalsToBrowser);
 #
 #-------------------------------------------------------------------------------
  #print "Content-type: text/html\n\n";
- #print "Running <p>";
+ # print "Running<p>";
 
 # Diagnostics
 
@@ -3955,6 +3955,10 @@ print "<p>Making Search forms templates<p>";
 
 		}
 
+		unless ($doptions->{$table}) {
+			$doptions->{$table}->{default} = "No search";
+		}
+
 	}
 			
 
@@ -3962,7 +3966,7 @@ print "<p>Making Search forms templates<p>";
 
 
 	while (my($table,$ty) = each %$doptions){	# For each table
-
+print "$table <br>";
 		# Write the template
 		my $formname = $table."SearchForm";
 		my $panelname = $table."Panel";

@@ -48,16 +48,9 @@ use CGI::Carp qw(fatalsToBrowser);
 # Load modules
 
 	our ($query,$vars) = &load_modules("api");
-  $vars->{db} ||= $vars->{table};
+ 	$vars->{db} ||= $vars->{table};
 	$vars->{table} ||= $vars->{db};
-  if ($vars->{source} && $vars->{target}) { $vars->{cmd} = "webmention"; }
-
-
-
-
-
-
-
+  	if ($vars->{source} && $vars->{target}) { $vars->{cmd} = "webmention"; }
 
 
 # Get Post Data
@@ -123,6 +116,7 @@ use CGI::Carp qw(fatalsToBrowser);
 			$listsearch->{$vars->{qkey}} = $vars->{qval};
 		}
 	}
+
 
 #	if ( ($vars->{cmd} eq "list" && $vars->{table} eq "link") ||
 #	   ( $vars->{cmd} eq "list" && $vars->{table} eq "feed" ) ) {
@@ -231,16 +225,6 @@ use CGI::Carp qw(fatalsToBrowser);
 			 exit;
   }
 
-  # READER
-	elsif ($vars->{cmd} eq "reader") {
-
-    my $table = $vars->{table} ||= "post";
-    print "Content-type: text/html\n\n";
-    print qq|<iframe src="|.$Site->{st_cgi}.qq|viewer.cgi?action=viewer&table=$table" style="border:0;width:100%;height:100vh;display: block;" height="100%"></iframe>|;
-		exit;
-	}
-
-
 
 	# SHOW
   elsif ($vars->{cmd} eq "show") {
@@ -328,30 +312,134 @@ use CGI::Carp qw(fatalsToBrowser);
 
 	}
 
+	elsif ($vars->{cmd} eq "harvester-commands") {
+		print "Content-type: text/html\n\n";
+		unless ($vars->{id}) { print "Need to provide a feed id."; exit;}
+		my $record = &db_get_record($dbh,"feed",{feed_id=>$vars->{id}});
+		my $table = "feed";
+		my $status = $record->{$table."_status"};
+		my $link = $record->{$table."_link"};
+		my $harvestlink = $Site->{st_cgi}."harvest.cgi";
+		print &harvester_commands($vars->{id},$status,$harvestlink,$link);
+		exit;
+	}
+
 
 
 
 
 # Load User
-	my ($session,$username) = &check_user();
-	#my ($session,$username) = &check_user("application/json");
+	#my ($session,$username) = &check_user();
+	my ($session,$username) = &check_user("application/json");
 	our $Person = {}; bless $Person;
 	&get_person($Person,$username);
 	my $person_id = $Person->{person_id};
 	# print &show_login($session);
 	
+if ($vars->{cmd} eq "authenticate") {
 
+	if ($Person->{person_status} =~ /admin|Admin/) { print 1;} else { print 0; }
+	exit;
+
+}
 
 	
 # Admin Only
-	unless (&admin_only()) {
-		print sprintf(qq|{"status":"Error","Message":"Admin Login Required"}|);
-		exit;
-	}
+	unless (&admin_only()) { &status_error("Admin Login Required"); }
 	
 
+# -------------------------------------------------------------------------------------
+#          Editor Functions
+#
+# 		   Produce an Editor screen for a given table + id
+#
+# -------------------------------------------------------------------------------------
 
-# get Postdata, in which API JSON will be stored
+if ($vars->{cmd} eq "edit") {
+
+	unless ($vars->{table} ) { print "Table to $vars->{cmd} has not been specified."; exit; }
+	my $tabs = "";
+	if ($vars->{id} eq "me") { $vars->{id} = $Person->{person_id}};		# Edit myself
+	my $starting_tab = $vars->{starting_tab} || "Edit";
+	print &main_window($tabs,$starting_tab,$vars->{table},"$vars->{id}",$vars);
+	exit;
+
+
+}
+
+
+
+# -------------------------------------------------------------------------------------
+#          Update Functions
+#
+# Submit or modify content
+#
+# -------------------------------------------------------------------------------------
+
+if ($vars->{cmd} eq "update") {
+
+	# Restrict to Admin
+	&admin_only();
+	
+	# Verify Data
+	die "Table name not provided" unless ($vars->{table_name} || $vars->{table});
+	die "Table ID not provided" unless ($vars->{table_id} || $vars->{id});
+	# die "Column name not provided" unless ($vars->{col_name});
+	#die "Input value not provided" unless ($vars->{value});
+	die "Input type not provided" unless ($vars->{type} || $vars->{field});
+	&record_sanitize_input($vars);
+
+	# Identify update by type
+
+	if ($vars->{type} eq "text" || $vars->{type} eq "textarea"  || $vars->{type} eq "wysihtml5" || $vars->{type} eq "select") {  &api_textfield_update(); }
+
+	elsif ($vars->{type} eq "keylist") { &api_keylist_update();  }
+
+	elsif ($vars->{type} eq "remove") { &api_keylist_remove(); }
+
+	# record publish
+	elsif ($vars->{type} eq "data") { &api_data_update();  }
+
+	# file upload
+	elsif ($vars->{type} eq "file") { &api_file_upload(); }
+
+	# url upload
+	elsif ($vars->{type} eq "file_url") { &api_url_upload(); }
+
+	# record publish
+	elsif ($vars->{type} eq "publish") { &api_publish(); }
+
+	# column create
+	elsif ($vars->{type} eq "column") { &api_column_create(); }
+
+	# column update
+	elsif ($vars->{type} eq "alter") { &api_column_alter(); }
+
+	# column remove
+	elsif ($vars->{type} eq "column_remove") { &api_column_remove(); }
+
+	# commit
+	elsif ($vars->{type} eq "commit") { &api_commit(); }
+
+	# Simple one-field update, returns JSON
+	elsif ($vars->{field}) {
+
+		$vars->{format} = "json"; 
+		unless ($vars->{table} && $vars->{field} && $vars->{value} && $vars->{id}) {
+			&status_error("Update command requires a table name, ID number, and a value");
+		}
+		my $field = $vars->{field}; my $fieldprefix = $vars->{table}."_";
+		unless ($field =~ /^$fieldprefix/) { $field = $fieldprefix.$field; }
+		
+		&db_update($dbh,$vars->{table},{$field => $vars->{value}},$vars->{id});
+		&status_ok();
+	} 
+
+	exit;
+}
+
+
+
 
 
 
@@ -362,6 +450,7 @@ use CGI::Carp qw(fatalsToBrowser);
 # These are requests put to the app to offer some sort of form or interaction
 #
 # -------------------------------------------------------------------------------------
+
 
 
 
@@ -453,12 +542,7 @@ if ($vars->{table} eq "media") {
 
   # EDIT
   elsif ($vars->{cmd} eq "edit") {
-		unless ($vars->{table} ) { print "Table to $vars->{cmd} has not been specified."; exit; }
-		my $tabs = "";
-		if ($vars->{id} eq "me") { $vars->{id} = $Person->{person_id}};		# Edit myself
-		my $starting_tab = $vars->{starting_tab} || "Edit";
-		print &main_window($tabs,$starting_tab,$vars->{table},"$vars->{id}",$vars);
-		exit;
+
 	}
 
 
@@ -826,56 +910,8 @@ if ($vars->{table} eq "media") {
 
     exit;
 
-  # UPDATE
-	} elsif ($vars->{updated} || $vars->{cmd} eq "update") {
-
-
-		# Restrict to Admin
-
-			&admin_only();
-
-
-		# Verify Data
-
-		die "Table name not provided" unless ($vars->{table_name});
-		die "Table ID not provided" unless ($vars->{table_id});
-		die "Column name not provided" unless ($vars->{col_name});
-		#die "Input value not provided" unless ($vars->{value});
-		die "Input type not provided" unless ($vars->{type});
-	 # &record_sanitize_input($vars);
-
-		if ($vars->{type} eq "text" || $vars->{type} eq "textarea"  || $vars->{type} eq "wysihtml5" || $vars->{type} eq "select") {
-       &api_textfield_update(); }
-
-		elsif ($vars->{type} eq "keylist") { &api_keylist_update();  }
-
-		elsif ($vars->{type} eq "datetime") { &api_datetime_update();  }
-
-		elsif ($vars->{type} eq "remove") { &api_keylist_remove(); }
-
-	  # record publish
-		elsif ($vars->{type} eq "data") { &api_data_update();  }
-
-	  # file upload
-		elsif ($vars->{type} eq "file") {   &api_file_upload(); }
-
-	  # url upload
-		elsif ($vars->{type} eq "file_url") { &api_url_upload(); }
-
-	  # record publish
-		elsif ($vars->{type} eq "publish") { &api_publish(); }
-
-	  # column create
-		elsif ($vars->{type} eq "column") { &api_column_create(); }
-
-	  # column update
-		elsif ($vars->{type} eq "alter") { &api_column_alter(); }
-
-	  # column remove
-		elsif ($vars->{type} eq "column_remove") { &api_column_remove(); }
-
-		elsif ($vars->{type} eq "commit") { &api_commit(); }
-
+  
+  
 
 			if ($request_data->{action} eq "search") {
 
@@ -942,12 +978,10 @@ if ($vars->{table} eq "media") {
 
 	}
 
+	&status_error("Command '$vars->{cmd}' not recognized.");
+	
 
-   print sprintf(qq|{status:"Error",Message: "Command not recognized."}|, $vars->{cmd});
-	 exit;
 }
-
-
 # "
 # API Show ----------------------------------------------------------
 # ------- Show Record ------------------------------------------------------
@@ -2481,85 +2515,14 @@ sub api_autopost {
 }
 
 
-
 # -------------------------------------------------------------------------------------
-#          Update Functions
+#          Search Functions
 #
-# Submit or modify content
-#
+# Will all be replaced by list
 # -------------------------------------------------------------------------------------
 
 
-
-
-if ($vars->{updated} || $vars->{cmd} eq "update") {
-
-
-	# Restrict to Admin
-
-		&admin_only();
-
-
-	# Verify Data
-
-	die "Table name not provided" unless ($vars->{table_name});
-	die "Table ID not provided" unless ($vars->{table_id});
-	die "Column name not provided" unless ($vars->{col_name});
-	die "Input value not provided" unless ($vars->{value});
-	die "Input type not provided" unless ($vars->{type});
-  &record_sanitize_input($vars);
-
-	if ($vars->{type} eq "text" || $vars->{type} eq "textarea"  || $vars->{type} eq "wysihtml5" || $vars->{type} eq "select") {  &api_textfield_update(); }
-
-	elsif ($vars->{type} eq "keylist") { &api_keylist_update();  }
-
-
-	elsif ($vars->{type} eq "remove") { &api_keylist_remove(); }
-
-  # record publish
-	elsif ($vars->{type} eq "data") { &api_data_update();  }
-
-  # file upload
-	elsif ($vars->{type} eq "file") { &api_file_upload(); }
-
-  # url upload
-	elsif ($vars->{type} eq "file_url") { &api_url_upload(); }
-
-  # record publish
-	elsif ($vars->{type} eq "publish") { &api_publish(); }
-
-  # column create
-	elsif ($vars->{type} eq "column") { &api_column_create(); }
-
-  # column update
-	elsif ($vars->{type} eq "alter") { &api_column_alter(); }
-
-  # column remove
-	elsif ($vars->{type} eq "column_remove") { &api_column_remove(); }
-
-	elsif ($vars->{type} eq "commit") { &api_commit(); }
-
-
-
-    # Identify, Save and Associate File
-
-  #	my $file;
-  #	if ($query->param("file_name")) { $file = &upload_file($query); }		# Uploaded File
-  #	elsif ($vars->{file_url}) { $file = &upload_url($vars->{file_url}); }		# File from URL
-
-
-
-  #my $return = &form_graph_list("post","60231","author");
-
-	# &send_email('stephen@downes.ca','stephen@downes.ca', 'api failed', 	qq|Table ID  - |.$vars->{table_id}.qq|	Column  - |.$vars->{col_name}.qq|	Input value  - |.$vars->{value}.qq|	Input type  - |.$vars->{type}.qq|$return|);
-
-
-	#print $return;
-
-	exit;
-
-
-} elsif ($vars->{search}) {
+if ($vars->{search}) {
 
 	# Sanitize seach input
 	$vars->{query} =~ s/[^a-zA-Z0-9\ \.]*//g;
@@ -2709,3 +2672,18 @@ print "Content-type: text/json\n\n";
 print sprintf(qq|{status:"OK"}|);
 	
 exit;
+
+sub status_error {
+
+	my ($message) = @_;
+	print sprintf(qq|{"status":"Error","Message":"$message","Response":"$message"}|);
+	exit;
+
+}
+
+sub status_ok {
+
+	print sprintf(qq|{"status":"OK"}|);
+	exit;
+
+}

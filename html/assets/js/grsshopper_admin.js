@@ -6,25 +6,66 @@ var readerTable;
 var readerIndex;
 
 
+
 //
 //  Initialize Content Windows
 //
 
+//
+//  submitData
+//
+//  Submit data using the API 
+//  The input var 'request' expects JSON values for 'table','field', 'id' and 'value'
+//  and div (to show the response)
+//
+
+
 function startUp(url) {
 
-  $( document ).ready(function() {
+    $( document ).ready(function() {
+        fetch('cgi-bin/api.cgi', {
+            method: 'post',
+            body: JSON.stringify({cmd:'authenticate'}),
+        })
+        .then(function(body){
+            return body.text(); 
+        }).then(function(data) {
+            if (data == 1) {
+                executeStartUp(url);
+            } else {
+                openTab("", 'Profile', 'mainlinks');
+                $('#login-panel').show();
+            }
+        }).then(function(data){
+            console.log(data);
+        });
+    });
 
-    loadList({div:'myData',cmd: 'list', table: 'media' });
-
-    loadList({div:'Read',cmd:'list',table:'link'});
-
-    read_into({div:"Make",cmd:"list_tables",table:"tables",tab:"Make"});
-    $('#list-button').hide();
-    closeTalkNav();  // To get it to slide the right way when first started
-
-  });
 }
 
+function executeStartUp(url) {
+
+    $( document ).ready(function() {
+
+            loadList({div:'myData',cmd: 'list', table: 'media' });  // Load audio podcast
+            loadList({div:'Read',cmd:'list',table:'link'});         // Load links from RSS Aggregator
+
+            
+            read_into({div:"Make",cmd:"list_tables",table:"tables",tab:"Make"});  // Load list of tables
+
+            $('#list-button').hide();    // Hide some tabs
+            $('#admin-button').hide();
+            
+            closeTalkNav();  // To get it to slide the right way when first started
+            document.getElementById("main").style.width = viewportWidth+"px";  // Initialize main window width
+
+            loadHTML({div:'Reader',cmd:'show',table:'page',id:'gRSShopper: Start'}); // Load start page into Reader
+            openTab("", 'Reader', 'mainlinks');                                      // Open Reader
+
+
+    });
+
+}
 //
 //  loadList
 //
@@ -96,6 +137,77 @@ function togglePanel(panel) {
 }
 
 var panel = this.nextElementSibling;
+
+
+
+//
+//  submitData
+//
+//  Submit data using the API 
+//  The input var 'request' expects JSON values for 'table','field', 'id' and 'value'
+//  and div (to show the response)
+//
+
+
+function submitData(request) {
+    spin_on();
+    fetch('cgi-bin/api.cgi',{
+        method: 'POST', // or 'PUT'
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(request),
+      })
+        .then(response => response.json())
+        .then(function (data) {  // api error
+            if (data.status == "error") { showResponse(request,data); }
+          })
+        .catch((error) => { // server error
+            console.error('Error:', error);}
+      );
+      spin_off();
+
+}
+
+//
+//  submitDataFromSelect
+//
+//  Finds and processes selected values before submit
+//
+
+function submitDataFromSelect(col,table,id) {
+    var colresult = col+"_result";
+	var newval = $('#'+col).val();
+	var subval = newval.toString();
+    submitData({div:colresult,cmd:'update',table:table,field:col,id:id,value:subval});
+}
+//
+//  loadHTML
+//
+//  Obtain HTML code from the API and load into selected div
+//  The input var 'request' expects 'table','div' and 'cmd' plus any search parameters
+//
+
+
+function loadHTML(request) {
+    fetch('cgi-bin/api.cgi',{
+        method: 'POST', // or 'PUT'
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(request),
+      })
+        .then(response => response.text()) 
+        .then(html => { 
+            $('#'+request.div).html(html);       
+            // console.log(html);
+            // .innerHTML doesn't execute script, .html() does (who knew?)
+            //return document.getElementById(request.div).innerHTML = html;
+          })
+        .catch((error) => {
+            console.error('Error:', error);}
+      );
+}
 
 
 //
@@ -173,6 +285,12 @@ function appendData(request,data) {
     }
 }
 
+function showResponse(request,data) {
+
+    var mainContainer = document.getElementById(request.div);
+    mainContainer.innerHTML = `Response:${data.response}`;
+}
+
 function removeElementsByClass(className){
     var elements = document.getElementsByClassName(className);
     //while(elements.length > 0){
@@ -203,15 +321,26 @@ function mediaListTemplate(data,i) {
 
 function feedListTemplate(data,i) {
     return `<div class="table-list-element">
-    <a href="#" onClick="openDiv(url,'main','edit','feed','${data[i].id}','Edit');">
+    <a href="#" onClick="
+       loadHTML({div:'editor',cmd:'edit',table:'feed',id:'${data[i].id}'});
+       openTab(event, 'editor', 'mainlinks');
+       ">
     <img src="assets/img/${data[i].status}tiny.jpg"> ${data[i].title}
     <span style="font-size:8pt;"><br/></span></div>`;
  }
 
+ //             openDiv(url,'main','edit','feed','8238','Edit');
+    // onClick="openDiv(url,'main','edit','feed','${data[i].id}','Edit');"
+    //   
+    // $('.form-group').togglebutton();
+
 function linkListTemplate(data,i) {
     if (!data[i].genre) { data[i].genre = "none"; }
     return `<div class="table-list-element">
-    <a href="#" onClick="loadData({div:'Reader',cmd:'show',table:'link',id:'${data[i].id}'});">
+    <a href="#" onClick="
+        loadData({div:'Reader',cmd:'show',table:'link',id:'${data[i].id}'});
+        openTab(event, 'Reader', 'mainlinks');
+        ">
     ${data[i].title}</a>
     <span style="font-size:8pt;"><br/>
     ${data[i].section} - ${data[i].genre} - ${data[i].category} - ${data[i].status}</span></div>`;
@@ -219,14 +348,14 @@ function linkListTemplate(data,i) {
 
 function postListTemplate(data,i) {
     return `<div class="table-list-element">
-    <a href="#" onClick="openDiv(url,'main','edit','post','${data[i].id}','Edit');">
+    <a href="#" onClick="openTab(event, 'editor', 'mainlinks');openDiv(url,'editor','edit','post','${data[i].id}','Edit');">
     ${data[i].title}</a>
     </div>`;
 }
 
 function genericListTemplate(table,data,i) {
     return `<div class="table-list-element">
-    <a href="#" onClick="openDiv(url,'main','edit','${table}','${data[i].id}','Edit');">
+    <a href="#" onClick="openTab(event, 'editor', 'mainlinks');openDiv(url,'editor','edit','${table}','${data[i].id}','Edit');">
     ${data[i].title}</a>
     </div>`;
 }
@@ -287,6 +416,8 @@ function prevTemplate(request,data,i) {
 
 }
 
+//   Not used?
+//   For reference
 
 function templater(strings, ...keys) {
     return function(data) {
@@ -394,42 +525,72 @@ function toggle_visibility(id) {
 //  Resizing when window resized
 //
 
-var sidebarwidth=450;
-var leftstatus="closed";
-var rightstatus="closed";
-var viewportWidth = jQuery(window).width();
+// Set up initial values
+
+
+    var sidebarwidth=450;
+    var leftstatus="closed";
+    var leftWindowWidth = 0;
+    var rightWindowWidth = 0;
+    var rightstatus="closed";
+    
+    var viewportWidth = jQuery(window).width();
+
+
+
 
 
 function openNav() {
-    var leftWidowWidth = sidebarwidth;
-    if (viewportWidth < leftWidowWidth) { leftWidowWidth = viewportWidth; }  // Don't overlap small windows
-    document.getElementById("mySidenav").style.width = leftWidowWidth+"px";
-    document.getElementById("main").style.marginLeft = leftWidowWidth+"px";
+    leftWindowWidth = sidebarwidth;
+    if (viewportWidth < leftWindowWidth) { leftWindowWidth = viewportWidth; }  // Don't overlap small windows
+    mainWindowWidth = viewportWidth-leftWindowWidth-rightWindowWidth;
+
+    document.getElementById("mySidenav").style.width = leftWindowWidth+"px";
+    document.getElementById("main").style.marginLeft = leftWindowWidth+"px";
+    document.getElementById("main").style.width = mainWindowWidth+"px";
     leftstatus="open";
 }
 
 function closeNav() {
-    document.getElementById("mySidenav").style.width = "0px";
-    document.getElementById("main").style.marginLeft = "0px";
+    leftWindowWidth = 0;
+    document.getElementById("mySidenav").style.width = leftWindowWidth+"px";
     leftstatus="closed";
+
+    mainWindowWidth = viewportWidth-rightWindowWidth;
+    document.getElementById("main").style.marginLeft = "0px";
+    document.getElementById("main").style.width = mainWindowWidth+"px";
+
 }
 
 
 function openTalkNav() {
-    var rightWidowWidth = sidebarwidth;
-    var rightWidowLeft = viewportWidth - sidebarwidth;
-    if (rightWidowLeft < 0) { rightWidowLeft = 0; }  // Don't overlap small windows
-    if (viewportWidth < rightWidowWidth) { rightWidowWidth = viewportWidth; }  // Don't overlap small windows
-    document.getElementById("main").style.marginRight = sidebarwidth+"px";
-    document.getElementById("myTalknav").style.left = rightWidowLeft+"px";
+    rightWindowWidth = sidebarwidth;
+    rightWindowLeft = viewportWidth - sidebarwidth;
+
+    if (rightWindowLeft < 0) { rightWindowLeft = 0; }  // Don't overlap small windows
+    if (viewportWidth < rightWindowWidth) { rightWindowWidth = viewportWidth; }  // Don't overlap small windows
+    mainWindowWidth = viewportWidth-leftWindowWidth-rightWindowWidth;
+
+    document.getElementById("main").style.marginRight = rightWindowLeft+"px";
+    document.getElementById("main").style.width = mainWindowWidth+"px";
+    document.getElementById("main").style.paddingRight = "0px"; 
+
+    document.getElementById("myTalknav").style.left = rightWindowLeft+"px";
     document.getElementById("myTalknav").style.width = sidebarwidth+"px";
     rightstatus="open";
 }
 
 function closeTalkNav() {
-    document.getElementById("myTalknav").style.left = viewportWidth+"px";
-    document.getElementById("main").style.marginRight= "0px";
+    rightWindowWidth = 0;
+    rightWindowLeft = viewportWidth;
+    document.getElementById("myTalknav").style.left = rightWindowLeft+"px";
+    document.getElementById("myTalknav").style.width = rightWindowWidth+"px";
     rightstatus="closed";
+
+    mainWindowWidth = viewportWidth-leftWindowWidth;
+    document.getElementById("main").style.marginRight = rightWindowLeft+"px";
+    document.getElementById("main").style.paddingRight = "15px";    
+    document.getElementById("main").style.width = mainWindowWidth+"px";
 }
 
 $( window ).resize(function() {
@@ -443,6 +604,8 @@ $( window ).resize(function() {
 //
 // Load some content into divs - I'm not sure I use this anywhere
 //
+
+
 
 
 $(document).ready( function() {
@@ -483,20 +646,21 @@ function openColumns(url,db) {
 
 
 function openTab(event, tabName, tabType, tabID) {
+
     // Declare all variables
     var i, tabcontent, tablinks;
-
     // Get all siblings and hide them
     $('#'+tabName).siblings().hide();
-
     // Get all elements with class=tabType and remove the class "active"
     $('.'+tabType).removeClass("active");
-
     // Show the current tab, and add an "active" class to the button that opened the tab
     $('#'+tabName).show();
-    if (tabID) { $('#'+tabID).show(); }            // Force hidden tab to reveal itself
-    event.currentTarget.className += " active";    // Is there a JQuery way to do this??
-
+    $('#'+tabName).addClass("active");
+    $('#'+tabName+"Button").addClass("active");
+    if (tabID) { 
+        $('#'+tabID).show(); // Force hidden tab to reveal itself
+        $('#'+tabID).addClass("active"); // and be active
+    }            
 }
 
 
@@ -625,7 +789,7 @@ function submit_function(url,table,id,col_name,content,type) {
         spin_on();
         $.ajax({
             url: url,
-            data: {cmd:'update',type:type,table_id:id,table_name:table,updated:1,value:content,col_name:col_name,type:type},
+            data: {cmd:'update',type:type,table_id:id,table_name:table,value:content,col_name:col_name,type:type},
             error: function(value) {
                 $('#'+col_name+'_result').html("<div class=\"error\">An error has occurred</div>");
                 $('#'+col_name+'_result').show();
@@ -692,7 +856,7 @@ function submit_column(url,table,id,col_name,content,type) {
         spin_on();
         $.ajax({
             url: url,
-            data: {type:type,table_id:id,table_name:table,updated:1,value:content,col_name:col_name,type:type},
+            data: {cmd:'update',type:type,table_id:id,table_name:table,value:content,col_name:col_name},
             error: function(value) {
                 $('#submit_column_result').html("<div class=\"error\">An error has occurred</div>");
                 $('#submit_column_result').show(); },
@@ -715,7 +879,7 @@ function alter_column(url,table,col_name) {
             $('#'+col_name+'_size').val();
         $.ajax({
             url: url,
-            data: {type:'alter',table_id:'alter',table_name:table,updated:1,value:content,col_name:col_name},
+            data: {cmd:'update',type:'alter',table_id:'alter',table_name:table,value:content,col_name:col_name},
             error: function(value) {
                 $('#submit_column_result').html("<div class=\"error\">An error has occurred</div>");
                 $('#submit_column_result').show(); },
@@ -734,7 +898,7 @@ function remove_column(url,table,col_name,content) {
 
         $.ajax({
             url: url,
-            data: {table_id:table,table_name:table,updated:1,value:content,col_name:col_name,type:'column_remove'},
+            data: {cmd:'update',table_id:table,table_name:table,value:content,col_name:col_name,type:'column_remove'},
             error: function(value) {
                 $('#submit_column_result').html("<div class=\"error\">An error has occurred</div>");
                 $('#submit_column_result').show(); },
@@ -755,4 +919,7 @@ function remove_column(url,table,col_name,content) {
 // 
 //  Accordion
 //
+
+
+// Close out document.ready function
 

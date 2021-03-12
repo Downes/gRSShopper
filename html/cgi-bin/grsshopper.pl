@@ -1205,15 +1205,25 @@ sub list_tables {
 		# Open Main: url,cmd,db,id,title,starting_tab
 		my $onclickurl = $Site->{st_cgi}."api.cgi";
 		$output .= qq|<li class="table-list-element">|;
-		if ($tab eq "make") { $output .= qq| [<a href="#" onClick="openDiv('$onclickurl','main','edit','$tname','new','','Edit');">New</a>]|; }
+		if ($tab eq "make") { 
+			$output .= qq| [<a href="#" onClick="
+			openTab(event, 'editor', 'mainlinks');
+			openDiv('$onclickurl','editor','edit','$tname','new','','Edit');
+			">New</a>]|; }
 
-		if ($tab eq "find") { $output .= qq| [<a href="#" onClick="openDiv('$onclickurl','main','import','$tname','','','Import');">Import</a>]|; }
+		if ($tab eq "find") { 
+			$output .= qq| [<a href="#" onClick="
+			openDiv('$onclickurl','main','import','$tname','','','Import');
+			">Import</a>]|; }
 
 # loadList({div:'Read',cmd:'list',table:'link'});
 
 
-		$output .= qq|[<a href="#" onClick="openTab(event,'List','tablinks','list-button');
-			loadList({div:'List',cmd:'list',table:'$tname'});">List</a>] |.
+		$output .= qq|[<a href="#" 
+			onClick="
+			openTab(event,'List','tablinks','list-button');
+			loadList({div:'List',cmd:'list',table:'$tname'});
+			">List</a>] |.
     	ucfirst($tname).qq| </li>\n		|;
 
 # read_into({div:'List',url:'$onclickurl',cmd:'list',table:'$tname'});
@@ -1249,6 +1259,10 @@ sub list_records {
 
 	$vars->{where} =~ s/[^\w\s]//ig;	# chars only, no SQL injection for you
 	my $format = $vars->{format};		# Output Format
+
+	if ($parms->{id} eq "latest") { # Special filter for id=latest
+		$parms->{id} = db_get_single_value($dbh,$table,$table."_id","",$table."_crdate DESC");
+	}
 
 	# Set Sort, Start, Number values
 	my ($sort,$start,$number,$limit) = &sort_start_number($query,$table);
@@ -1305,7 +1319,7 @@ sub list_records {
 
 	# Execute SQL search
 	my $stmt = qq|SELECT * FROM $table $where $sort $limit|;
-
+#die $stmt;
 
 	my $sthl = $dbh->prepare($stmt);
 	$sthl->execute();
@@ -1320,12 +1334,16 @@ sub list_records {
 		while (my $list_record = $sthl -> fetchrow_hashref()) {
 
 			my $id = $list_record->{$table."_id"};  # So the record is $table $id
-
 			# Unescape data that was escaped for storage
 			while (my($lx,$ly) = each %$list_record) {
 				$list_record->{$lx} =~ s/&amp;/&/g;
 			}
-			
+
+			# Provide default titles
+			unless ($list_record->{$table."_title"} || $list_record->{$table."_name"}) {
+				$list_record->{$table."_title"} = "Untitled";
+				$list_record->{$table."_name"} = "Nameless";
+			}
 			my $itemdata;
 
 			# Basic list data, always sent
@@ -1371,7 +1389,7 @@ sub list_records {
 					}
 				}
 			}
-				 
+			 
 			push @$listarray,$itemdata;
 		}
 		return $listarray;
@@ -2556,7 +2574,6 @@ sub get_next {
 		elsif ($direction eq "next") { $nextsql .= sprintf("> '%s' ORDER BY %s ",$search_value,$sort_by); }
 		elsif ($direction eq "prev") { $nextsql .= sprintf("< '%s' ORDER BY %s DESC",$search_value,$sort_by);}		
 		$nextsql .= " LIMIT 1";
-
 		# Will fail if $table or $id don't exist or if $sort isn't a valid field
 		my ($newnextid) = $dbh->selectrow_array($nextsql) 
 			or die "Can't execute SQL statement (will fail if table or id don't exist or if sort isn't a valid field) $nextsql: $dbh::errstr\n"; 
@@ -4495,7 +4512,7 @@ sub api_receive_rest {
 #
 # 	General Editing Form Function
 #
-# 	Reqireds table and id numbers as inputs
+# 	Requires table and id numbers as inputs
 #
 #	      Edited: 15 July 2010, 6 June 1027
 #
@@ -4503,120 +4520,84 @@ sub api_receive_rest {
 
 sub main_window {
 
-	my ($tabs,$starting_tab,$table,$id_number,$data) = @_;
-
-  my $db = gRSShopper::Database->new({dbh=>$dbh});
+	my ($tabs,$starting_tab,$table,$id,$data) = @_;
+  	my $db = gRSShopper::Database->new({dbh=>$dbh});
 
 	my $window = gRSShopper::Window->new({
 		tabs => $tabs,
-		table=>$table,            				# Table being displayed in the window
-		id => $id_number,			  		  		# ID of record being displayed in the window
+		table=>$table,     				# Table being displayed in the window
+		id => $id,				  		# ID of record being displayed in the window
     starting_tab => $starting_tab,		# Tab to display when window is opened
-		reader_hidden=>0,    							# Controls whether we're displaying the reader tab or not
-		db=>$db,                  				# Pointer to database functions
-		dbh=>$dbh,               					# Pointer to DBI database handler
-		data=>$data,                      # Data that accompanies the opening of the wiondow
-		person=>$Person,									# person opening the window
-		load=>1,													# Load record data
+		db=>$db,                  		# Pointer to database functions
+		dbh=>$dbh,               		# Pointer to DBI database handler
+		data=>$data,                    # Data that accompanies the opening of the window
+		person=>$Person,				# person opening the window
+		load=>1,						# Load record data
 	});
 
-	if ($window->{tab_list}) { $tabs ||= [keys %{$window->{tab_list}}]; $starting_tab ||= $window->{show_active}; }
-	else { $tabs ||= ['Edit','Upload','Preview','Publish']; $starting_tab ||= "Edit"; }
+	if ($window->{tab_list}) { 
+		$tabs ||= [keys %{$window->{tab_list}}]; 
+		$starting_tab ||= $window->{show_active}; 
+	} else { 
+		$tabs ||= ['Edit','Upload','Preview','Publish']; 
+		$starting_tab ||= "Edit"; }
 
+	# Get the record associated with the tabs
+	my $record;
+	if ($table && $id) {
+		$record = &db_get_record($dbh,$table,{$table."_id" => $id});
+		unless ($record) { $record = &db_get_record($dbh,$table,{$table."_title" => $id}); }
+	}
+	$table_title = $record->{$table."_title"} || $tab_record->{$table."_title"} || $table;
 
-
-	# Make sure we always have a Reader tab, hidden if not in use
-	unless (grep(/^Reader/i, @$tabs)) {
-    unshift @$tabs,"Reader";
-		$window->{reader_hidden} = 1;
-  }
 
 	# Make sure we have a Help tab if help is available
 	# Location of help contents is defined in the 'Form' record for that table, in form_help
 	unless (grep(/^Help/i, @$tabs)) {
 		if ($window->{help}) { push @$tabs,"Help"; }
-  }
+  	}
 
-	# Initialize Tabs
-	my $form_tabs_tabs = qq|
-		<!-- Main Content Tabs -->
-		<div class="pm-content-container">|.&Tab_Right_Sidebar.qq|
-			<ul class="nav nav-tabs" id="myTab" role="tablist">|.&Tab_Left_Sidebar;
+	# Make tabs
 
-	# Initialize Tab Contents
-	my $form_tabs_content = qq|
-		<!-- Main Content Tab Contents -->
-		<div class="tab-content" id="myTabContent" style="height:100%;">|;
-
-	# For each tab, defined as a string in @tabs
+	my $form_tabs_tabs = qq|<div class="tabPanel">|;
 	foreach my $tab (@$tabs) {
-		  # Local because they much be changed by the tab command
-
-      my $tab_table = $window->{table};
-			my $tab_id = $window->{record}->{id};
-			my $tab_record = $window->{record};
-			my $tab_data = $data;
-			my $tab_title = $tab; my $tab_div = $tab;
-			$window->{show_active} = ""; if ($starting_tab eq $tab) { $window->{show_active} = " show active"; }
-
-			# Run the function to get the content
-			my $tab_content="";
-			my $tabfunction = "Tab_".$tab;
-
-      # Extract embedded parameters for this specific tab: table:id   (table and id are separated by a :)
-			if ($tab =~ /\((.*?)\)/) {
-				 my $parameters = $1;
-			   $tab =~ s/\($parameters\)//ig;
-				 ($tab_table,$tab_id) = split /:/,$parameters;
-				 $tab_div = $tab.$tab_table.$tab_id;
-				 $tabfunction = "Tab_".$tab;
-
-				 # Get the record associated with the tabs
-				 if ($tab_table && $tab_id) {
-				    $tab_record = &db_get_record($dbh,$tab_table,{$tab_table."_id" => $tab_id});
-				    unless ($tab_record) { $tab_record = &db_get_record($dbh,$tab_table,{$tab_table."_title" => $tab_id}); }
-				 }
-				 $tab_title = $tab_record->{$tab_table."_title"} || $tab_record->{$tab_table."_title"} || $tab_table;
-
-			}
-
-			# Create the Tab
-			# my $rh;	if ($tab eq "Reader" && $reader_hidden) {	$rh = qq|hidden="true"|; } # Hide tab if it's a hidden reader tab
-			$form_tabs_tabs .= qq|
-				<li class="nav-item">
-					 <a class="nav-link$window->{show_active}" id="$tab_div-tab" data-toggle="tab" href="#$tab_div"
-						role="tab" aria-controls="$tab_div" aria-selected="false" $rh>$tab_title</a></li>|;
-
-			# Create the tab content
-#print "Tab content $tab_content : ".$window->{form_defined}." --- $tabfunction<br> ".$window->{tab_list}->{$tab}."<p>";
-
-			$tab_content = eval{ &$tabfunction($window,$tab_table,$tab_id,$tab_record,$tab_data,$defined) };
-			$tab_content = $@ if $@;
-
-			# Place the content into the content div
-			$form_tabs_content .= qq|
-			<!-- $tab -->
-			<div class="tab-pane fade $window->{show_active}" id="$tab_div" role="tabpanel" aria-labelledby="$tab_div-tab"  style="height:100%;">
-				<div style="z-index:-1;height:100%;">$tab_content</div>
-			</div>|;
-
-	}
-
-	# Close Up Form Tabs and Content
-
-	$form_tabs_tabs .= qq|
-				</ul>
-		 </div>
-		 <!-- End Main Content Tabs -->|;
-	$form_tabs_content .= qq|
-		 </div>
-		<!-- End Main Content Tab Contents -->
+		my $starting;
+		if ($tab eq $starting_tab) { $starting = "active"; } else {$starting = "";}
+		$form_tabs_tabs .= qq|
+   			<div tabindex="0" role="button" class="tab editorlinks $starting" aria-pressed="false" 
+			   onclick="openTab(event, 'mainWindow$tab', 'editorlinks')">$tab</div>
 		|;
+	}
+	$form_tabs_tabs .= qq|</div>|;
 
+	# Make Tab contents
 
+	my $form_tabs_content = qq|<div class="tabcontents">|;
+	foreach my $tab (@$tabs) {
 
-	return $form_tabs_tabs.$form_tabs_content;
-	exit;
+		my $starting;
+		if ($tab eq $starting_tab) { $starting = "block"; } else {$starting = "none";}
+		# Run the function to get the content
+		my $tab_content="";
+		my $tabfunction = "Tab_".$tab;		
+		$tab_content = eval{ &$tabfunction($window,$table,$id,$record,$data,$defined) };
+		$tab_content = $@ if $@;
+		$form_tabs_content .= qq|
+			<div id="mainWindow$tab" style="display:$starting;">
+			$tab_content
+			</div>
+		|;
+	}
+	$form_tabs_content .= qq|</div>|;
+
+	return qq|
+	<!-- Main Window (autogenerated by grsshopper.pl main_window() -->
+	<div id="myMainnav" class="mainnav">
+		$form_tabs_tabs
+		$form_tabs_content
+	</div>     <!-- End Main Window -->
+	|;
+	
 
 }
 
@@ -4700,27 +4681,8 @@ sub Tab_Show {
 	} else { return &output_record($dbh,$query,$tab_table,$tab_id,$vars->{format},"api"); }
 	exit;
 }
-sub Tab_Left_Sidebar {
-  my ($window) = @_;
-
- return qq|<!-- Open Sidebar Button --><li class="nav-item"><span class="nav-link" style="cursor:pointer" data-toggle="tab"
-onclick="openNav();"><i class="fa fa-database" style="color:green;font-size:1.2em;"></i></span></li>|;
-
-}
 
 
-sub Tab_Right_Sidebar {
-	my ($window) = @_;
-
- # Open Main: url,cmd,db,id,title,starting_tab
- return qq|
- <!-- Open Sidebar Button -->
- <span class="nav-link" style="cursor:pointer;float:right!important;" data-toggle="tab"
-  onclick="openTalkNav()"><i class="fa fa-user" style="color:green;font-size:1.2em;"></i></span><span class="nav-link" style="cursor:pointer;float:right!important;" data-toggle="tab"
- onclick="openDiv('|.$Site->{st_cgi}.qq|api.cgi','main','admin','general','','','','General');"><i class="fa fa-gear" style="color:green;font-size:1.2em;"></i></span>
-  |;
-
-}
 	# TABS ----------------------------------------------------------
 	# ------- Edit --------------------------------------------
 	#
@@ -4733,7 +4695,7 @@ sub Tab_Edit {
 
 	my ($window,$table,$id_number,$record,$data,$defined) = @_;
 
-	my $output = "";
+	my $output = qq|<div>|;
 	#print "Content-type: text/html\n\n";
 
   if ($id_number eq "me") { $id_number = $Person->{person_id}; }
@@ -4748,7 +4710,7 @@ sub Tab_Edit {
 	<script>function dump_record(e){\$(document).ready(function(){ e.preventDefault();\$('#record-dump').load("|.
 	   $Site->{st_cgi}.qq|api.cgi?cmd=dump&table=$table&id=$id_number");return false;});}</script>
 
-	|;
+	</div>|;
 
 	return  $output;
 
@@ -4938,10 +4900,11 @@ sub Tab_Classify {
 
 	my ($window,$table,$id_number,$record,$data,$defined) = @_;
 
-	my $output = "";
+	my $output = qq|<div>|;
 	foreach my $field (@{$window->{tab_list}->{Classify}}) {
 		$output .= &process_field_types($window,$table,$id_number,$field,$record,$data,$defined);
 	}
+	$output .= "</div>";
 	return  $output;
 }
 
@@ -4975,58 +4938,94 @@ sub Tab_Publish {
 	# -------------------------------------------------------------------------
 sub Tab_Harvest {
 
-  my ($window,$table,$id,$record,$data,$data,$defined) = @_;
-  my $output = "<p>Source: ".$record->{$table."_title"}."</p>";
+	my ($window,$table,$id,$record,$data,$data,$defined) = @_;
+	my $output = sprintf(qq|<div style="border:solid 1px orange;">
+  		<label for="feed_link">Harvester</label><p class="info">Source: %s</p>|,
+	  	$record->{$table."_title"});
 
-  my $sz = qq|width=10 height=10|;
-  my $A = qq|<img src="|.$Site->{st_url}.qq|assets/img/A.jpg" style="margin:10px 5px 10px 5px;" $sz/> |;
-  my $R = qq|<img src="|.$Site->{st_url}.qq|assets/img/R.jpg" style="margin:10px 5px 10px 5px;" $sz/> |;
-  my $O = qq|<img src="|.$Site->{st_url}.qq|assets/img/O.jpg" style="margin:10px 5px 10px 5px;" $sz/> |;
-	my $B = qq|<img src="|.$Site->{st_url}.qq|assets/img/B.jpg" style="margin:10px 5px 10px 5px;" $sz/> |;
-  my $was = "was=".$vars->{action};
-
-  my $adminlink = $Site->{st_cgi}."admin.cgi";
-  my $apilink = $Site->{st_cgi}."api.cgi";
-  my $harvestlink = $Site->{st_cgi}."harvest.cgi";
-  my $ffeed = $record->{$table."_id"};
-  my $status = $record->{$table."_status"};
+  	my $adminlink = $Site->{st_cgi}."admin.cgi";
+  	my $apilink = $Site->{st_cgi}."api.cgi";
+  	my $harvestlink = $Site->{st_cgi}."harvest.cgi";
+  	my $ffeed = $record->{$table."_id"};
+  	my $status = $record->{$table."_status"};
 	unless ($record->{$table."_link"}) { $status = "B"; $record->{$table."_status"} = "B"; }
+	
+	$output .= &harvester_commands($id,$status,$harvestlink,$harvestersource);
 
-  my $levels = qq|<select id="s1" style="width:2em;height:1.6em;">
-		<option>1</option>
-		<option>2</option>
-		<option>3</option>
-		<option>4</option>
-		<option>5</option>
-		<option>6</option>
-		<option>7</option>
-		<option>8</option>
-		<option>9</option>
-		<option>10</option>
-		 </select>|;
 
-  # Harvest Command Buttons
-  $output .= qq|<div id="harvester-commands">|;
-	if ($status eq "A" || $status eq "Published") {
-		$output .=  $A.
-			qq|<button onClick="openHarvester('$harvestlink?feed=$id&analyze=on');">@{[&printlang("Analyze")]}</button>|.
-			qq|$levels|.
-			qq|<button onClick="openHarvester('$harvestlink?feed=$id');">@{[&printlang("Harvest")]}</button>|.
-			qq|<button onClick="openHarvesterSource('$record->{$table."_link"}');">@{[&printlang("Source")]}</button>|;
-	} elsif ($status eq "R" || $status eq "Retired") {
-		$output .=  $R.qq| Feed cannot be harvested until aprroved or placed on hold|;
 
-	} elsif ($status eq "O") {
-		$output .=  $O.
-			qq|<button onClick="openHarvester('$harvestlink?feed=$id&analyze=on');">@{[&printlang("Analyze")]}</button>|.
-			qq|$levels|.
-			qq|<button onClick="openHarvesterSource('$record->{$table."_link"}');">@{[&printlang("Source")]}</button>|;
-	} else {
-		$output .= $B.qq| Feed cannot be harvested until a link address is provided|;
+
+	foreach my $field (@{$window->{tab_list}->{Harvest}}) {
+		$output .= &process_field_types($window,$table,$id,$field,$record,$data,$defined);
 	}
-  $output .= qq|<span id="harvester-closebutton" style="display:none;"><button
-	  onClick="closeHarvester();">Close</button></span>
-		</div>|;
+
+	$output .= "</div>";
+  	return  $output;
+
+}
+	# ------- Harvester Commands --------------------------------------------
+	#
+	# Returns different harvester command optoions depending on status
+	#
+	#
+	# -------------------------------------------------------------------------
+sub harvester_commands {
+
+	my ($id,$status,$harvestlink,$harvestersource) = @_;
+
+	# Build Log levels Dropdown
+  	my $levels = qq|<select class="harvest-select" id="s1">\n|;
+	my $s;
+	foreach my $n (1 .. 10) { 
+		if ($n == 1) { $s = "selected"; } else { $s = ""; }
+		$levels .= qq|<option class="harvest-option" $s value="$n">$n</option>\n|; 
+	}
+	$levels .= qq|</select>\n|; 
+
+	# Create feed status icons
+	my $A = qq|<img src="|.$Site->{st_url}.qq|assets/img/A.jpg">|;
+  	my $R = qq|<img src="|.$Site->{st_url}.qq|assets/img/R.jpg">|;
+  	my $O = qq|<img src="|.$Site->{st_url}.qq|assets/img/O.jpg">|;
+	my $B = qq|<img src="|.$Site->{st_url}.qq|assets/img/B.jpg">|;
+	my $Y = qq|<img src="|.$Site->{st_url}.qq|assets/img/Y.jpg">|;
+ 
+  	# Harvest Status Display
+  	my $output = qq|<div id="harvester-commands">|;
+
+	if ($status eq "A" || $status eq "Published") {
+		$output .=  qq|<p class="info">$A Feed is approved and is harvested automatically
+		if the harvester is active. It may also be harvested manually right here.</p>|; }
+			
+	elsif ($status eq "R" || $status eq "Retired") {
+		$output .=  qq|<p class="info">$R Feed has been retired and is not available for harvest. Change status to 'Approved' or 'On Hold' for harvesting functions.</p>|; }
+
+	elsif ($status eq "O" || $status eq "On Hold") {
+		$output .=  qq|<p class="info">$O Feed exists and is on hold until approval. It may be harvested or analyzed manually right here but will not be automatically harvested.</p>|; }
+
+	elsif ($status eq "Y" || $status eq "Feed Error") {
+		$output .=  qq|<p class="info">$Y Feed is returning server errors right now and is on hold until approval. It may be harvested or analyzed manually right here.</p>|; }
+
+	else {
+		$output .= qq|<p class="info">$B Feed exists but a harvest link has not been provided.
+		   It cannot be harvested until a link address is provided.</p>|; }
+
+
+	# Provide the harvester controls
+	if ($status eq "A" || $status eq "O" || $status eq "Y") {
+		$output .= qq|<div class="text-input-form">
+		<button class="harvest-button" onClick="openHarvester('$harvestlink?feed=$id&analyze=on');">@{[&printlang("Analyze")]}</button>|.
+		qq|$levels|.
+		qq|<button class="harvest-button" onClick="openHarvester('$harvestlink?feed=$id');">@{[&printlang("Harvest")]}</button>|.
+		qq|<button class="harvest-button"onClick="openHarvesterSource('$record->{$table."_link"}');">@{[&printlang("Source")]}</button></div>|;
+
+	}
+
+  	$output .= qq|<span id="harvester-closebutton" style="display:none;"><button
+	  class="harvest-button" onClick="closeHarvester();">Close</button></span>|;
+	  
+	 $output .= qq|</div>|;
+
+
 
   # Harvest Output Display Window
   $output .= qq|
@@ -5071,9 +5070,10 @@ sub Tab_Harvest {
 		</script>
 	|;
 
-	foreach my $field (@{$window->{tab_list}->{Harvest}}) {
-		$output .= &process_field_types($window,$table,$id,$field,$record,$data,$defined);
-	}
+
+
+
+
    # Open Main: url,cmd,db,id,title,starting_tab
   $output .= qq|[<a href="#" onClick="openDiv('$onclickurl','main','import','$table');">Import More |.ucfirst($table).qq| Data</a>] |;
   $output .= qq|[<a href="#" id="harvester_functions_selection">Harvester Admin Functions</a>]|;
@@ -5082,7 +5082,13 @@ sub Tab_Harvest {
 								openDiv('$apilink','main','admin','','','','Harvester');
 							});
 							</script>|;
-  return  $output;
+
+
+
+
+
+	
+	return $output;
 
 }
 	# TABS ----------------------------------------------------------
@@ -5714,8 +5720,13 @@ sub process_field_types {
 	}
 
 	# Yes-No
-  elsif ($fieldtype eq "yes-no") {
+ 	elsif ($fieldtype eq "yes-no") {
 	  $output .= &form_yesno($table,$col,$id_number,$value,$size,$fieldlable,$advice);
+	}
+
+	# Harvester
+  	elsif ($fieldtype eq "harvester") {
+	  $output .= &form_harvester($table,$col,$id_number,$value,$size,$fieldlable,$advice);
 	}
 
 	elsif ($keylist && ($fieldstem ne "url") && ($sc ne "link") && ($sc ne "field") && ($sc ne "post")) {
@@ -5780,6 +5791,14 @@ sub process_field_types {
   			color:green;
 		}
 
+		p.info {
+  			padding: 0px 12px 0px 12px;
+  			margin:0;
+  			display: block;
+  			color:black;
+
+		}
+
 		.graph-list-element {
 			font-family: Arial, Helvetica, sans-serif;
 			font-size: 0.875em; /* 14px/16=0.875em */
@@ -5793,7 +5812,7 @@ sub process_field_types {
 		.text-input-form {
 			font-family: Arial, Helvetica, sans-serif;
 			font-size: 0.875em; /* 14px/16=0.875em */
-			margin-left:10px;
+			margin-left:12px;
 			max-width: 60em;
 		}
 
@@ -5840,6 +5859,36 @@ sub process_field_types {
 			margin-left:10px;
 		}
 
+		.harvest-button {
+			height: 1.6em;
+			line-height: 1.6em;
+			margin:0;
+			margin-right:5px;
+			padding:0;
+			padding-left:5px;padding-right:5px;
+		}
+
+		.harvest-select {
+			height: 1.9em;
+			line-height: 1.9em;
+			font-family: Arial, Helvetica, sans-serif;
+			font-size: 0.875em; /* 14px/16=0.875em */
+			margin:0;
+			padding:0;
+			margin-top:8px;
+			margin-left:10px;
+		}
+
+		.harvest-option {
+			height: 1.9em;
+			line-height: 1.9em;
+			font-family: Arial, Helvetica, sans-serif;
+			font-size: 0.875em; /* 14px/16=0.875em */
+			margin:0;
+			margin-left:10px;
+			padding:0;
+		}
+
 		.row button {
 			margin:0;
 			margin-right:3px;
@@ -5847,6 +5896,26 @@ sub process_field_types {
 			padding-left:5px;padding-right:5px;
 			height: 1.6em;
 			line-height: 1.6em;
+		}
+
+		.editor-selected {
+			height: 1.6em;
+			line-height: 1.6em;
+			margin:0;
+			margin-right:5px;
+			padding:0;
+			padding-left:5px;padding-right:5px;
+			color:red;
+		}
+
+		.editor-unselected {
+			height: 1.6em;
+			line-height: 1.6em;
+			margin:0;
+			margin-right:5px;
+			padding:0;
+			padding-left:5px;padding-right:5px;
+			color:blue;
 		}
 
 	</style>|;
@@ -5882,19 +5951,21 @@ sub form_textinput {
 		<div class="text-input">
 			<label for="$col">$fieldlable</label>
 			<div class="text-input-form">
-				<input type="text" class="text-input-field" placeholder="$placeholder" id="|.$col.qq|" value="$value" style="width:|.$size.qq|em;max-width:90%;">$advice
+				<input type="text" class="text-input-field" placeholder="$placeholder" id="|.$col.qq|" value="$value" style="width:|.$size.qq|em;max-width:90%;" onChange="
+				   var submitValue=\$('#|.$col.qq|').val();
+				   submitData(
+					   {div:'|.$col.qq|_result',
+					    cmd:'update',
+						table:'$table',
+						field:'$col',
+						id:'$id',
+						value: submitValue,
+						});
+				   \$('#Preview').load(url+'?cmd=show&table=$table&id=$id&format=summary');
+				">$advice
 			</div>
 		</div>
 		<div id="|.$col.qq|_result"></div>
-		<script>
-			\$('#|.$col.qq|').on('change',function(){
-				  var content = \$('#|.$col.qq|').val();
-					var url = "$url";
-					submit_function(url,"$table","$id","$col",content,"text");
-					var previewUrl = url+"?cmd=show&table=$table&id=$id&format=summary";
-					\$('#Preview').load("previewUrl");
-			});
-		</script>
 	|;
 
 
@@ -6380,7 +6451,6 @@ sub form_file_select {
 
 
 }
-
 	# -------  Form Submit -----------------------------------------------------
 	#
 	# Creates Form Submit Button
@@ -6831,11 +6901,12 @@ sub form_optlist {
 		return &form_textinput($table,$id,$col,$value,$size,$advice);
 	}
 
-	# Create list of options
+	# Create list of options 
 	my $options = "";
 	my $option_lables="";
 	my @opts = split ";",$opts->{optlist_data};
 	my $lablecounter=1;
+
 
 	foreach my $opt (@opts) {
 		my ($oname,$ovalue) = split ",",$opt;
@@ -6884,30 +6955,44 @@ sub form_select {
 	# https://www.jqueryscript.net/form/Bootstrap-Plugin-To-Convert-Select-Boxes-Into-Button-Groups-select-togglebutton-js.html
 
 	# $fieldlable
+
+	# This is a special command to reload the harvester 
+	# commands if feed status is changed
+	my $uhc = ""; my $uhcasync = "";
+	if ($table eq "feed" && $col =~ /_status/) {
+	#	$uhc = qq|alert('hi');|;
+		$uhc = qq|
+			updateFeedStatus();
+		|;
+		$uhcasync = qq|
+			// Haven't been able to make async work properly, alert is a hack
+			function updateFeedStatus() {
+				submitDataFromSelect('$col','$table',$id);
+				alert('Status Changed. Confirm.');
+				loadHTML({'cmd':'harvester-commands','id':'$id','div':'harvester-commands'});
+			}
+		|;
+
+	# This is what we do otherwise, which is 99% of the time	
+	} else {
+		$uhc = qq|submitDataFromSelect('$col','$table',$id);|;
+	}
+
 	return qq|
-		<div class="optlist-input">
+		<div class="optlist-input"> 
 	  		<label for="$col">$fieldlable</label>
 			<div class="optlist-input-form">
 	      		<div class="row form-group" style="margin-left:5px;"> 		
-		  			<select id="$col" $multiple>$options</select>
+		  			<select id="$col" $multiple onChange="$uhc">$options</select>
 				</div>
 				<div id="|.$col.qq|_result"></div>
 			</div>
 		</div>
-		 <script>
-       \$( document ).ready(function() {
-		    \$('#|.$col.qq|').togglebutton();
- 		    \$('#|.$col.qq|').on('change', function(e) {
- 	    		var newval = \$('#|.$col.qq|').val();
-					var subval = newval.toString();
-					var url = "$url";
- 	    		submit_function(url,"$table","$id","$col",subval,"select");
-					var previewUrl = url+"?cmd=show&table=$table&id=$id&format=summary";
-					\$('#Preview').load("previewUrl");
-  	    });
-       });
- 	   </script>
-		 |;
+		<script>
+			\$('#|.$col.qq|').togglebutton();
+			$uhcasync
+		</script>
+	|;
 
 }
 
@@ -8189,6 +8274,7 @@ sub db_get_single_value {
 	}
 
   my $stmt = qq|SELECT $field FROM $table $where $sort LIMIT 1|; 	# Perform SQL
+ 
   my $ary_ref = $dbh->selectcol_arrayref($stmt);
   my $ret = $ary_ref->[0];
 
@@ -10303,8 +10389,8 @@ sub show_login {
     my $session = shift;
     # Logged In
     if ($session->param("~logged-in")) { 
-        return "OK Username: ".$session->param("~profile")->{username}.qq| [<a href="//|.$ENV{'SERVER_NAME'}.$ENV{'SCRIPT_NAME'}.qq|?action=logout">Logout</a>]<p>
-		<script>window.scrollTo(0,document.body.scrollHeight);</script'>|;
+        return "".$session->param("~profile")->{username}.qq| [<a href="//|.$ENV{'SERVER_NAME'}.$ENV{'SCRIPT_NAME'}.qq|?action=logout" onClick="parent.location.reload();">Logout</a>]<p>
+		<script>window.scrollTo(0,document.body.scrollHeight);</script>|;
     } 
 
     # Not Logged In
@@ -10329,7 +10415,7 @@ sub show_login {
         <input type=text placeholder="Username" name="lg_name">
 	$extra
         <input type=password placeholder="Password" name="lg_password">
-        <input type="submit" name="action" value ="$count">
+        <input type="submit" name="action" value ="$count" onClick="parent.location.reload();">
         </form>
 		<script>window.scrollTo(0,document.body.scrollHeight);</script>
         |;
@@ -13751,11 +13837,10 @@ package gRSShopper::Person;
 		#----------------------------------------------------------------------------------------------------------
 		#
 		#                                             gRSShopper::Window;
-    #
+    	#
 		#   table            		(string) Table being displayed in the window
 		#   id 			  		  		(int) ID of record being displayed in the woindow
 		#   starting_tab 				(string) Tab to display when window is opened
-		#   reader_hidden    		(boolean) Controls whether we're displaying the reader tab or not
 		#		person_name					(::Person)  person opening the window
 		#   db                  (::Database) Pointer to database functions
 		#   dbh               	(::DBI) Pointer to DBI database handler
@@ -13792,7 +13877,7 @@ package gRSShopper::Person;
       # get a record to display
 			if  ($self->{table}) {
 				# Import Record Data
-		  	$self->{record} = gRSShopper::Record->new(
+		  		$self->{record} = gRSShopper::Record->new(
 					table => $self->{table},
 					id => $self->{id},
 					data => $self->{data},
@@ -13861,7 +13946,7 @@ package gRSShopper::Person;
 			}
 			$self->{tab_list} = $tablist;
 			$self->{show_active} = $active;
-      $self->{field_list} = @fieldlist;
+      		$self->{field_list} = @fieldlist;
 
 			return ($tablist,$active,$defined,@fieldlist);
 
