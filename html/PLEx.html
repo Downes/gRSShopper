@@ -1,0 +1,460 @@
+<!doctype html>
+<html lang="en">
+<!-- Template test_top -->
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="icon" href="assets/ico/favicon.ico">
+
+    <title>gRSShopper</title>
+
+<!-- JQuery -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+<!-- JQuery UI -->
+<link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/smoothness/jquery-ui.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+
+<!-- JQuery Cookies -->
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+
+<!-- JQuery ToggleButton -->
+<script src="assets/js/select-togglebutton.js"></script>
+
+<!-- CK Editor -->
+<script src="//cdn.ckeditor.com/4.7.0/standard/ckeditor.js"></script>
+<script src="//cdn.ckeditor.com/4.7.0/basic/adapters/jquery.js"></script>
+
+<!-- Bootstrap -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+
+<!-- File Upload -->
+<link href="https://hayageek.github.io/jQuery-Upload-File/4.0.11/uploadfile.css" rel="stylesheet">
+<script src="https://hayageek.github.io/jQuery-Upload-File/4.0.11/jquery.uploadfile.min.js"></script>
+
+<!-- DateTime Picker -->
+<script src="assets/js/jquery.datetimepicker.full.min.js"></script>
+<link rel="stylesheet" href="assets/css/jquery.datetimepicker.min.css">
+
+<!-- Font-Awesome -->
+<link rel="stylesheet" href="assets/css/font-awesome.4.7.0.min.css">
+<link rel="stylesheet" href="assets/css/font-awesome.5.0.6.all.css">
+  
+
+<!-- gRSShopper -->
+<script src="assets/js/gRSShopper_dataTemplates.js"></script>
+<script src="assets/js/grsshopper_admin.js"></script>
+<link rel="stylesheet" href="assets/css/grsshopper_admin.css">
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/mini.css/3.0.1/mini-default.min.css">
+
+</head>
+ 
+
+<body onload="startUp('cgi-bin/api.cgi');">
+<!-- End Template test_top --><!-- ---------------------------------------------------------------------------------------------------------------------------------------------------------------- -->
+<script>
+var modalLoaded = 0;
+</script>
+
+<!-- Left Side Pane -->
+<div id="mySidenav" class="sidenav">
+
+<!-- Tabs -->
+<div class="tab">
+   <div tabindex="0" role="button" class="small" aria-pressed="false" onclick="openTab(event, 'Read', 'tablinks')">Read</div>
+   <div tabindex="1" role="button" class="small" aria-pressed="false" onclick="openTab(event, 'Make', 'tablinks')">Make</div>
+   <div tabindex="2" role="button" class="small" aria-pressed="false" onclick="openTab(event, 'Find', 'tablinks')">Find</div>
+   <div tabindex="3" role="button" class="small" aria-pressed="false" onclick="openTab(event, 'Listen', 'tablinks')">Listen</div>
+   <div tabindex="4" role="button" class="small" id="list-button" aria-pressed="false" onclick="openTab(event, 'List', 'tablinks')">List</div>
+   <div tabindex="5" role="button"  class="small" aria-pressed="false" onclick="closeNav()">«</div>
+</div>
+
+<!-- Tab contents -->
+<div  class="tabcontents">
+
+<!-- Read Tab -->
+<div id="Read" class="tabcontent">
+  <h3>Read</h3>
+  <p>Read</p>
+</div>
+
+<!-- Make Tab -->
+<div id="Make" class="tabcontent">
+  <h3>Make</h3>
+  <p>Make</p>
+</div>
+
+<!-- Find Tab -->
+<div id="Find" class="tabcontent"> 
+
+<!-- Find Tab Subtabs -->
+<div class="findtab">
+  <button class="small" onclick="openTab(event, 'findData','findlinks');
+read_into({div:'findData',cmd:'list_tables',table:'tables',tab:'Find'});">Data</button>
+  <button class="small" onclick="openTab(event, 'findWork','findlinks')">Jobs</button>
+  <button class="small" onclick="openTab(event, 'findSchool','findlinks');
+read_into({div:'findSchool',cmd:'list',table:'course',tab:'findSchool'});">Courses</button>
+</div>
+
+<!-- Find Tab Subtab Content Area -->
+<div>
+<div id="findData" class="findtabcontent" style="display:none;"></div>
+
+<div id="findWork" class="findtabcontent" style="display:none;">
+
+<iframe style="width:100%;height:800px;border:0">iFrame Content</iframe>
+</div>
+
+<div id="findSchool" class="findtabcontent" style="display:none;">
+
+<iframe style="width:100%;height:800px;"></iframe>
+</div>
+
+</div><!-- End Find Tab Content Area -->
+</div><!-- End Find Tab -->
+
+<!-- Listen Tab -->
+<div id="Listen" class="tabcontent">
+ <body>
+  <div id="myData"></div>
+</body>
+  <iframe style="width:100%;height:800px;border:0;">test</iframe>
+</div>
+
+<!-- List Tab -->
+<div id="List" class="tabcontent"></div>
+
+</div>     <!-- End Tab Contents  -->
+</div>     <!-- End Side Nav -->
+
+<!-- ---------------------------------------------------------------------------------------------------------------------------------------------------------------- -->
+
+<!-- Start Right Pane -->
+<div id="myTalknav" class="talknav">
+
+<!-- Tabs -->
+<div class="tab">
+  
+  <button class="small" onclick="closeTalkNav()">»</button>
+  <button class="small" onclick="openTab(event, 'Myself','sociallinks')">Myself</button>
+  <button class="small" onclick="openTab(event, 'Discuss','sociallinks')">Discuss</button>
+  <button class="small" onclick="$('#chatframe').attr('src','cgi-bin/cchat.cgi');openTab(event, 'Chatter','sociallinks')">Chatter</button>
+  <button class="small" onclick="openTab(event, 'Email','sociallinks')">Email</button>
+
+</div>
+
+<!-- Tab content -->
+<div  class="rightpanecontents" style="width:100%;height:90%;border 0px none !important;">
+
+<!-- Myself Tab content -->
+<div id="Myself" class="talktabcontent">
+
+   <div style="width:100%;padding:15px;">
+      <div style="background-color:#cecece;width:100%;height:50px;padding:12px;">
+
+      Personal Profile: 
+      <button class="small" type="button" onClick="openDiv('page/Profile','main');">View</button> 
+      <button class="small"  type="button" onClick="openDiv('cgi-bin/api.cgi','main','edit','person','me','n','Identity');">Edit</button>
+      <button class="small"  type="button" onClick="openDiv('cgi-bin/api.cgi','main','publish','vcard','vcard','vcard');">Publish VCard</button><br>
+      </div>
+   </div>
+
+   <div style="width:100%;padding:15px;">
+      <div style="background-color:#cecece;width:100%;height:50px;padding:12px;">
+      Publishing: <button type="button" onClick="openDiv('cgi-bin/api.cgi','main','publishing','','','','Newsletters');">Options</button><br>
+      </div>
+   </div>
+
+   <div style="width:100%;padding:15px;">
+      <div style="background-color:#cecece;width:100%;height:50px;padding:12px;">
+      Personal Portfolio: 
+      <button class="small"  type="button" onClick="openDiv('page/Portfolio','main');">View</button> 
+      <button class="small"  type="button" onClick="#">Edit</button><br>
+      </div>
+   </div>
+
+   <div style="width:100%;padding:15px;">
+      <div style="background-color:#cecece;width:100%;height:50px;padding:12px;">
+      Social Network: 
+      <button class="small"  type="button" onClick="openDiv('cgi-bin/api.cgi','main','admin','users','','','','Users');">Users</button>
+
+      <button class="small"  type="button" onClick="openDiv('cgi-bin/api.cgi','main','social','','','','Accounts');">Options</button>
+      <button class="small"  type="button" onClick="#">View</button>
+      </div>
+   </div>
+
+   <div style="width:100%;padding:15px;">
+      <div style="background-color:#cecece;width:100%;height:50px;padding:12px;">
+      Account: 
+      <button class="small"  type="button" id="logout" onClick="window.location = 'cgi-bin/login.cgi?action=Logout';">Logout</button>
+      <button class="small"  type="button" id="logout">Change Password</button>
+      </div>
+   </div>
+</div>
+<!-- End Myself Tab content -->
+
+<!-- Discuss Tab Content -->
+<div id="Discuss" class="talktabcontent">
+  <h3>Discuss</h3>
+  <p>Nothing here yet.</p>
+</div>
+
+<!-- Chatter Tab Content -->
+<div id="Chatter" class="talktabcontent" style="margin:0; padding:0; height:100%;border 0px none !important;">
+<iframe id="chatframe"  frameBorder="0" style="width:100%;height:100%;border 0px none !important;"></iframe>
+</div>
+<div id="Email" class="talktabcontent">
+  <h3>Email</h3>
+  <p>Nothing here yet.</p>
+</div>
+
+
+</div>
+</div><!-- End Right Pane -->
+
+
+<!-- ---------------------------------------------------------------------------------------------------------------------------------------------------------------- -->
+
+
+
+<!-- Main Content -->
+<div id="main">
+
+
+   <!-- Main Content Tabs -->
+
+     <span class="nav-link" style="cursor:pointer;float:right!important;" data-toggle="tab" 
+ onclick="openTalkNav()"><i class="fa fa-user" style="color:green;font-size:1.2em;"></i></span>
+
+     <span class="nav-link" style="cursor:pointer;float:right!important;" data-toggle="tab" 
+ onclick="openDiv('cgi-bin/api.cgi','main','admin','general','general','');"><i class="fa fa-gear" style="color:green;font-size:1.2em;"></i></span>
+
+   <ul class="nav nav-tabs" id="myTab" role="tablist">
+
+     <li class="nav-item"><span class="nav-link" style="cursor:pointer" data-toggle="tab" 
+ onclick="openNav();"><i class="fa fa-database" style="color:green;font-size:1.2em;"></i></span></li>
+
+<!-- Reader Tab -->
+<li class="nav-item"><span class="nav-link" style="cursor:pointer" data-toggle="modal" data-target="#readerModal" onclick="if (modalLoaded !== 1) { $('#reader-modal-content').load('cgi-bin/viewer.cgi?action=viewer&table=link'); modalLoaded = 1;}"><img src="assets/icons/grssicon.JPG" border=0 width=20 alt="Open Reader" title="Open Reader"></span></li>
+
+     <li class="nav-item">
+        <a class="nav-link active" id="Reader-tab" data-toggle="tab" href="#Reader" role="tab" aria-controls="Reader" aria-selected="true">Reader</a>
+     </li>
+     <li class="nav-item">
+       <a class="nav-link" id="profile-tab" data-toggle="tab" href="#profile" role="tab" aria-controls="profile" aria-selected="false">Profile</a>
+     </li>
+     <li class="nav-item">
+       <a class="nav-link" id="contact-tab" data-toggle="tab" href="#contact" role="tab" aria-controls="contact" aria-selected="false">Contact</a>
+     </li>
+
+   </ul>
+
+   <!-- End Main Content Tabs -->
+
+   <!-- Main Content Tab Contents -->
+   <div class="tab-content" id="myTabContent">
+
+      <!-- A -->
+      <div class="tab-pane fade show active" id="Reader" role="tabpanel" aria-labelledby="Reader-tab">
+
+<!-- This is the welcome screen for the gRSShopper PLE -->
+
+<!-- It uses Javascript to provide an interface to the API, displayed in various parts of the PLE environment -->
+
+<h1>Welcome to gRSShopper</h1>
+
+<div style="margin:10px;">
+<iframe src="cgi-bin/login_widget.cgi" height="40" width="500" title="Iframe Example"></iframe>
+
+
+</div>
+<div style="width:800px;max-width:100%;">
+<button class="small"   type="button" class="btn btn-outline-secondary  btn-block"  data-toggle="modal"  data-target="#readerModal" onClick="$('#reader-modal-content').load('cgi-bin/viewer.cgi?action=viewer&table=link');modalLoaded = 1;">
+Read what's new
+</button>
+
+<button class="small"   type="button" class="btn btn-outline-secondary  btn-block"  onClick="
+   openNav();
+   openTab(event, 'Find', 'tablinks');
+   openTab(event, 'findSchool','findlinks');
+   read_into({div:'findSchool',cmd:'list',table:'course',tab:'findSchool'});">
+Find online courses
+</button>
+
+<button class="small"   type="button" class="btn btn-outline-secondary  btn-block" onClick="
+   openDiv('cgi-bin/api.cgi','main','edit','feed','new','','Edit');
+   read_into({div:'List',url:'cgi-bin/api.cgi',cmd:'list',table:'feed'});">
+Add a new content source
+</button>
+
+<button class="small"   type="button" class="btn btn-outline-secondary  btn-block" onClick="
+   openDiv('cgi-bin/api.cgi','main','edit','post','new','','Edit');
+   read_into({div:'List',url:'cgi-bin/api.cgi',cmd:'list',table:'post'});">
+Write a new post
+</button>
+
+<button class="small"   type="button" class="btn btn-outline-secondary  btn-block" onClick="
+   openDiv('cgi-bin/api.cgi','main','edit','page','new','','Edit');
+   read_into({div:'List',url:'cgi-bin/api.cgi',cmd:'list',table:'page'});">
+Make a new web page
+</button>
+
+
+<button class="small"   type="button" class="btn btn-outline-secondary  btn-block" onClick="
+   openDiv('cgi-bin/api.cgi','main','edit','person','me','','Identity');">
+Edit personal profile
+</button>
+
+<button class="small"   type="button" class="btn btn-outline-secondary  btn-block" onClick="
+   openDiv('cgi-bin/api.cgi','main','social','','','','Accounts');">
+Configure Social Media Accounts
+</button>
+</div>
+
+
+
+
+    <!-- end A -->
+     </div>
+
+
+
+      <!-- B -->
+
+      <div class="tab-pane fade" id="profile" role="tabpanel" aria-labelledby="profile-tab">
+
+
+
+
+     </div>
+
+
+
+
+
+      <!-- C -->
+      <div class="tab-pane fade" id="contact" role="tabpanel" aria-labelledby="contact-tab">
+
+<!-- Button trigger modal -->
+<button class="small"  type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal">
+  Launch demo modal
+</button>
+
+       </div>
+
+    <!-- End Main Content Tab Contents -->
+   </div>
+
+</div>
+<!-- End Main Content -->
+<!-- Login Modal -->
+<div class="modal fade" id="loginModal" tabindex="-1" role="dialog" aria-labelledby="loginModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="loginModalLabel">Login</h5>
+      </div>
+      <div class="modal-body">
+	<form id="login_form_input" action="cgi-bin/api.cgi" method="post">
+	<input name="cmd" type="hidden" value="login">
+  <input name="person_title" type="text" placeholder="Userid or email"><br>
+	<input name="person_password" type="password" placeholder="Password">
+  <input type="Submit" value="Login">
+	</form>[<a  href="cgi-bin/login.cgi?refer=[*page_location*]">More</a>]
+  <script type="text/javascript">
+    var frm = $('#login_form_input');
+    frm.submit(function (e) {
+        e.preventDefault();
+        $.ajax({
+            type: frm.attr('method'),
+            url: frm.attr('action'),
+            data: frm.serialize(),
+            success: function (data) {
+  			var jjobj = $.parseJSON(data);
+			expirationDays = 7;
+                        var initCookie = 1,cookieName = "myCookie";
+			Cookies.set(jjobj.site_base+'_person_id', jjobj.person_id, { expires: expirationDays,secure: true });
+			Cookies.set(jjobj.site_base+'_person_title', jjobj.person_title, { expires: expirationDays,secure: true });
+			Cookies.set(jjobj.site_base+'_session', jjobj.session, { expires: expirationDays,secure: true });
+	                Cookies.set(jjobj.site_base+'_admin', jjobj.admin, { expires: expirationDays,secure: true });
+  
+
+      // Chrome doesn't properly reload
+      // Hack from https://stackoverflow.com/questions/10719505/force-a-reload-of-page-in-chrome-using-javascript-no-cache
+      $.ajax({
+        url: window.location.href,
+        headers: {
+            "Pragma": "no-cache",
+            "Expires": -1,
+            "Cache-Control": "no-cache"
+        }
+        }).done(function () {
+            window.location.reload(true);
+        });
+
+		$("#form_commit_button_text").show();
+		$("#form_commit_button_done").hide();
+		$("#login_form_input").show();
+                $("#login_form_input").addClass('spinner');
+	
+		$('#login_form_input_okindicator').hide(4000);
+            },
+            error: function (data) {
+                alert('An error occurred.');
+                alert(data);
+            }});
+    });
+
+ </script>
+      </div>
+      <div class="modal-footer">
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- Modal -->
+
+<style>
+@media (min-width: 768px) {
+  .modal-xl {
+    width: 90%;
+   max-width:1200px;
+  }
+}
+</style>
+<div class="modal fade" id="readerModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl" role="document">
+    <div class="modal-content" id="reader-modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Loading Reader....</h5>
+        <button class="small"  type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">×</span>
+        </button>
+      </div>
+      <div class="modal-body">
+<img src="assets/images/loader.gif">
+      </div>
+      <div class="modal-footer">
+        <button class="small"  type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button class="small"  type="button" class="btn btn-primary">Save changes</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+    </main>
+
+</div>  </body>
+</html>
+

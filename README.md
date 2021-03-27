@@ -15,7 +15,7 @@ gRSShopper is a tool that aggregates, organizes and distributes resources to sup
 
 Docker image is here: https://hub.docker.com/r/downes/grsshopper
 
-**Note: the Docker image is about a mointh behind the GitHub build**
+**Note: the Docker image is about a month behind the GitHub build**
 
 To run from Docker Image:
 =========================
