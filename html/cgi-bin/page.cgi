@@ -79,7 +79,7 @@
 				for ($action) {
 					/rd/ && do { &redirect($dbh,$query,$table,$id); exit; 		};
 					/search/ && do { &show_search($dbh,$query,$table); exit; 		};
-					/list/ && do { &list_records($dbh,$query,$table); exit;		};
+					/list/ && do { &list_records($table,{}); exit;		};
 				}
 			} else {						# Show $table number $id			
 				&show_page($dbh,$query,$table,$id,$vars->{format});
@@ -134,7 +134,7 @@ if ($action) {						# Perform Action, or
 
 		/rd/ && do { &redirect($dbh,$query,$table,$id); last; 	};
 		/search/ && do { &search($dbh,$query); last; 	};
-		/list/ && do { &list_records($dbh,$query,$table); last;		};
+		/list/ && do { &list_records($table,{}); last;		};
 
 		/meetings/ && do { &meetings($dbh,$query); last; 	};
 		/join_meeting/ && do { &join_meeting($dbh,$query); last; 	};
@@ -281,7 +281,7 @@ sub redirect {
 
 sub list_records {
 
-	my ($dbh,$query,$table) = @_;
+	my ($table,$parms) = @_;
 	my $vars = ();
 	if (ref $query eq "CGI") { $vars = $query->Vars; }
 	$vars->{force} = "yes";

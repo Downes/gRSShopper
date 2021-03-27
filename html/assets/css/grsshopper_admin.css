@@ -1,23 +1,101 @@
 /*  Site-Wide CSS  */
 
-html,
-body {
-    height: 95vh;
-    background-color:#aaa);
+/*  Colors                      */
+/*  Usage:  var(--back-color)   */
+
+:root {--fore-color:#111;
+  --secondary-fore-color:#444;
+  --third-fore-color:#444;
+  --icon-color: green;
+  --icon-size: 1.2rem;
+  --back-color:#f8f8f8;
+  --secondary-back-color:#f0f0f0;
+  --third-back-color:#e4e4e4;
+  --blockquote-color:#f57c00;
+  --pre-color:#1565c0;
+  --border-color:#aaa;
+  --secondary-border-color:#ddd;
+  --heading-ratio:1.19;
+  --universal-margin:0;
+  --universal-padding:0;
+  --tab-padding:.5rem;
+  --universal-border-radius:.125rem;
+  --a-link-color:#0277bd;
+  --a-visited-color:#01579b
 }
 
 
-body {-ms-text-size-adjust:100%; -webkit-text-size-adjust:100%; line-height: 150%;font-family:Roboto,Arial; font-weight:normal; margin:0; padding:0; width:100%; background-color: white;}
+
+html,
+body {
+
+}
+
+
+body {
+  -ms-text-size-adjust:100%; 
+  -webkit-text-size-adjust:100%; 
+  line-height: 150%;
+  font-family:Roboto,Arial; 
+  font-weight:normal; 
+  margin:0; 
+  padding:0; 
+  width:100vh; 
+  height: 95vh;
+  color: var(--fore-color);
+  background-color: var(--back-color);
+}
+
 a {color:#a85038; }
-.page { margin:1%;border-collapse:collapse;border: 1px solid #aaa; color:#455a64; padding-top:1%; background:#fafafa;padding-bottom:1%;padding-left:1%;padding-right:2%; }
-#page_frame { background-color: white;}
-.head {background:#ffffff;margin-bottom:1%;padding:1%;border: 1px solid #f0f0f0}
-.byline { font: 400 12pt/16pt Verdana,Arial, sans-serif;color:#000040;line-height:120%;}
-.head h1 {margin-top:0%; }
 
-.linknav {background:#ffffff;margin-bottom:1%;padding:1%;border: 1px solid #f0f0f0}
+.page { 
+  margin:1%;
+  border-collapse:collapse;
+  border: 1px solid #aaa; 
+  color:#455a64; 
+  padding-top:1%; 
+  background-color: var(--back-color);
+  padding-bottom:1%;
+  padding-left:1%;
+  padding-right:2%; 
+}
 
-.email_page { margin:1%;border-collapse:collapse;border: 1px solid #f0f0f0; color:#455a64; padding-top:3%; background:#fafafa;padding-bottom:1%;padding-left:2%;padding-right:2%; }
+#page_frame { 
+  background-color: var(--back-color);
+}
+
+
+.head {
+  background-color: var(--back-color);
+  margin-bottom:1%;
+  padding:1%;
+  border: 1px solid #f0f0f0
+}
+
+.byline { 
+  font: 400 12pt/16pt Verdana,Arial, sans-serif;
+  color: var(--fore-color);
+  line-height:120%;
+}
+
+.head h1 {
+  margin-top:0%; 
+}
+
+.fa {
+  color: var(--icon-color);
+  font-size: var(--icon-size);
+}
+.linknav {
+  background:var(--back-color);
+  margin-bottom:1%;
+  padding:1%;
+  border: 1px solid #f0f0f0
+}
+
+.email_page { margin:1%;border-collapse:collapse;border: 1px solid #f0f0f0; color:#455a64; 
+  padding-top:3%; 
+  background:var(--secondary-back-color);padding-bottom:1%;padding-left:2%;padding-right:2%; }
 .email_head {background:#ffffff;margin-bottom:1%;padding:2%;border: 1px solid #f0f0f0}
 .email_byline { font: 400 12pt/16pt Verdana,Arial, sans-serif;color:#000040;line-height:120%;}
 
@@ -29,13 +107,12 @@ a {color:#a85038; }
 }
 
 
-
 /* Generic Navigation Link used all over the place */
 
 .navlink {
 
   border: 1px solid #white;
-  background-color: #ececec;
+  background-color: var(--back-color);
   padding: 2px;
 
 }
@@ -43,14 +120,14 @@ a {color:#a85038; }
 
 .success {
     border: 5px solid #ACE1AF;
-    background-color: #e8e8e8;
-    padding: 5px;
+    background-color: var(--secondary-back-color);
+    padding: var(--tab-padding);
 }
 
 .error {
     border: 5px solid #FFC0CB;
-    background-color: #e8e8e8;
-    padding: 5px;
+    background-color: var(--secondary-back-color);
+    padding: var(--tab-padding);
 
 }
 
@@ -58,10 +135,10 @@ a {color:#a85038; }
 
  /* Style the buttons that are used to open and close the accordion panel */
  .accordion {
-  background-color: #eee;
-  color: #444;
+  background-color: var(--back-color);
+  color: var(--fore-color);
   cursor: pointer;
-  padding: 8px;
+  padding: var(--tab-padding);
   width: 100%;
   text-align: left;
   border: none;
@@ -72,13 +149,13 @@ a {color:#a85038; }
 /* Add a background color to the button if it is clicked on 
 (add the .active class with JS), and when you move the mouse over it (hover) */
 .active, .accordion:hover {
-  background-color: #ccc;
+  background-color: var(--back-color);
 }
 
 /* Style the accordion panel. Note: hidden by default */
 .panel {
-  padding: 0 18px;
-  background-color: white;
+  padding: var(--universal-padding);
+  background-color: var(--back-color);
   display: none;
   overflow: hidden;
 } 
@@ -94,7 +171,7 @@ a {color:#a85038; }
     padding: 0px;
     padding-right: 15px;
     position: absolute;
-    background-color: white;
+    color: var(--fore-color);
     box-shadow: inset 0 0 0 20px white;
    
 }
@@ -112,14 +189,14 @@ a {color:#a85038; }
 .tab-pane {
   padding: 1%;
   height: 100vh;
-  background-color:white;
+  background-color: var(--back-color);
 }
 
 .html-record {
    padding:1em;
    margin 0.5em;
    margin-top:1em;
-   background-color: #ffffff;
+   background-color: var(--back-color);
 }
 
 .html-title {
@@ -132,7 +209,7 @@ a {color:#a85038; }
 .html-byline {
    font-size: 1em;
    font-family: Roboto, Arial, sans-serif;
-   background-color: #fafafa;
+   background-color: var(--back-color);
 }
 
 .html-description {
@@ -150,7 +227,7 @@ a {color:#a85038; }
   line-height:2em;
   text-align:center;
   vertical-align:middle;
-  background-color:white;
+  background-color: var(--back-color);
   color:#a0a0a0;
   border:solid #a0a0a0 0.5px;
   border-radius: 5px;
@@ -179,26 +256,12 @@ a {color:#a85038; }
 /* Style the tab panel */
 .tabPanel {
     overflow: hidden;
+    max-width:100%;
     border: 1px solid #ccc;
-    background-color: #f1f1f1;
+    background-color: var(--secondary-back-color);
 }
 
-:root {--fore-color:#111;
-  --secondary-fore-color:#444;
-  --back-color:#f8f8f8;
-  --secondary-back-color:#f0f0f0;
-  --blockquote-color:#f57c00;
-  --pre-color:#1565c0;
-  --border-color:#aaa;
-  --secondary-border-color:#ddd;
-  --heading-ratio:1.19;
-  --universal-margin:0;
-  --universal-padding:0;
-  --tab-padding:.5rem;
-  --universal-border-radius:.125rem;
-  --a-link-color:#0277bd;
-  --a-visited-color:#01579b
-}
+
 /* Style the buttons that are used to open the tab content */
 /*     background-color: inherit; */
 
@@ -206,7 +269,7 @@ a {color:#a85038; }
   margin:0;
   padding:calc(0.5 * var(--tab-padding)) calc(0.75 * var(--tab-padding));
   transition: 0.3s;
-  background-color: rgb(255, 255, 255); 
+  background-color: var(--secondary-back-color); 
 }
 
 
@@ -215,16 +278,16 @@ a {color:#a85038; }
   color:blue;
   overflow: hidden;
   border: 1px solid #ccc;
-  background-color: #f1f1f1;
+  background-color: var(--back-color);
 
 }
 
 .tab:hover {
-  background-color: rgb(150, 150, 150);
+  background-color: var(--third-back-color);
 }
 
 tab.active {
-  background-color: #ccc;
+  background-color: var(--secondary-back-color);
 }
 
 .mainlinks {
@@ -235,7 +298,7 @@ tab.active {
 }
 
 .mainlinks.active {
-  background-color: #ccc;
+  background-color: var(--back-color);
 }
 .tablinks {
    
@@ -248,7 +311,7 @@ tab.active {
 
 /* Create an active/current tablink class */
 .tablinks.active {
-  background-color: #ccc;
+  background-color: var(--secondary-back-color);
 }
 
 /* Style the buttons that are used to open the tab content */
@@ -264,7 +327,7 @@ tab.active {
 
 /* Create an active/current tablink class */
 .editorlinks.active {
-  background-color: #ccc;
+  background-color: var(--third-back-color);
 }
 
 /* Style the tab content */
@@ -272,7 +335,11 @@ tab.active {
     display: none;
     border: 1px solid #ccc;
     border-top: none;
-    padding-right: 15px;
+}
+
+/* Used for main page navigation in PLE.html only */
+.tabcontents {
+  max-width: 100%;
 }
 
 /* Style the tab content */
@@ -292,18 +359,18 @@ tab.active {
 
 .table-list-heading {
     padding: 8px 16px;
-    background-color: #aaa;
+    background-color: var(--third-back-color);
     border-bottom: 1px solid #ddd;
 }
 
 .table-list-element {
     padding: 8px 16px;
-    background-color: #ccc;
+    background-color: var(--third-back-color);
     border-bottom: 1px solid #ddd;
 }
 
 .table-list-element:hover {
-    background-color: #fff;
+    background-color: var(--back-color);
 
 }
 
@@ -315,6 +382,10 @@ tab.active {
 
 #table-list-search {
   display:none;
+}
+
+.table-list-search-form {
+  padding: var(--tab-padding);
 }
 
 
@@ -330,7 +401,7 @@ tab.active {
     z-index: 1;
     top: 0;
     left: 0;
-    background-color: #aaa;
+    background-color: var(--secondary-back-color);
     overflow-x: hidden;
     transition: 0.5s;
     padding-top: 0px;
@@ -346,7 +417,7 @@ tab.active {
     z-index: 1;
     top: 0;
     right: 1504;
-    background-color: #aaa;
+    background-color: var(--secondary-back-color);
     overflow-x: hidden;
     transition: 0.5s;
     padding-top: 0px;
@@ -409,13 +480,13 @@ tab.active {
   text-align:left;
   padding-top:5px;
   padding-bottom:4px;
-  background-color:#A7C942;
+  background-color:var(--third-back-color);
   color:#ffffff;
 }
 
 #show_columns tr.alt td {
   color:#000000;
-  background-color:#EAF2D3;
+  background-color:var(--secondary-back-color);
 }
 
 
@@ -441,7 +512,7 @@ tab.active {
   display: inline-block;
   position: relative;
   text-transform: uppercase;
-  background: #CCC;
+  background: var(--secondary-back-color);
   padding: 0.25em 0.5em 0.25em 2em;
   border-radius: 1em;
   min-width: 2em;
@@ -453,7 +524,7 @@ tab.active {
 .toggle-check-text:after {
   content: ' ';
   display: block;
-  background: #FFF;
+  background: var(--back-color);
   width: 1.1em;
   height: 1.1em;
   border-radius: 1em;
@@ -468,7 +539,7 @@ tab.active {
 }
 
 .toggle-check-input:checked ~ .toggle-check-text {
-  background: #8ad869;
+  background: var(--third-back-color);
   padding-left: 0.5em;
   padding-right: 2em;
 }

@@ -22,12 +22,15 @@ services:
   grsshopper:
     image: downes/grsshopper 
     ports:
-      - "443:443"   
+      - "443:443"
+    volumes:
+      - ./html:/var/www/html   
     networks:
       - grss          
 
 volumes:
   db-data: {}
+  html: {}
 
 networks:
   grss:

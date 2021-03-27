@@ -179,7 +179,7 @@ use CGI::Carp qw(fatalsToBrowser);
 
 															# Editing Functions
 
-			/list/ && do { &admin_list_records($dbh,$query,$table); last;		};		#	- List records
+			/list/ && do { &admin_list_records($table); last;		};		#	- List records
 			/edit/i && do { &edit_record($dbh,$query,$table,$id); last; 	};		#	- Edit Record - Show the Editing form
 			/update/ && do { &update_record($dbh,$query,$table,$id);
 				&edit_record($dbh,$query,$table, $id_number);last; };		# 	- Edit Record - Update with input data
@@ -1769,7 +1769,7 @@ sub admin_update_grsshopper{
 		if ($file->{file_format} =~ /^json$/i) {
 
 			my $result = &import_json($file,$table);
-			&admin_list_records($dbh,$query,$table);
+			&admin_list_records($table);
 			exit;
 		}
 
@@ -2244,9 +2244,9 @@ sub admin_update_grsshopper{
 	#
 	sub admin_list_records {
 
-		my ($dbh,$query,$table) = @_;
+		my ($table) = @_;
 
-		my $output = &list_records($dbh,$query,$table);
+		my ($metadata,$output) = &list_records($table);
 
 		# print output in Admin frame
 
@@ -2785,7 +2785,156 @@ sub admin_update_grsshopper{
 
 		# Define Form Contents
 
-		my $form_text = &main_window($tabs,"Edit",$table,$id_number,$vars);
+		# provide styling; this is temporary before I move this to a style sheet
+		my $form_text = qq|<style>
+
+		label {
+  			padding: 12px 12px 0px 12px;
+  			margin:0;
+  			display: inline-block;
+  			color:green;
+		}
+
+		p.info {
+  			padding: 0px 12px 0px 12px;
+  			margin:0;
+  			display: block;
+  			color:black;
+
+		}
+
+		.graph-list-element {
+			font-family: Arial, Helvetica, sans-serif;
+			font-size: 0.875em; /* 14px/16=0.875em */
+			margin-left:1em;
+		}
+
+		.text-input {
+			z-index: 1;
+		}
+
+		.text-input-form {
+			font-family: Arial, Helvetica, sans-serif;
+			font-size: 0.875em; /* 14px/16=0.875em */
+			margin-left:12px;
+			max-width: 60em;
+		}
+
+		.text-input-field {
+			margin:0;
+			padding:10;
+			width: 40%;
+			height: 1.6em;
+			line-height: 1.8em;
+		}
+
+		.text-input-textarea {
+			
+		   max-width:90%; 
+		   line-height:1.8em;"
+		}
+
+		.keylist-input {
+
+		}
+		.keylist-input-form {
+			font-family: Arial, Helvetica, sans-serif;
+			font-size: 0.875em; /* 14px/16=0.875em */
+			margin-left:10px;
+		}
+
+		.keylist-input-field {
+			margin:0;
+			padding:10;
+			width: 40%;
+			height: 1.6em;
+			line-height: 1.6em;
+		}
+
+		.keylist-input-button {
+			margin:0;
+			padding:0;
+			padding-left:5px;padding-right:5px;
+			height: 1.6em;
+			line-height: 1.6em;
+		}
+
+		.optlist-input {
+
+		}
+
+		.action {
+			padding-top;padding-bottom:0;
+		}
+
+		.optlist-input-form {
+			font-family: Arial, Helvetica, sans-serif;
+			font-size: 0.875em; /* 14px/16=0.875em */
+			margin-left:10px;
+		}
+
+		.harvest-button {
+			height: 1.6em;
+			line-height: 1.6em;
+			margin:0;
+			margin-right:5px;
+			padding:0;
+			padding-left:5px;padding-right:5px;
+		}
+
+		.harvest-select {
+			height: 1.9em;
+			line-height: 1.9em;
+			font-family: Arial, Helvetica, sans-serif;
+			font-size: 0.875em; /* 14px/16=0.875em */
+			margin:0;
+			padding:0;
+			margin-top:8px;
+			margin-left:10px;
+		}
+
+		.harvest-option {
+			height: 1.9em;
+			line-height: 1.9em;
+			font-family: Arial, Helvetica, sans-serif;
+			font-size: 0.875em; /* 14px/16=0.875em */
+			margin:0;
+			margin-left:10px;
+			padding:0;
+		}
+
+		.row button {
+			margin:0;
+			margin-right:3px;
+			padding:0;
+			padding-left:5px;padding-right:5px;
+			height: 1.6em;
+			line-height: 1.6em;
+		}
+
+		.editor-selected {
+			height: 1.6em;
+			line-height: 1.6em;
+			margin:0;
+			margin-right:5px;
+			padding:0;
+			padding-left:5px;padding-right:5px;
+			color:red;
+		}
+
+		.editor-unselected {
+			height: 1.6em;
+			line-height: 1.6em;
+			margin:0;
+			margin-right:5px;
+			padding:0;
+			padding-left:5px;padding-right:5px;
+			color:blue;
+		}
+
+	</style>|;
+
+	$form_text .= &main_window($tabs,"Edit",$table,$id_number,$vars);
 		#&form_editor($dbh,$query,$table,$id_number);
 
 		$form_text =~ s/&#39;/'/mig;
@@ -2921,7 +3070,7 @@ sub admin_update_grsshopper{
 			print $vars->{api};
 			exit;
 		} else {
-			&admin_list_records($dbh,$query,$table);
+			&admin_list_records($table);
 			exit;
 		}
 
@@ -3983,36 +4132,39 @@ print "$table <br>";
 
 		while (my($column,$cy) = each %$ty) {		# For each column
 			$templ .= sprintf(qq|
-				<p>%s <select name="%s" id="%s%s">
+				<div class="table-list-search-form">%s <select name="%s" id="%s%s">
 				    <option value="all" selected>All</a>
-			|,$column,$column,$column,$table);
+			|,ucfirst($column),$column,$column,$table);
 
 			while (my($fname,$fval) = each %$cy) {   #For each option
-				$templ .= qq|
-					<option value="$fval">$fname</a>|;
+				$templ .= sprintf(qq|<option value="%s">%s</a>|,$fval,ucfirst($fname));
 			}
 
 			$templ .= qq|
-							</select></p>|;
+							</select></div>|;
 		}
+
+		# Text search by fields
 		$templ .= qq|
+		<div class="table-list-search-form">
 		<select name="qkey">
 		<option value="id"> ID</option>
 		<option value="title"> Title </option>
 		<option value="description"> Description </option>
-		<option value="link"> Description </option>
-		</option>
-		<input type="text" name="qval" placeholder="search term">
+		<option value="link"> Link </option>
+		</select>
+		<input type="text" name="qval" placeholder="search term" class="text-input-field"></div>|;
+
+		# Submit Button
+		$templ .= qq|
+		<div class="table-list-search-form">
 		<input type="button" value="Submit" 
-			onClick="alert(JSON.stringify({div:'\${request.div}',cmd:'\${request.cmd}',table:'\${request.table}',formid:'$formname'}));
-			
-			loadDataFromForm({div:'\${request.div}',cmd:'\${request.cmd}',table:'\${request.table}',formid:'$formname'}); 
-
-			document.getElementById('$panelname').style.display = 'none';
-
-			return false;
-
-			">
+			onClick="
+				\$('.list-result').remove();
+				loadDataFromForm({div:'\${request.div}',cmd:'\${request.cmd}',table:'\${request.table}',formid:'$formname'}); 
+				document.getElementById('$panelname').style.display = 'none';
+				return false;
+			"></div>
 			</div>`;
 	};
 

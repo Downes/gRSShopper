@@ -1,4 +1,5 @@
-#!/usr/bin/perl
+#!/usr/bin/perl -w
+use CGI;
 use CGI::Carp qw(fatalsToBrowser);
 # Print OK for blank api request
 
@@ -25,7 +26,8 @@ use CGI::Carp qw(fatalsToBrowser);
 #
 #-------------------------------------------------------------------------------
 
-# print "Content-type: text/html\n\n";
+ # print "Content-type: text/html\n\n";
+
 
 # Forbid bots
 
@@ -45,6 +47,7 @@ use CGI::Carp qw(fatalsToBrowser);
 
 
 
+
 # Load modules
 
 	our ($query,$vars) = &load_modules("api");
@@ -58,7 +61,7 @@ use CGI::Carp qw(fatalsToBrowser);
   my $postdata = $query->param('POSTDATA');
 	#my $postdata = $query->param('POSTDATA');
 	if ($postdata) {
-		
+		#print "Content-type:application/json\n\n";
 			$request_type = "post";
 			# Parse the JSON Data
 			use JSON;
@@ -68,6 +71,7 @@ use CGI::Carp qw(fatalsToBrowser);
 
 			#exit;
 	}
+
 
 
 # Load Site
@@ -84,6 +88,7 @@ use CGI::Carp qw(fatalsToBrowser);
 
 
 
+
 # -------------------------------------------------------------------------------------
 #          Public App Functions
 #
@@ -91,30 +96,41 @@ use CGI::Carp qw(fatalsToBrowser);
 #
 # -------------------------------------------------------------------------------------
 
-  # Default to test
-#die "Made it here 92 Cmd=".$vars->{cmd};
-#  if ($vars->{cmd} eq "") { $vars->{cmd} = "test"; }
-#die "Made it here 94 Cmd=".$vars->{cmd};
-  # TEST
 
+	# Show
 	if ($vars->{cmd} eq "show" && ($vars->{table} eq "link" || $vars->{table} eq "feed")) {
 		print "Content-type: text/json\n\n";
    		$vars->{format} = "json";
-		my $data = &list_records($dbh,$query,$vars->{table},{id=>$vars->{id}});
+		my ($metadata,$data) = &list_records($vars->{table},{cmd=>"show",$vars->{table}."_id"=>$vars->{id}});
    		my $json = encode_json $data;
    		print $json;exit;
 	}
 
+	# List (is also search)
 	my $listsearch;
 	if ($vars->{cmd} eq "list") {
+
+		# Set up input parameters
 		
 		while (my($vx,$vy) = each %$vars) {
-			if ($vx =~ /category|genre|status|section|class|type/) {  # filter parameters
+			if ($vx =~ /category|genre|status|section|class|type/) {  	# Parameters for filter
 				$listsearch->{$vx} = $vy; }
 		}
-		if ($vars->{qkey} && $vars->{qval}) {
+		if ($vars->{qkey} && $vars->{qval}) {						  	# Text search input
 			$listsearch->{$vars->{qkey}} = $vars->{qval};
 		}
+
+		# for now...
+		print "Content-type: text/json\n\n";
+   		$vars->{format} = "json";
+
+																		# get search result
+   		my ($metadata,$data) = &list_records($vars->{table},$listsearch);
+
+#die "Testing: ".$metadata->{testing}."\n";																		# Encode into JSON and print	
+   		my $json = encode_json $data;
+   		print $json;exit;
+
 	}
 
 
@@ -128,7 +144,7 @@ use CGI::Carp qw(fatalsToBrowser);
 		print "Content-type: text/json\n\n";
    		$vars->{format} = "json";
 
-   		my $data = &list_records($dbh,$query,$vars->{table},$listsearch);
+   		my ($metadata,$data) = &list_records($vars->{table},$listsearch);
 
    		my $json = encode_json $data;
    		print $json;exit;
@@ -139,36 +155,11 @@ use CGI::Carp qw(fatalsToBrowser);
 
 		print "Content-type: text/json\n\n";
    $vars->{format} = "json";
-   my $data = &list_records($dbh,$query,"media",{mimetype=>"audio/mpeg"});
+   my ($metadata,$data) = &list_records("media",{mimetype=>"audio/mpeg"});
    
    my $json = encode_json $data;
    print $json;exit;
 
-
-
-		print "Content-type: text/json\n\n";
-		#my $json = encode_json $vars;
-		my $json = qq|
-[
-    {
-        "url": "1",
-        "title": "John",
-        "mimetype": "Doe"
-    },
-    {
-        "id": "2",
-        "firstName": "Mary",
-        "lastName": "Peterson"
-    },
-    {
-        "id": "3",
-        "firstName": "George",
-        "lastName": "Hansen"
-    }
-]
-|;		
-		print $json;
-		 exit;
 	}
 
 
@@ -231,31 +222,6 @@ use CGI::Carp qw(fatalsToBrowser);
 		print &api_show_record(); exit;
 	}
 
-	# SHOW FIRST
-  elsif ($vars->{cmd} eq "showfirst") {
-		$vars->{id} = &db_get_single_value($dbh,$vars->{table},$vars->{table}.qq|_id|,"",$vars->{table}.qq|_id|);
-		print &api_show_record(); exit;
-	}
-
-	# SHOW PREV
-  elsif ($vars->{cmd} eq "showprev") {
-		my $first = &db_get_single_value($dbh,$vars->{table},$vars->{table}.qq|_id|,"",$vars->{table}.qq|_id|);
-		if ($vars->{id} > $first) {	$vars->{id} = &db_get_single_value($dbh,$vars->{table},$vars->{table}.qq|_id|,$vars->{id},$vars->{table}.qq|_id DESC|,"lt"); }
-		print &api_show_record(); exit;
-	}
-
-	# SHOW NEXT
-  elsif ($vars->{cmd} eq "shownext") {
-		my $last = &db_get_single_value($dbh,$vars->{table},$vars->{table}.qq|_id|,"",$vars->{table}.qq|_id DESC|);
-		if ($vars->{id} < $last) { $vars->{id} = &db_get_single_value($dbh,$vars->{table},$vars->{table}.qq|_id|,$vars->{id},$vars->{table}.qq|_id|,"gt"); }
-		print &api_show_record(); exit;
-	}
-
-	# SHOW LAST
-  elsif ($vars->{cmd} eq "showlast") {
-		$vars->{id} = &db_get_single_value($dbh,$vars->{table},$vars->{table}.qq|_id|,"",$vars->{table}.qq|_id DESC|);
-		print &api_show_record(); exit;
-	}
 
   # WEBMENTION
 
@@ -328,6 +294,20 @@ use CGI::Carp qw(fatalsToBrowser);
 
 
 
+	# If there is a file being uploaded, we have to handle the file before writing the session cookie
+	# So we'll do that here, leaving the uploaded file object location as the value of $vars->{file}
+
+
+	my $file;
+	if ($query->content_type() =~ 'multipart/form-data') {
+		my $session = new CGI::Session(undef, $query, {Directory=>'/tmp'});	# Must be logged in to upload
+		&status_error("No uploads unless logged in") unless ($session->param("~logged-in"));
+		$vars->{file} ||= "myfile";
+		$file = &upload_file($vars->{file});
+	}
+
+
+
 # Load User
 	#my ($session,$username) = &check_user();
 	my ($session,$username) = &check_user("application/json");
@@ -335,18 +315,28 @@ use CGI::Carp qw(fatalsToBrowser);
 	&get_person($Person,$username);
 	my $person_id = $Person->{person_id};
 	# print &show_login($session);
-	
+
+
+
+
 if ($vars->{cmd} eq "authenticate") {
 
-	if ($Person->{person_status} =~ /admin|Admin/) { print 1;} else { print 0; }
+	if ($Person->{person_status} =~ /admin|Admin/) { print 1; } else { print 0; }
 	exit;
 
 }
+
 
 	
 # Admin Only
 	unless (&admin_only()) { &status_error("Admin Login Required"); }
 	
+# List Tables
+	
+	if ($vars->{cmd} eq "list_tables") { 
+		print &list_tables(); exit; 
+	}
+
 
 # -------------------------------------------------------------------------------------
 #          Editor Functions
@@ -355,38 +345,55 @@ if ($vars->{cmd} eq "authenticate") {
 #
 # -------------------------------------------------------------------------------------
 
+
+
 if ($vars->{cmd} eq "edit") {
 
 	unless ($vars->{table} ) { print "Table to $vars->{cmd} has not been specified."; exit; }
-	my $tabs = "";
-	if ($vars->{id} eq "me") { $vars->{id} = $Person->{person_id}};		# Edit myself
+	my $tabs = [];
+	if ($vars->{table} eq "person" && $vars->{id} eq "me") { 
+		$vars->{id} = $Person->{person_id}};		# Edit myself
+	if ($vars->{id} eq "new") {
+		$vars->{id} = &make_new_record($vars->{table});
+	}	
 	my $starting_tab = $vars->{starting_tab} || "Edit";
 	print &main_window($tabs,$starting_tab,$vars->{table},"$vars->{id}",$vars);
 	exit;
 
-
 }
+
+
+
 
 
 
 # -------------------------------------------------------------------------------------
 #          Update Functions
 #
-# Submit or modify content
+#   Submit or modify content
 #
 # -------------------------------------------------------------------------------------
+
+
+# cmd: remove
+# Removes an item from a graph list
+# Expects table, id, key, keyid, optional div
+# Returns revised graph list of key for table id
+if ($vars->{cmd} eq "remove") { &api_keylist_remove(); }
+
 
 if ($vars->{cmd} eq "update") {
 
 	# Restrict to Admin
 	&admin_only();
 	
+	#print qq|{"response":"hello"}|; exit;
 	# Verify Data
-	die "Table name not provided" unless ($vars->{table_name} || $vars->{table});
-	die "Table ID not provided" unless ($vars->{table_id} || $vars->{id});
+	&status_error("Table name not provided") unless ($vars->{table_name} || $vars->{table});
+	&status_error("Table ID not provided") unless ($vars->{table_id} || $vars->{id});
 	# die "Column name not provided" unless ($vars->{col_name});
 	#die "Input value not provided" unless ($vars->{value});
-	die "Input type not provided" unless ($vars->{type} || $vars->{field});
+	&status_error("Input type not provided") unless ($vars->{type} || $vars->{field});
 	&record_sanitize_input($vars);
 
 	# Identify update by type
@@ -395,13 +402,13 @@ if ($vars->{cmd} eq "update") {
 
 	elsif ($vars->{type} eq "keylist") { &api_keylist_update();  }
 
-	elsif ($vars->{type} eq "remove") { &api_keylist_remove(); }
+
 
 	# record publish
 	elsif ($vars->{type} eq "data") { &api_data_update();  }
 
 	# file upload
-	elsif ($vars->{type} eq "file") { &api_file_upload(); }
+	elsif ($vars->{type} eq "file") { &api_file_upload($file); }
 
 	# url upload
 	elsif ($vars->{type} eq "file_url") { &api_url_upload(); }
@@ -438,11 +445,56 @@ if ($vars->{cmd} eq "update") {
 	exit;
 }
 
+# -------------------------------------------------------------------------------------
+#          Publish Functions
+#
+#    These are requests put to the app to publish contents somewhere
+#
+# -------------------------------------------------------------------------------------
+
+if ($vars->{cmd} eq "publish") {
+
+	# Publish Page
+	if ($vars->{table} eq "page") {
+		&publish_page($dbh,$query,$vars->{id},"");  # Information stored in $vars->{message}
+		&status_ok();								# and returned as {... ,"message":$vars->{message}}
+		exit;
+	}
+
+	&status_error("Only publishing pages for now");
+}
 
 
 
+# -------------------------------------------------------------------------------------
+#          Clone Functions
+#
+#    These are requests put to the app to make a copy of something
+#
+# -------------------------------------------------------------------------------------
+
+if ($vars->{cmd} eq "clone") {
+	print &api_clone();
+	exit;
+}
 
 
+sub api_clone {
+
+   	unless ($vars->{table}) { &status_error("Don't know which table to clone."); }
+   	unless ($vars->{id}) { &status_error("Don't know which ".$vars->{table}." ID to clone."); }
+	my $record = &db_get_record($dbh,$vars->{table},{$vars->{table}."_id" => $vars->{id}});
+	$record->{$vars->{table}."_title"} = sprintf(qq|Copy of "%s"|,$record->{$vars->{table}."_title"});
+	$record->{$vars->{table}."_name"} = sprintf(qq|Copy of "%s"|,$record->{$vars->{table}."_name"});
+	my $id = &make_new_record($vars->{table},$record);
+
+	$vars->{message} = "Cloning ".$record->{$vars->{table}."_title"}.": ".
+		qq|Created new <a href="|.$Site->{st_url}.$vars->{table}.qq|/$id" target="_new">|.
+		$vars->{table}.qq| number $id</a> |.
+		qq|[<a href="#" onclick="openDiv('$Site->{script}','main','edit','$vars->{table}','$id');">Edit</a>]|;
+	&status_ok();
+	exit;
+}
 
 # -------------------------------------------------------------------------------------
 #          App Functions
@@ -480,7 +532,7 @@ if ($vars->{table} eq "media") {
   # print "Content-type: text/json\n\n";
   
    $vars->{format} = "json";
-   my $data = &list_records($dbh,$query,"media",{mimetype=>"audio/mpeg"});
+   my ($metadata,$data) = &list_records("media",{mimetype=>"audio/mpeg"});
    my $json = encode_json $data;
    print $json;
    exit;
@@ -495,7 +547,8 @@ if ($vars->{table} eq "media") {
 		# List Records - produces a lovely formatted list of records with edit and delete options
     unless ($vars->{table}) { print "Table to $vars->{cmd} has not been specified."; exit; }
 	  unless ($vars->{tab}) { $vars->{tab} = "no-tab"; }
-	  print &list_records($dbh,$query,$vars->{table},$vars->{tab});
+	  
+	  print "Broken".&list_records($vars->{table},$vars->{tab});
     exit;
 
   }
@@ -636,11 +689,7 @@ if ($vars->{table} eq "media") {
 	 	exit;
   }
 
-	# CLONE
-	elsif ($vars->{cmd} eq "clone") {
-		print &api_clone();
-		exit;
-	}
+
 
 	# AUTOPOST
   elsif ($vars->{cmd} eq "autopost") {
@@ -934,9 +983,7 @@ if ($vars->{table} eq "media") {
 
 	    # Identify, Save and Associate File
 
-	  #	my $file;
-	  #	if ($query->param("file_name")) { $file = &upload_file($query); }		# Uploaded File
-	  #	elsif ($vars->{file_url}) { $file = &upload_url($vars->{file_url}); }		# File from URL
+
 
 
 
@@ -1454,10 +1501,10 @@ sub api_page_publish {
 
 	}
 
+	&status_error("Trying to publish but I got confused.");
 	unless ($vars->{table} eq "page") { return qq|Only publishing pages at the moment|; exit; }
 	unless ($vars->{id}) { return qq|Publish command needs a page ID to publish|; exit; }
-	my ($pgcontent,$pgtitle,$pgformat,$archive_url,$keyword_count,$loc) = &publish_page($dbh,$query,$vars->{id},"");
-	exit;
+
 
 }
 
@@ -1598,9 +1645,10 @@ sub api_keylist_update {
 
 	my ($table,$key) = split /_/,$vars->{col_name};
   #	die "Field does not exist" unless &__check_field($table,$vars->{col_name});
-
-	my $id = $vars->{table_id};
+	my $table = $vars->{table};
+	my $id = $vars->{id};
 	my $value = $vars->{value};
+	my $key = $vars->{key};
 
 	# Split list of input $value by ;
 	$value =~ s/&apos;|&#39;/'/g;   # ' Remove apostraphe escaping, just for the split
@@ -1645,9 +1693,8 @@ sub api_keylist_update {
 	}
 
 	# Return new graph output for the form
-
-	print &form_graph_list($table,$id,$key);
-	exit;
+	my $newlist = &form_graph_list($table,$id,$key);
+	&status_ok($key."_graph_list",$newlist);
 
 }
 
@@ -1660,19 +1707,24 @@ sub api_keylist_update {
 
 sub api_keylist_remove {
 
-	my ($table,$key) = split /_/,$vars->{col_name};
-	my $id = $vars->{table_id};
-	my $value = $vars->{value};
+	my $table = $vars->{table};
+	my $id = $vars->{id};
+	my $key = $vars->{key};
+	my $keyid = $vars->{keyid};
+	unless ($table && $id && $key && $keyid) {
+		&status_error("Missing input value (either table, id, key or keyid) from api_keylist_remove()");
+	}
 
    # Remove Graph Database
 
 	my $sql = "DELETE FROM graph WHERE graph_tableone=? AND graph_idone = ? AND graph_tabletwo =? AND graph_idtwo = ?";
 	my $sth = $dbh->prepare($sql);
-	$sth->execute($table,$id,$key,$value);
-	$sth->execute($key,$value,$table,$id);
+	$sth->execute($table,$id,$key,$keyid);
+	$sth->execute($key,$keyid,$table,$id);
 
 	# Return new graph output for the form
-	print &form_graph_list($table,$id,$key);
+	my $newlist = &form_graph_list($table,$id,$key);
+	&status_ok($key."_graph_list",$newlist);
 
 	exit;
 }
@@ -2261,41 +2313,26 @@ sub api_error {
 
 }
 
+# API UPDATE ----------------------------------------------------------
+# ------- File -----------------------------------------------------
+#
+# Retrieves the file uploaded, saves it, stores
+# metadata as a 'file' entry, then creates a graph entry linking the new
+# file with $table $id
+#
+# -------------------------------------------------------------------------
+
 sub api_file_upload {
 
-	$vars->{graph_table} = $vars->{table_name};
-	$vars->{graph_id} = $vars->{table_id};
+	my ($file) = @_;
 
-	# Upload the file
-
-
-	my $file = &upload_file();
+	# File was actually uploaded before calling check_user() 
+	# If you need to find it, search for multipart/form-data
 	&api_save_file($file);
-
 	# Return new graph output for the form
-	#print &form_graph_list($vars->{graph_table},$vars->{graph_id},"file");
-
-	# Return json response for JQuery
-	my $outurl = $Site->{st_url}.$file->{file_dir}.$file->{file_title};
-	my $output = qq|
- {"files": [
-  {
-    "name": "$file->{file_title}",
-    "size": 902604,
-    "url": "$outurl",
-    "deleteUrl": "http:\/\/example.org\/files\/picture1.jpg",
-    "deleteType": "DELETE"
-  }
- ]}
- |;
- print $output;
-
-
-
- exit;
-
-
-
+	my $newlist = &form_graph_list($vars->{table},$vars->{id},"file");
+	&status_ok("file_graph_list",$newlist);
+	exit;	
 }
 
 # API UPDATE ----------------------------------------------------------
@@ -2309,29 +2346,14 @@ sub api_file_upload {
 
 sub api_url_upload {
 
-
- #my $str; while (my ($x,$y) = each %$vars) 	{ $str .= "$x = $y <br>\n"; }
- #&send_email('stephen@downes.ca','stephen@downes.ca', 'url upload '.$vars->{value},$str);
-
-
-	$vars->{graph_table} = $vars->{table_name};
-	$vars->{graph_id} = $vars->{table_id};
-
 	# Upload the file
-
 	my $file = &upload_url($vars->{value});
 	&api_save_file($file);
 
 	# Return new graph output for the form
-	if ($vars->{msg}) { print $vars->{msg}; }
-	print &form_graph_list($vars->{graph_table},$vars->{graph_id},"file");
-
-
-
-
-
-
-
+	my $newlist = &form_graph_list($vars->{table},$vars->{id},"file");
+	&status_ok("file_graph_list",$newlist);
+	exit;
 }
 
 # API UPDATE ----------------------------------------------------------
@@ -2349,20 +2371,22 @@ sub api_save_file {
 	# Reject unless there's a full file name
 	return unless ($file && $file->{fullfilename});
 
-	die "Graph table name not provided" unless ($vars->{graph_table});
-	die "Graph table name not provided" unless ($vars->{graph_id});
+	$vars->{graph_table} ||= $vars->{table};
+	$vars->{graph_id} ||= $vars->{id};
+	&status_error("Graph table name not provided") unless ($vars->{graph_table});
+	&status_error("Graph table ID not provided") unless ($vars->{graph_id});
 
 	# Save the file
 	my $file_record = &save_file($file);
-	if ($file_record) { $vars->{msg} .= qq|&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:green;">ok!</a><br><br>|; }
-	else { $vars->{msg} .= qq|<span style="color:red;">Error saving file. $!</span>|; die "Error saving file $!"; }
+	unless ($file_record) { &status_error("Error saving file $!"); }
 
 
 	# Set up Graph Data
 	return unless ($vars->{graph_id} && $vars->{graph_table});
 	my $urltwo = $Site->{st_url}.$vars->{graph_table}."/".$vars->{graph_id};
 	my $graph_typeval = "";
-	if ($file_record->{file_type} eq "Illustration") { $graph_typeval = $vars->{file_align} . "/" . $vars->{file_width}; }
+	if ($file_record->{file_type} eq "Illustration") { 
+		$graph_typeval = $vars->{file_align} . "/" . $vars->{file_width}; }
 	else { $graph_typeval = $file_record->{file_mime}; }
 
 
@@ -2469,29 +2493,6 @@ sub __check_field {
 
 }
 
-# API CLONE ----------------------------------------------------------
-# ------- Clone Record -----------------------------------------------------
-#
-# Give the id and table of a record and an exact copy of that record is created
-#
-# -------------------------------------------------------------------------
-#
-
-
-sub api_clone {
-
-   unless ($vars->{table}) { return "Don't know which table to clone."; exit;}
-   unless ($vars->{id}) { return "Don't know which ".$vars->{table}." number to clone."; exit;}
-	 my $record = &db_get_record($dbh,$vars->{table},{$vars->{table}."_id" => $vars->{id}});
-	 $record->{$vars->{table}."_crdate"} = time;
-	 $record->{$vars->{table}."_creator"} = $Person->{person_id};
-	 $record->{$vars->{table}."_id"} = "new";
-   print "Cloning ".$record->{$vars->{table}."_title"}.": ";
-	 my $id = record_save($dbh,$record,$vars->{table},$record);
-   print qq|Created new <a href="|.$Site->{st_url}.$vars->{table}.qq|/$id" target="_new">|.$vars->{table}.qq| number $id</a> |;
-	 print qq|[<a href="#" onclick="openDiv('$Site->{script}','main','edit','$vars->{table}','$id');">Edit</a>]|;
-	 exit;
-}
 
 
 # API AUTOPOST ----------------------------------------------------------
@@ -2668,22 +2669,11 @@ if ($vars->{search}) {
 }
 
 # Print OK for blank api request
-print "Content-type: text/json\n\n";
-print sprintf(qq|{status:"OK"}|);
+#print "Content-type: text/json\n\n";
+$vars->{message} .= qq|No command submitted or executed|; 
+&status_ok();
 	
 exit;
 
-sub status_error {
-
-	my ($message) = @_;
-	print sprintf(qq|{"status":"Error","Message":"$message","Response":"$message"}|);
-	exit;
-
-}
-
-sub status_ok {
-
-	print sprintf(qq|{"status":"OK"}|);
-	exit;
-
-}
+# API OK & error responses are in grsshopper.pl
+# see status+ok() and status_error()

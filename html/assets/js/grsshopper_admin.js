@@ -11,13 +11,7 @@ var readerIndex;
 //  Initialize Content Windows
 //
 
-//
-//  submitData
-//
-//  Submit data using the API 
-//  The input var 'request' expects JSON values for 'table','field', 'id' and 'value'
-//  and div (to show the response)
-//
+
 
 
 function startUp(url) {
@@ -47,11 +41,13 @@ function executeStartUp(url) {
 
     $( document ).ready(function() {
 
+        read_into({div:"Make",cmd:"list_tables",table:"tables",tab:"Make"});  // Load list of tables
+
             loadList({div:'myData',cmd: 'list', table: 'media' });  // Load audio podcast
             loadList({div:'Read',cmd:'list',table:'link'});         // Load links from RSS Aggregator
 
             
-            read_into({div:"Make",cmd:"list_tables",table:"tables",tab:"Make"});  // Load list of tables
+
 
             $('#list-button').hide();    // Hide some tabs
             $('#admin-button').hide();
@@ -160,6 +156,7 @@ function submitData(request) {
       })
         .then(response => response.json())
         .then(function (data) {  // api error
+            showResponse(request,data);
             if (data.status == "error") { showResponse(request,data); }
           })
         .catch((error) => { // server error
@@ -253,7 +250,7 @@ function loadDataFromForm(request) {
     const plainFormData = Object.fromEntries(formData.entries());
     const formDataJsonString = JSON.stringify(plainFormData);
 
-    alert(formDataJsonString);
+    //alert(formDataJsonString);
     
     // Submit data and then do actions
     fetch('cgi-bin/api.cgi',{
@@ -265,7 +262,7 @@ function loadDataFromForm(request) {
       })
         .then(response => response.json())
         .then(function (data) {
-            alert(data);
+           // alert(data);
             appendData(request,data);
           })
         .catch((error) => {
@@ -273,10 +270,32 @@ function loadDataFromForm(request) {
       );
 }
 
+function uploadFile(event,request) {
+    const files = event.target.files
+    const formData = new FormData(fileUploadForm)
+    formData.append('myfile', files[0])
+
+    fetch('cgi-bin/api.cgi', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        showResponse(request,data);
+        if (data.status == "Error") { console.log(data.message) }
+        console.log(data)
+        console.log(request.div)
+    })
+    .catch(error => {
+        console.error(error)
+    })
+}
+
+
 function appendData(request,data) {
 
     var mainContainer = document.getElementById(request.div);
-    removeElementsByClass('table-list-element');  // clear previous list data
+    removeElementsByClass('list-result');  // clear previous list data
     for (var i = 0; i < data.length; i++) {
       var div = document.createElement("div");
       var templ = selectTemplate(request,data,i);
@@ -287,8 +306,36 @@ function appendData(request,data) {
 
 function showResponse(request,data) {
 
-    var mainContainer = document.getElementById(request.div);
-    mainContainer.innerHTML = `Response:${data.response}`;
+    // Show the OK/error response
+    if (request.div) {
+        var mainContainer = document.getElementById(request.div);
+        if (mainContainer) { 
+            if (data.message) {
+                mainContainer.innerHTML = `${data.message}`;
+            } else {
+                mainContainer.innerHTML = `${data.response}`;
+            }
+            if (data.status == "Error") {
+                mainContainer.className = "error";
+            } else {
+                mainContainer.className = "success";
+            }
+        }
+        
+    }
+
+    // Shopw the API-specific response
+    if (data.div && data.contents) {    
+        var divContainer = document.getElementById(data.div);
+        if (divContainer) { divContainer.innerHTML = `${data.contents}`; }
+    }
+
+    // Update the preview
+    $( document ).ready(function() { // Shouldn't strictly be necessary, but can't hurt
+        $('#preview-record-summary').load(`${url}?cmd=show&table=${request.table}&id=${request.id}&format=summary`);
+    });
+    // loadHTML({div:'Preview',cmd:'show',table:request.table,id:request.id,format:summary});
+ 
 }
 
 function removeElementsByClass(className){
@@ -301,9 +348,10 @@ function removeElementsByClass(className){
 function selectTemplate(request,data,i) {
 
     if (request.cmd == 'list') {
-       if (request.table == 'link') { return linkListTemplate(data,i); }
-       else if (request.table == 'media') { return mediaListTemplate(data,i); }
+       if (request.table == 'author') { return authorListTemplate(data,i); } 
        else if (request.table == 'feed') { return feedListTemplate(data,i); }       
+       else if (request.table == 'link') { return linkListTemplate(data,i); }
+       else if (request.table == 'media') { return mediaListTemplate(data,i); }
        else if (request.table == 'post') { return postListTemplate(data,i); } 
        else { return genericListTemplate(request.table,data,i);}       
     } else if (request.cmd == 'show') {
@@ -315,12 +363,16 @@ function selectTemplate(request,data,i) {
 //  templates
 //
 
-function mediaListTemplate(data,i) {
-   return `<a href="${data[i].url}">${data[i].title}</a>${data[i].mimetype} `;
+function authorListTemplate(data,i) {
+    return `<div class="table-list-element list-result">
+    <a href="#" onClick="openTab(event, 'editor', 'mainlinks');openDiv(url,'editor','edit','author','${data[i].id}','Edit');">
+    ${data[i].name}</a>
+    </div>`;
 }
 
+
 function feedListTemplate(data,i) {
-    return `<div class="table-list-element">
+    return `<div class="table-list-element list-result">
     <a href="#" onClick="
        loadHTML({div:'editor',cmd:'edit',table:'feed',id:'${data[i].id}'});
        openTab(event, 'editor', 'mainlinks');
@@ -336,7 +388,7 @@ function feedListTemplate(data,i) {
 
 function linkListTemplate(data,i) {
     if (!data[i].genre) { data[i].genre = "none"; }
-    return `<div class="table-list-element">
+    return `<div class="table-list-element list-result">
     <a href="#" onClick="
         loadData({div:'Reader',cmd:'show',table:'link',id:'${data[i].id}'});
         openTab(event, 'Reader', 'mainlinks');
@@ -346,15 +398,19 @@ function linkListTemplate(data,i) {
     ${data[i].section} - ${data[i].genre} - ${data[i].category} - ${data[i].status}</span></div>`;
 }
 
+function mediaListTemplate(data,i) {
+    return `<a href="${data[i].url}">${data[i].title}</a>${data[i].mimetype} `;
+ }
+
 function postListTemplate(data,i) {
-    return `<div class="table-list-element">
+    return `<div class="table-list-element list-result">
     <a href="#" onClick="openTab(event, 'editor', 'mainlinks');openDiv(url,'editor','edit','post','${data[i].id}','Edit');">
     ${data[i].title}</a>
     </div>`;
 }
 
 function genericListTemplate(table,data,i) {
-    return `<div class="table-list-element">
+    return `<div class="table-list-element list-result">
     <a href="#" onClick="openTab(event, 'editor', 'mainlinks');openDiv(url,'editor','edit','${table}','${data[i].id}','Edit');">
     ${data[i].title}</a>
     </div>`;
@@ -387,32 +443,51 @@ function linkShowTemplate(request,data,i) {
     mainContainer.innerHTML='';
 
     // return new content
-    return prevTemplate(request,data,i)+
+    return `<div class="tabPanel">`+
+            firstTemplate(request,data,i)+
+            prevTemplate(request,data,i)+
+           lastTemplate(request,data,i)+
            nextTemplate(request,data,i)+
-            `Title: ${data[i].title} <br>
+            `</div>
+            Title: ${data[i].title} <br>
             Link: ${data[i].link} <br>
             ID: ${data[i].id} <br>
             Feed: <a href="${data[i].feed_link}">${data[i].feed_title}</a><br>
             Category: ${data[i].feed_category}    Genre:  ${data[i].feed_genre}
             Description: ${data[i].description}<br>
-            <iframe style="width: 60vw;height: 90vh;" src="${data[i].link}"></iframe>`;
+            View original: <a href="${data[i].link}" target="new">Click here</a>`;
 }
 
 function nextTemplate(request,data,i) {
 
-    return `<span class="next" 
-       onClick="loadData({div:'${request.div}',cmd:'show',table:'${request.table}',id:'${data[i].next}'});">
-       Next: ${data[i].next}
-       </span>`;
+    return `<div class="tab mainlinks" role="button" tabindex="0" style="float:right;"
+       onClick="loadData({div:'${request.div}',cmd:'show',table:'${request.table}',id:'${data[i].next}'});"><i class="fa fa-angle-right"></i>
+       </div>`;
+
+}
+
+function lastTemplate(request,data,i) {
+
+    return `<div class="tab mainlinks" role="button" tabindex="0" style="float:right;"
+       onClick="loadData({div:'${request.div}',cmd:'show',table:'${request.table}',id:'${data[i].last}'});"><i class="fa fa-angle-double-right"></i>
+       </div>`;
 
 }
 
 function prevTemplate(request,data,i) {
 
-    return `<span class="next" 
+    return `<div class="tab mainlinks"  role="button" tabindex="1"
     onClick="loadData({div:'${request.div}',cmd:'show',table:'${request.table}',id:'${data[i].prev}'});">
-       Prev: ${data[i].prev}
-    </span>`;
+    <i class="fa fa-angle-left"></i>
+    </div>`;
+
+}
+
+function firstTemplate(request,data,i) {
+
+    return `<div class="tab mainlinks" role="button" tabindex="0"
+       onClick="loadData({div:'${request.div}',cmd:'show',table:'${request.table}',id:'${data[i].first}'});"><i class="fa fa-angle-double-left"></i>
+       </div>`;
 
 }
 
@@ -436,7 +511,7 @@ function templater(strings, ...keys) {
 //
 
 function openDiv(url,div,app,db,id,title,starting_tab,autopost) {
-//alert("Cmd: "+app+", Table: "+db+", ID: "+id+", Title: "+title+", Starting Tab: "+starting_tab+"Autopost: "+autopost);
+// alert("Cmd: "+app+", Table: "+db+", ID: "+id+", Title: "+title+", Starting Tab: "+starting_tab+"Autopost: "+autopost);
     // Assign a URL to main add an "active" class to the button that opened the tab
 
     if (title) { url = url + "?cmd="+app+"&app="+app+"&db="+db+"&id="+id+"&title="+title+"&autopost="+autopost; }
@@ -475,7 +550,8 @@ function read_into(args) {
 
     // Load Content into Div
     //  $('#Reader').load(url+ "?cmd=show&table=link&id=2",function(response, status, xhr){
-      $('#'+args.div).load(args.url,function(response, status, xhr){
+
+    $('#'+args.div).load(args.url,function(response, status, xhr){
         if (status == "error") {
              var msg = "Sorry but there was an error loading "+args.url+" into "+args.div;
              // alert(msg + xhr.status + " " + xhr.statusText);
@@ -548,6 +624,7 @@ function openNav() {
     document.getElementById("mySidenav").style.width = leftWindowWidth+"px";
     document.getElementById("main").style.marginLeft = leftWindowWidth+"px";
     document.getElementById("main").style.width = mainWindowWidth+"px";
+    document.getElementById("main").style.maxWidth = mainWindowWidth+"px";
     leftstatus="open";
 }
 
@@ -559,6 +636,7 @@ function closeNav() {
     mainWindowWidth = viewportWidth-rightWindowWidth;
     document.getElementById("main").style.marginLeft = "0px";
     document.getElementById("main").style.width = mainWindowWidth+"px";
+    document.getElementById("main").style.maxWidth = mainWindowWidth+"px";
 
 }
 
@@ -577,6 +655,7 @@ function openTalkNav() {
 
     document.getElementById("myTalknav").style.left = rightWindowLeft+"px";
     document.getElementById("myTalknav").style.width = sidebarwidth+"px";
+    document.getElementById("main").style.maxWidth = mainWindowWidth+"px";
     rightstatus="open";
 }
 
@@ -591,6 +670,7 @@ function closeTalkNav() {
     document.getElementById("main").style.marginRight = rightWindowLeft+"px";
     document.getElementById("main").style.paddingRight = "15px";    
     document.getElementById("main").style.width = mainWindowWidth+"px";
+    document.getElementById("main").style.maxWidth = mainWindowWidth+"px";
 }
 
 $( window ).resize(function() {

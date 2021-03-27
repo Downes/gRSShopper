@@ -1,12 +1,11 @@
 RewriteEngine On
 RewriteCond %{HTTPS} off
 RewriteRule (.*) https://%{HTTP_HOST}%{REQUEST_URI}
-RewriteRule ^(chat)$ https://www.downes.ca/cgi-bin/cchat.cgi
-RewriteRule ^(rcomment)$ https://www.downes.ca/cgi-bin/admin.cgi
+RewriteRule ^(chat)$ https://%{HTTP_HOST}/cgi-bin/cchat.cgi
+RewriteRule ^(rcomment)$ https://%{HTTP_HOST}//cgi-bin/admin.cgi
 RewriteRule ^(now)$ https://docs.google.com/document/d/1HG3gUJlT8Wg-GvOL_FCCtUHVqSIYy6dZZ44FYdnq8AU/edit?usp=sharing
-RewriteRule ^(test)/(.*?)$ https://www.downes.ca/post/$2
-RewriteRule ^(post|page|presentation|link)/([0-9]+)/rd$ https://www.downes.ca/cgi-bin/page.cgi?$1=$2&action=rd
-RewriteRule ^(search)/(.*?)$ https://www.downes.ca/cgi-bin/page.cgi?action=$1&q=$2
-RewriteRule ^(search|page|link)/(.*?)$ https://www.downes.ca/cgi-bin/page.cgi?$1=$2
-RewriteRule ^feed$ https://www.downes.ca/news/OLDaily.xml
-ErrorDocument 404 https://www.downes.ca/error/404.htm
+RewriteRule ^(test)/(.*?)$ https://%{HTTP_HOST}//post/$2
+RewriteRule ^(post|page|presentation|link)/([0-9]+)/rd$ https://%{HTTP_HOST}/cgi-bin/page.cgi?$1=$2&action=rd
+RewriteRule ^(search)/(.*?)$ https://%{HTTP_HOST}/cgi-bin/page.cgi?action=$1&q=$2
+RewriteRule ^(search|page|link)/(.*?)$ https://%{HTTP_HOST}/cgi-bin/page.cgi?$1=$2
+RewriteRule ^feed$ https://%{HTTP_HOST}/feed.xml

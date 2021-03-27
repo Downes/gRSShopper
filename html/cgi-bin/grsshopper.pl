@@ -3,6 +3,7 @@
 my $dirname = dirname(__FILE__);
 require $dirname . "/analyze.pl";
 our $gRSShopper_version = "1.0";
+our $diag = 0;
 
 
 #-------------------------------------------------------------------------------
@@ -274,11 +275,6 @@ sub get_person {
 	unless ($Person->{person_id}) { 	# No Person Data - Return anonymous User
 
 		&anonymous("No Person Data");
-		$Person->{person_status} = "anonymous";
-	}
-
-	unless ($Person->{person_mode} eq $sid) { 	# Bad session data - Return anonymous User
-		&anonymous("Bad session data");
 		$Person->{person_status} = "anonymous";
 	}
 
@@ -808,7 +804,7 @@ sub publish_page {
 
 	$Site->{pubstatus} = "publish";
 	my ($pgcontent,$pgtitle,$pgformat,$archive_url); 		# Vars for send_newsletter
-	my $LF; if ($Site->{cron} ) { $LF = "\n"; } else { $LF = "<br/>\n"; }
+	my $LF = ""; if ($Site->{cron} ) { $LF = "\n"; } 
 	my $keyword_count;
 	if ($vars->{mode} eq "silent") { $opt = "silent"; }
 	$vars->{force} = "yes";				# Always rebuild when publishing
@@ -847,7 +843,9 @@ sub publish_page {
 
 
 		next unless (&is_allowed("publish","page",$wp));
-		unless ($opt eq "silent" || $opt eq "initialize") { print "Publishing Page: ",$wp->{page_title},$LF; }
+		unless ($opt eq "silent" || $opt eq "initialize") { 
+			$vars->{message} = "Publishing Page: ".$wp->{page_title}.$LF; 
+		}
 
 
 
@@ -861,7 +859,7 @@ sub publish_page {
 
 								# Make Sure We Have Content
 		unless ($wp->{page_content}) {
-			&publish_error($page_id,qq|Whoa, this page ".$wp->{page_title}."($page_id) has no content $LF $LF|);
+			&publish_error($page_id,qq|Whoa, this page |.$wp->{page_title}.qq| ($page_id) has no content $LF $LF|);
 			next;
 		}
 
@@ -940,12 +938,12 @@ sub publish_page {
 
 
 
-		print "Publishing to ",$pgfile,$LF;
+		$vars->{message} = "Publishing to ".$pgfile.$LF;
 		&log_cron(1,sprintf("Page published to %s",$pgfile));
 
 		unless (open PSITE, ">$pgfile") { &publish_error($page_id,qq|Cannot open ".$wp->{page_title}."($page_id) $pgfile : $! $LF $LF|); exit; }
 		unless (print PSITE $wp->{page_content}) { &publish_error($page_id,qq| Cannot print to ".$wp->{page_title}."($page_id) $pgfile : $!  $LF $LF|); close PSITE; exit; }
-		unless ($opt eq "silent" || $opt eq "initialize") { print qq|Saved page to <a href="$pgurl">$pgurl</a>  $LF|; }
+		unless ($opt eq "silent" || $opt eq "initialize") { $vars->{message} = qq|Saved page to <a href="$pgurl" target="new">$pgurl</a>  $LF|; }
 		close PSITE;
 
 
@@ -964,7 +962,7 @@ sub publish_page {
 			print POUT $wp->{page_content} or &publish_error($page_id,qq|Error printing ".$wp->{page_title}."($page_id) to $save_to : $! $LF $LF|);
 			close POUT;
 			unless ($vars->{mode} eq "silent" || $opt eq "silent" || $opt eq "initialize") {
-				print qq|Archived $wp->{page_title} to <a href="$save_url">$save_url</a> |;
+				$vars->{message} = qq|Archived $wp->{page_title} to <a href="$save_url">$save_url</a> |;
 			}
 			$archive_url = $save_url;
 
@@ -994,8 +992,13 @@ sub publish_error {
   my $LF = "<br>";
   if ($Site->{cron} ) { $LF = "\n"; }
 
-  &log_cron(0,sprintf("Publish Error: Page %s $LF    %s",$pg,$err));
-  printf("Publish Error: Page %s $LF    %s",$pg,$err);
+	if ($Site->{context} eq "cron") {
+		&log_cron(0,sprintf("Publish Error: Page %s $LF    %s",$pg,$err));
+		printf("Publish Error: Page %s $LF    %s",$pg,$err);
+	} else {
+		&status_error(sprintf("Publish Error: Page %s $LF    %s",$pg,$err));
+	}
+
 
 }
 	# -------  Publish badge --------------------------------------------------------
@@ -1065,7 +1068,7 @@ sub publish_badge {
 
 			print PSITE $json or print qq| Cannot print to $pgfile : $!  $LF $LF|;
 
-			unless ($opt eq "silent" || $opt eq "initialize") { print qq|Saved page to <a href="$pgurl">$pgfile</a>  $LF|; }
+			unless ($opt eq "silent" || $opt eq "initialize") { $vars->{message} = qq|Saved page to <a href="$pgurl"  target="new">$pgfile</a>  $LF|; }
 
 
 		close PSITE;
@@ -1126,7 +1129,7 @@ sub assign_badge {
 
 			print PSITE $json or print qq| Cannot print to $pgfile : $!  $LF $LF|;
 
-			unless ($opt eq "silent" || $opt eq "initialize") { print qq|Saved page to <a href="$pgurl">$pgfile</a>  $LF|; }
+			unless ($opt eq "silent" || $opt eq "initialize") { $vars->{message} = qq|Saved page to <a href="$pgurl"  target="new">$pgfile</a>  $LF|; }
 
 
 		close PSITE;
@@ -1179,7 +1182,7 @@ sub list_tables {
 	my $output;
 
 	# Restrict to Admin
-	&admin_only();
+#	&admin_only();
 
 	# If needed, get form data (tells us what to list, based on tab) - eg. If tab is Read, then to view, form_read="yes" for the given table
 	my @filter;
@@ -1198,8 +1201,8 @@ sub list_tables {
 		my ($tdb,$tname) = split /\./,$table; unless ($tname) { $tname = $tdb; }
 
 		# Make sure the user is allowed to view the table, and that it's in the list for this tab
-		next unless (&is_viewable("nav",$tname));
-		if (@filter) { next unless (my ($matched) = grep $_ eq $tname, @filter); }
+	#	next unless (&is_viewable("nav",$tname));
+	#	if (@filter) { next unless (my ($matched) = grep $_ eq $tname, @filter); }
 
 		# Format the output
 		# Open Main: url,cmd,db,id,title,starting_tab
@@ -1218,11 +1221,12 @@ sub list_tables {
 
 # loadList({div:'Read',cmd:'list',table:'link'});
 
-
+		my $fspecial = "";			# Special for feed, limit default to Approved
+		if ($tname eq "feed") {	$fspecial = ",status:'A'" }
 		$output .= qq|[<a href="#" 
 			onClick="
 			openTab(event,'List','tablinks','list-button');
-			loadList({div:'List',cmd:'list',table:'$tname'});
+			loadList({div:'List',cmd:'list',table:'$tname'$fspecial});
 			">List</a>] |.
     	ucfirst($tname).qq| </li>\n		|;
 
@@ -1245,30 +1249,39 @@ sub list_tables {
 
 }
 
-
+# -------------------------------------------------------
+#           List Records
+#
+#           Requires a table and set of key-value parameters
+#           Returns a list header with metadata
+#           and a list array with results
+#
+# -------------------------------------------------------
 
 
 sub list_records {
 
-	my ($dbh,$query,$table,$parms) = @_;
+	my ($table,$parms) = @_;
 	my $vars = $query->Vars;
 	my $output = "";
 	my $onclickurl = $Site->{st_cgi}."api.cgi";
 
-
-
 	$vars->{where} =~ s/[^\w\s]//ig;	# chars only, no SQL injection for you
 	my $format = $vars->{format};		# Output Format
 
-	if ($parms->{id} eq "latest") { # Special filter for id=latest
+	if ($parms->{id} eq "latest") { 	# Special filter for id=latest
 		$parms->{id} = db_get_single_value($dbh,$table,$table."_id","",$table."_crdate DESC");
 	}
+
 
 	# Set Sort, Start, Number values
 	my ($sort,$start,$number,$limit) = &sort_start_number($query,$table);
 
+
 	# Set Conditions Related to Permissions
-	my $permtype = "list_".$table; my $where;
+	my $permtype = "list_".$table; 
+
+
 #	if ($Site->{$permtype} eq "owner" && $Person->{person_status} ne "admin") {
 #			$where = "WHERE ".$table."_creator = '".$Person->{person_id}."'";
 
@@ -1281,51 +1294,55 @@ sub list_records {
 	else { $titname = "title"; }
 	my $p = $table."_"; unless ($titname =~ m/$p/) { $titname = $p. $titname; }
 
+	my $where = "";
 
 	if ($vars->{where}) {
 		my $w = "where ".$titname." LIKE '%".$vars->{where}."%'";
 		if ($where) {
-			$where = "($where) AND ($w)";
+	#		$where .= "($where) AND ($w)";
 		} else {
-			$where = $w;
+	#		$where .= $w;
 		}
 	}
 
 
-
 	if ($parms) {
+		my @columns = &db_columns($dbh,$table);
 		my @wherelist;
 		while (my ($px,$py) = each %$parms) {
-
 			next if ($py eq "" || $py eq "all");		# Don't filter by nothing or everything
+			next unless (grep( /^$px$/, @columns));		# Don't search in non-existent columns
 		
 			my $tablelead = $table."_";
 			
 			unless ($px =~ /$tablelead/) { $px = $tablelead.$px; }
-			push @wherelist,qq|($px = '$py')|;
-
-
+			if ($px =~ /_category|_genre|_status|_section|_class|_type|_id/) {  	# Parameters for filter
+				push @wherelist,qq|($px = '$py')|; 
+			} else {													# Text search, uses 'LIKE'
+				push @wherelist,qq|($px LIKE '\%$py\%')|;
+			}
 
 		}
-		$where = join ' AND ',@wherelist;
-		
-		if ($where) { $where = "WHERE ".$where; }
-	}
-	
+		$where .= join ' AND ',@wherelist;
+
+	} 
+
+	if ($where) { $where = "WHERE ".$where; }
+
 
 	# Count Total Number of Items
 	my $count;
   	if ($where) { $count = &db_count($dbh,$table,$where); } else { $count = &db_count($dbh,$table); }
 
+
 	# Execute SQL search
 	my $stmt = qq|SELECT * FROM $table $where $sort $limit|;
-#die $stmt;
 
 	my $sthl = $dbh->prepare($stmt);
 	$sthl->execute();
 	if ($sthl->errstr) { print "Content-type: text/html\n\n";print "DB LIST ERROR: ".$sthl->errstr." <p>"; exit; }
 
-
+#print "Results: \n";
 
 	#if ($table eq "media" || $table eq "link" || $table eq "feed") {
 	#if ($table eq "media" || $table eq "link" || $table eq "feed") {
@@ -1338,6 +1355,8 @@ sub list_records {
 			while (my($lx,$ly) = each %$list_record) {
 				$list_record->{$lx} =~ s/&amp;/&/g;
 			}
+
+#print "List record $id \n";
 
 			# Provide default titles
 			unless ($list_record->{$table."_title"} || $list_record->{$table."_name"}) {
@@ -1353,8 +1372,8 @@ sub list_records {
 
 
 			
-			# Large list data, sent if we're showing a single record
-			if ($count == 1) {
+			# Large list data, sent if 'cmd' == 'show'
+			if ($parms->{cmd} eq "show") {
 
 				# Content
 				foreach my $field (qw(description content)) {
@@ -1389,10 +1408,9 @@ sub list_records {
 					}
 				}
 			}
-			 
 			push @$listarray,$itemdata;
 		}
-		return $listarray;
+		return ($parms,$listarray);
 	#}
 
 
@@ -1460,7 +1478,7 @@ sub list_records {
 
 				# Define the full record text
 		      	$record_text = qq|
-			       <li class="table-list-element" id="$table-$rid">
+			       <li class="table-list-element list-result" id="$table-$rid">
 			         <span title="Edit" 
 			  		   onClick="openDiv('$onclickurl','main','edit',
 			  		   '$table','$rid','$starting_tab');">$recordstatus $record_title</span>
@@ -3621,7 +3639,7 @@ sub make_keywords {
 
 
 		my $sql = "SELECT * FROM $script->{db} $where$order$limit";
-
+#die $where;
 
 						# Permissions
 
@@ -3632,25 +3650,29 @@ sub make_keywords {
 			return unless (&is_allowed("view",$script->{db},"","make keywords"));
 		}
 
+		# get the list of coluns in this table (used by published_on_web()
+		my @pubcolumns = &db_columns($dbh,$script->{db});
+
   #print "Content-type: text/html\n\n";						# Get Records From DB
 
-		my $sth = $dbh -> prepare($sql);
-		$sth -> execute();
+		my $sth = $dbh -> prepare($sql) or die "Error in $sql: $!";
+		$sth -> execute() or die "Error executing $sql: $!";
 		$results_count=0;
 		my $results_in = "";
 
 
-		# get the list of coluns in this table (used by published_on_web()
-
-		my @pubcolumns = &db_columns($dbh,$script->{db});
 
 						# For Each Record
 		$Site->{keyword_counter}=0;
 		while (my $record = $sth -> fetchrow_hashref()) {
-
+			my $rest = "Counting...";
+if ($sql =~ /link/) {
+#die $sql.":-".$rest." - ".$record->{post_title}." Pub datew: ".$record->{post_pub_date}."\n";
+}
+$rest = "Skipping..";
 			# If we are publishing a page, skip items that have not been published
 			next unless (&published_on_web($dbh,$script->{db},$record,@pubcolumns));
-
+$rest = "Did not skip";
 			$Site->{keyword_counter}++;
 			$results_count++;
 
@@ -3723,7 +3745,6 @@ sub make_keywords {
 			$results_in .= $record_text;
 
 		}
-
 
 		$results_in =~ s/,$//;	# Remove trailing comma
 
@@ -4023,10 +4044,11 @@ sub upload_file {
 
 	# Assumes global input variable $query from CGI
 	# Name of input field:  myfile
-  my ($upload_file_name) = @_;
+	my ($upload_file_name) = @_;
+	my $filen = $vars->{file};
 	$upload_file_name ||= "myfile";
-
 	my $file = gRSShopper::File->new();
+	#my $file;
 	$file->{file_title} = $query->param($upload_file_name);
 
 	$file->{file_dir} = $Site->{st_urlf} . "uploads";
@@ -4041,10 +4063,15 @@ sub upload_file {
 	# Set File Upload Directory
 	($file->{filetype},$file->{file_dir}) = &file_upload_dir($ffextension);
 	my $fulluploaddir = $Site->{st_urlf} . $file->{file_dir};
-	unless (-d $fulluploaddir) { mkdir $fulluploaddir, 0755 or die "Error 3868 creating upload directory $fulluploaddir $!"; }
+	unless (-d $fulluploaddir) { 
+		system "mkdir -p $fulluploaddir"; 
+		system "chmod 0755 $fulluploaddir";
+		&error($dbh,"","","Error 4053 Failed to create upload directory") unless (-d $fulluploaddir);
+	}
 
 	# Store the File
-	my $upload_filehandle = $query->upload($upload_file_name) or &error($dbh,"","","Failed to upload $upload_fullfilename $!");
+	my $upload_filehandle = $query->upload($upload_file_name) 
+		or &error($dbh,"","","Failed to upload $upload_fullfilename $!");
 	$upload_filedirname = $file->{file_dir}.$file->{file_title};
 	$upload_fullfilename = $Site->{st_urlf}.$upload_filedirname;
 
@@ -4286,6 +4313,12 @@ sub make_thumbnail {
 
 	my $dimf = $dir . $img;			# Full filename of original
 	my $domf = $icondir . $tmb;		# Full filename of new icon
+
+	unless (-d $icondir) { 
+		system "mkdir -p $icondir"; 
+		system "chmod 0755 $icondir";
+		&error($dbh,"","","Error 4053 Failed to create upload directory") unless (-d $icondir);
+	}
 
   my $image = Image::Resize->new($dimf);
 	my $gd = $image->resize(100, 100);
@@ -4535,12 +4568,15 @@ sub main_window {
 		load=>1,						# Load record data
 	});
 
+
 	if ($window->{tab_list}) { 
-		$tabs ||= [keys %{$window->{tab_list}}]; 
+		$tabs ||= $window->{tabs}; 
 		$starting_tab ||= $window->{show_active}; 
-	} else { 
-		$tabs ||= ['Edit','Upload','Preview','Publish']; 
-		$starting_tab ||= "Edit"; }
+	} 
+
+	my $length = @$tabs;
+	if ($length == 0) {	$tabs = ['Edit','Preview','Publish']; }
+	$starting_tab ||= "Edit";
 
 	# Get the record associated with the tabs
 	my $record;
@@ -4559,8 +4595,9 @@ sub main_window {
 
 	# Make tabs
 
-	my $form_tabs_tabs = qq|<div class="tabPanel">|;
-	foreach my $tab (@$tabs) {
+	$form_tabs_tabs .= qq|<div class="tabPanel">|;
+	unless (@$tabs) { $form_tabs_tabs .= "No tabs"; }
+	foreach my $tab (@$tabs) { 
 		my $starting;
 		if ($tab eq $starting_tab) { $starting = "active"; } else {$starting = "";}
 		$form_tabs_tabs .= qq|
@@ -4584,13 +4621,166 @@ sub main_window {
 		$tab_content = $@ if $@;
 		$form_tabs_content .= qq|
 			<div id="mainWindow$tab" style="display:$starting;">
-			$tab_content
+			$tab_content 	
 			</div>
 		|;
 	}
 	$form_tabs_content .= qq|</div>|;
 
+	# provide styling; this is temporary before I move this to a style sheet
 	return qq|
+
+
+
+	
+     <style>
+
+		label {
+  			padding: 12px 12px 0px 12px;
+  			margin:0;
+  			display: inline-block;
+  			color:green;
+		}
+
+		p.info {
+  			padding: 0px 12px 0px 12px;
+  			margin:0;
+  			display: block;
+  			color:black;
+
+		}
+
+		.graph-list-element {
+			font-family: Arial, Helvetica, sans-serif;
+			font-size: 0.875em; /* 14px/16=0.875em */
+			margin-left:1em;
+		}
+
+		.text-input {
+			z-index: 1;
+		}
+
+		.text-input-form {
+			font-family: Arial, Helvetica, sans-serif;
+			font-size: 0.875em; /* 14px/16=0.875em */
+			margin-left:12px;
+			max-width: 60em;
+		}
+
+		.text-input-field {
+			margin:0;
+			padding:10;
+			width: 40%;
+			height: 1.6em;
+			line-height: 1.8em;
+		}
+
+		.text-input-textarea {
+			
+		   max-width:90%; 
+		   line-height:1.8em;
+		}
+
+		.keylist-input {
+
+		}
+		.keylist-input-form {
+			font-family: Arial, Helvetica, sans-serif;
+			font-size: 0.875em; /* 14px/16=0.875em */
+			margin-left:10px;
+		}
+
+		.keylist-input-field {
+			margin:0;
+			padding:10;
+			width: 40%;
+			height: 1.6em;
+			line-height: 1.6em;
+		}
+
+		.keylist-input-button {
+			margin:0;
+			padding:0;
+			padding-left:5px;padding-right:5px;
+			height: 1.6em;
+			line-height: 1.6em;
+		}
+
+		.optlist-input {
+
+		}
+
+		.action {
+			padding-top;padding-bottom:0;
+		}
+
+		.optlist-input-form {
+			font-family: Arial, Helvetica, sans-serif;
+			font-size: 0.875em; /* 14px/16=0.875em */
+			margin-left:10px;
+		}
+
+		.harvest-button {
+			height: 1.6em;
+			line-height: 1.6em;
+			margin:0;
+			margin-right:5px;
+			padding:0;
+			padding-left:5px;padding-right:5px;
+		}
+
+		.harvest-select {
+			height: 1.9em;
+			line-height: 1.9em;
+			font-family: Arial, Helvetica, sans-serif;
+			font-size: 0.875em; /* 14px/16=0.875em */
+			margin:0;
+			padding:0;
+			margin-top:8px;
+			margin-left:10px;
+		}
+
+		.harvest-option {
+			height: 1.9em;
+			line-height: 1.9em;
+			font-family: Arial, Helvetica, sans-serif;
+			font-size: 0.875em; /* 14px/16=0.875em */
+			margin:0;
+			margin-left:10px;
+			padding:0;
+		}
+
+		.row button {
+			margin:0;
+			margin-right:3px;
+			padding:0;
+			padding-left:5px;padding-right:5px;
+			height: 1.6em;
+			line-height: 1.6em;
+		}
+
+		.editor-selected {
+			height: 1.6em;
+			line-height: 1.6em;
+			margin:0;
+			margin-right:5px;
+			padding:0;
+			padding-left:5px;padding-right:5px;
+			color:red;
+		}
+
+		.editor-unselected {
+			height: 1.6em;
+			line-height: 1.6em;
+			margin:0;
+			margin-right:5px;
+			padding:0;
+			padding-left:5px;padding-right:5px;
+			color:blue;
+		}
+
+	</style>
+
 	<!-- Main Window (autogenerated by grsshopper.pl main_window() -->
 	<div id="myMainnav" class="mainnav">
 		$form_tabs_tabs
@@ -4626,32 +4816,43 @@ sub admin_frame {
 sub make_new_record {
 
 	my ($table,$data) = @_;
+	my $id;
 
 
 	# Record might be a database table where we know the title but not the id
 	# so we'll try to look up the ID
 	my $input_data_type = ref($data) || "string";
+	if ($data && $input_data_type eq "string") {	 
+		$id = &db_locate($dbh,"form",{$table."_title"=>$data}); }
 
-	if ($data && $input_data_type eq "string") {	 $id_number = &db_locate($dbh,"form",{$table."_title"=>$data}); }
+	# Otherwise, yes, we're creating a new record
 	else {
+		my $record; # I will eventually replace this with gRSShopper::record->new()
 
-			# If $data is a string, it's our new title
-			my $table_name = "";
-			if ($input_data_type eq "string") { $table_name = $data; }
-
-			# Initialize values
-			my $table_record = {
-				$table."_creator"=>$Person->{person_id},
-				$table."_crdate"=>time,
-				$table."_name"=>$table_name,
-				$table."_title"=>$table_name,
-				$table."_pub_date"=>&tz_date(time,"day","")
-			};
-
-			# Save the values and obtain new record id
-			$id_number = &db_insert($dbh,$query,$table,$table_record);
+		# If $data is a string, it's our new title
+		if ($input_data_type eq "string") { 
+			$record->{$table."_name"} = $data; 
+			$record->{$table."_title"} = $data;
 		}
- return $id_number;
+		
+		# Otherwise, the data is the seed data for our new record
+		else {
+			while (my($dx,$dy) = each (%$data)) {
+				next if ($dx =~ /_id$/i);
+				$record->{$dx} = $dy;
+			}
+		}
+
+		# Initialize values for NEW record, overwriting seed data as needed
+			$record->{$table."_creator"} = $Person->{person_id};
+			$record->{$table."_crdate"} = time;
+			$record->{$table."_pub_date"} = &tz_date(time,"day","");
+
+		# Save the values and obtain new record id
+		$id = &db_insert($dbh,$query,$table,$record);
+	}
+	
+ 	return $id;
 }
 
 	# TABS ----------------------------------------------------------
@@ -5111,10 +5312,7 @@ sub Tab_Page {
 		$output .= &process_field_types($window,$table,$id_number,$field,$record,$data,$defined);
 	}
 
-	$output .= qq|<div id="publish">
-	   [<a href="#" onClick="Javascript:api_submit('$Site->{script}','publish','publish','record','page','$id_number','','');">Publish Page</a>]
-		 <div id="publish_result"></div>
-		 </div>|;
+	$output .= &form_pushbutton($table,$id_number,"tab","publish");
 
 	$output .= qq|<div id="clone">
 		 [<a href="#" onClick="Javascript:api_submit('$Site->{script}','clone','clone','record','page','$id_number','','');">Clone Page</a>]
@@ -5780,145 +5978,6 @@ sub process_field_types {
 	}
 
 
-	# provide styling; this is temporary before I move this to a style sheet
-	
-	$output .=qq|<style>
-
-		label {
-  			padding: 12px 12px 0px 12px;
-  			margin:0;
-  			display: inline-block;
-  			color:green;
-		}
-
-		p.info {
-  			padding: 0px 12px 0px 12px;
-  			margin:0;
-  			display: block;
-  			color:black;
-
-		}
-
-		.graph-list-element {
-			font-family: Arial, Helvetica, sans-serif;
-			font-size: 0.875em; /* 14px/16=0.875em */
-			margin-left:1em;
-		}
-
-		.text-input {
-			z-index: 1;
-		}
-
-		.text-input-form {
-			font-family: Arial, Helvetica, sans-serif;
-			font-size: 0.875em; /* 14px/16=0.875em */
-			margin-left:12px;
-			max-width: 60em;
-		}
-
-		.text-input-field {
-			margin:0;
-			padding:10;
-			width: 40%;
-			height: 1.6em;
-			line-height: 1.8em;
-		}
-
-		.keylist-input {
-
-		}
-		.keylist-input-form {
-			font-family: Arial, Helvetica, sans-serif;
-			font-size: 0.875em; /* 14px/16=0.875em */
-			margin-left:10px;
-		}
-
-		.keylist-input-field {
-			margin:0;
-			padding:10;
-			width: 40%;
-			height: 1.6em;
-			line-height: 1.6em;
-		}
-
-		.keylist-input-button {
-			margin:0;
-			padding:0;
-			padding-left:5px;padding-right:5px;
-			height: 1.6em;
-			line-height: 1.6em;
-		}
-
-		.optlist-input {
-
-		}
-
-		.optlist-input-form {
-			font-family: Arial, Helvetica, sans-serif;
-			font-size: 0.875em; /* 14px/16=0.875em */
-			margin-left:10px;
-		}
-
-		.harvest-button {
-			height: 1.6em;
-			line-height: 1.6em;
-			margin:0;
-			margin-right:5px;
-			padding:0;
-			padding-left:5px;padding-right:5px;
-		}
-
-		.harvest-select {
-			height: 1.9em;
-			line-height: 1.9em;
-			font-family: Arial, Helvetica, sans-serif;
-			font-size: 0.875em; /* 14px/16=0.875em */
-			margin:0;
-			padding:0;
-			margin-top:8px;
-			margin-left:10px;
-		}
-
-		.harvest-option {
-			height: 1.9em;
-			line-height: 1.9em;
-			font-family: Arial, Helvetica, sans-serif;
-			font-size: 0.875em; /* 14px/16=0.875em */
-			margin:0;
-			margin-left:10px;
-			padding:0;
-		}
-
-		.row button {
-			margin:0;
-			margin-right:3px;
-			padding:0;
-			padding-left:5px;padding-right:5px;
-			height: 1.6em;
-			line-height: 1.6em;
-		}
-
-		.editor-selected {
-			height: 1.6em;
-			line-height: 1.6em;
-			margin:0;
-			margin-right:5px;
-			padding:0;
-			padding-left:5px;padding-right:5px;
-			color:red;
-		}
-
-		.editor-unselected {
-			height: 1.6em;
-			line-height: 1.6em;
-			margin:0;
-			margin-right:5px;
-			padding:0;
-			padding-left:5px;padding-right:5px;
-			color:blue;
-		}
-
-	</style>|;
 
   return $output;
 
@@ -5934,15 +5993,82 @@ sub process_field_types {
 #           FORM FUNCTIONS
 	#-------------------------------------------------------------------------------
 
-sub form_textinput {
-	my ($table,$id,$col,$value,$size,$fieldlable,$advice) = @_;
-  	my $url = $Site->{st_cgi}."api.cgi";
-	$value =~ s/"/\\"/sg;
-	my $placeholder = ucfirst($col); $placeholder =~ s/_/ /g;
-	unless ($fieldlable) { $fieldlable = $col; }
+sub fieldlable {				# Creates Lable value used by forms
+	my ($col, $table) = @_; 
+
+	my $fieldlable = $col;
 	$fieldlable =~ s/$table//i;
 	$fieldlable =~ s/_//i;
 	$fieldlable = ucfirst($fieldlable);
+	return $fieldlable;
+}
+sub form_publish_page {
+
+	my ($table,$id,$col) = @_;
+
+	unless ($fieldlable) { $fieldlable = &fieldlable($col,$table); }
+
+	return qq|
+		<div class="text-input">
+			<label for="$col">Publish</label>
+			<div class="text-input-form">
+				<div tabindex="0" role="button" class="btn" aria-pressed="false" 
+			   		onclick="
+						submitData(
+							{ div:'publish_result',
+								cmd:'publish',
+								table:'$table',
+								id:'$id',
+							});
+					">Publish
+				</div>
+			</div>
+		</div>
+		<div id="publish_result"></div>
+	|;
+}
+
+sub form_pushbutton {
+
+	my ($table,$id,$col,$cmd,$div,$label) = @_;
+
+	unless ($table) { return qq|Table not specified for pushbutton|;}
+	unless ($id) { return ucfirst($table).qq| ID not specified for pushbutton|;}
+	unless ($cmd) { return qq|Cmd not specified for pushbutton|;}
+
+	$label ||= ucfirst($cmd);
+	$div ||= $col."_".$cmd."_result";
+
+	return qq|
+		<div class="text-input">
+			<label for="$col">$label</label>
+			<div class="text-input-form">
+				<div tabindex="0" role="button" class="btn" aria-pressed="false" 
+			   		onclick="
+						submitData(
+							{ div:'$div',
+								cmd:'$cmd',
+								col: '$col',
+								table:'$table',
+								id:'$id',
+							});
+					">$label
+				</div>
+			</div>
+		</div>
+		<div id="$div" class="result"></div>
+	|;
+}
+
+
+
+sub form_textinput {
+	my ($table,$id,$col,$value,$size,$fieldlable,$advice) = @_;
+  	my $url = $Site->{st_cgi}."api.cgi";
+	$value =~ s/"/&quot;/sg;
+	my $placeholder = ucfirst($col); $placeholder =~ s/_/ /g;
+	unless ($fieldlable) { $fieldlable = &fieldlable($col,$table); }
+
 
 	# Old-Style Form Alternative
 	if (defined($vars->{raw_form})) { return qq|<tr><td class="column-name" align="right" width="200">$col</td><td><input type="text" name="$col" value="$value"></td></tr>|; }
@@ -5961,7 +6087,6 @@ sub form_textinput {
 						id:'$id',
 						value: submitValue,
 						});
-				   \$('#Preview').load(url+'?cmd=show&table=$table&id=$id&format=summary');
 				">$advice
 			</div>
 		</div>
@@ -5981,11 +6106,12 @@ sub form_textarea {
 
 	my ($table,$id,$col,$value,$size,$advice) = @_;
   my $url = $Site->{st_cgi}."api.cgi";
-  unless ($size =~ /x/i) { $size = "40x".$size; }
+  unless ($size =~ /x/i) { $size = "50x".$size; }
 	my ($width,$height) = split 'x',$size;
 	$height ||= 10;
 	$width ||= 40;
 
+	my $fieldlable = &fieldlable($col,$table);
 	my $placeholder = ucfirst($col); $placeholder =~ s/_/ /g;
 	#$value ||= $col;
 
@@ -5999,32 +6125,25 @@ sub form_textarea {
 
 	return qq|
 
-		<div>
-		   <textarea id="|.$col.qq|" placeholder="$placeholder" contenteditable="true"
-		   style="width:|.$width.qq|em; max-width:100%; height:|.$height.qq|em; line-height:1.8em;">$value</textarea>
+		<div class="text-input">
+		   <label for="$col">$fieldlable</label>
+		   <div class="text-input-form">
+		   <textarea id="|.$col.qq|" placeholder="$placeholder" class="text-input-textarea" 
+		      style="width:|.$width.qq|em;height:|.$height.qq|em;" 
+			  contenteditable="true" onChange="
+				   var submitValue=\$('#|.$col.qq|').val();
+				   submitData(
+					   {div:'|.$col.qq|_result',
+					    cmd:'update',
+						table:'$table',
+						field:'$col',
+						id:'$id',
+						value: submitValue,
+						});
+				">$value</textarea>
 			 <br><span id="|.$col.qq|_result"></span>$advice 
+		   </div>
 		</div>
-
-
-		<script>
-			var timer_|.$col.qq|;
-			\$('#|.$col.qq|').on('change',function(){
-
-				// do stuff only when user has been idle for 1 second
-  				clearTimeout(timer_|.$col.qq|);
- 				timer_|.$col.qq| = setTimeout(function() {
-
-					var content = \$('#|.$col.qq|').val();
-					var url = "$url";
-					submit_function(url,"$table","$id","$col",content,"textarea");
-					var previewUrl = url+"?cmd=show&table=$table&id=$id&format=summary";
-					\$('#Preview').load("previewUrl");
-
-				 }, 1000);
-
-			});
-		</script>
-
 	|;
 
 }
@@ -6045,6 +6164,8 @@ sub form_wysihtml {
 
 
 	my $placeholder = ucfirst($col); $placeholder =~ s/_/ /g;
+	my $fieldlable = &fieldlable($col,$table);
+
 	$value ||= $placeholder;
 
 	# Escape markup
@@ -6058,55 +6179,54 @@ sub form_wysihtml {
 
 		<!-- Integration based on instructions here http://docs.ckeditor.com/#!/guide/dev_jquery - Downes -->
 		<!-- CKEditor  width is sized using the div -->
-    <div id="editordiv" style="width:|.$width.qq|em; max-width:100%;line-height:1.8em;border:solid 1px black;">
-
-    <textarea id="|.$col.qq|" placeholder="Leave a comment" contenteditable="true"
-		style="width:|.$width.qq|em; max-width:100%; height:|.$height.qq|em; line-height:1.8em;">$value</textarea>
-		<span id="|.$col.qq|_result"></span>$advice
-
-
+    	<div id="editordiv" class="text-input" style="width:|.$width.qq|em;">
+			<label for="$col">$fieldlable</label>
+			<div class="text-input-form">
+    			<textarea id="|.$col.qq|" contenteditable="true" class="text-input-textarea"
+					style="width:|.$width.qq|em;height:|.$height.qq|em;">$value</textarea>
+				<span id="|.$col.qq|_result"></span>$advice
+			</div>
+   		</div>
+	
 		<script>
 
 		CKEDITOR.replace( '|.$col.qq|', {
 			width: '100%',
-      height: '|.$ckheight.qq|em',
-	// Define the toolbar groups as it is a more accessible solution.
-	toolbarGroups: [
-		{"name":"basicstyles","groups":["basicstyles"]},
-		{"name":"links","groups":["links"]},
-		{"name":"insert","groups":["insert"]},
-		{"name":"paragraph","groups":["list","blocks"]},
-		{"name":"styles","groups":["styles"]},
-		{"name":"document","groups":["mode"]}
+    		height: '|.$ckheight.qq|em',
+			// Define the toolbar groups as it is a more accessible solution.
+			toolbarGroups: [
+				{"name":"basicstyles","groups":["basicstyles"]},
+				{"name":"links","groups":["links"]},
+				{"name":"insert","groups":["insert"]},
+				{"name":"paragraph","groups":["list","blocks"]},
+				{"name":"styles","groups":["styles"]},
+				{"name":"document","groups":["mode"]}
+			],
+			// Remove the redundant buttons from toolbar groups defined above.
+			removeButtons: 'Underline,Strike,Subscript,Superscript,Anchor,Styles,Specialchar'} 
+		);
 
-	],
-	// Remove the redundant buttons from toolbar groups defined above.
-	removeButtons: 'Underline,Strike,Subscript,Superscript,Anchor,Styles,Specialchar'} );
+	    var editor = CKEDITOR.instances['|.$col.qq|'];
 
-
-    var editor = CKEDITOR.instances['|.$col.qq|'];
-    var timer_|.$col.qq|;
-
-
-			editor.on('change',function(){
-
-				// do stuff only when user has been idle for 1 second
-  				clearTimeout(timer_|.$col.qq|);
- 				timer_|.$col.qq| = setTimeout(function() {
-
-					// Submit Changed Content
-					var url = "$url";
-					var editor = CKEDITOR.instances['|.$col.qq|'];
-					var content = editor.getData();
-					submit_function(url,"$table","$id","$col",content,"textarea");
-					var previewUrl = url+"?cmd=show&table=$table&id=$id&format=summary";
-					\$('#Preview').load("previewUrl");
-
-				 }, 1000);
+		editor.on('change',function(){
+			// Submit Changed Content
+			var url = "$url";
+			var editor = CKEDITOR.instances['|.$col.qq|'];
+			var content = editor.getData();
+			submitData(
+				{div:'|.$col.qq|_result',
+				cmd:'update',
+				table:'$table',
+				field:'$col',
+				id:'$id',
+				value: content,
 			});
+			var previewUrl = url+"?cmd=show&table=$table&id=$id&format=summary";
+			\$('#Preview').load("previewUrl");
+		});
 
 		</script>
-   </div>
+
 	|;
 
 
@@ -6171,284 +6291,107 @@ sub form_keylist {
 
 	<div class="keylist-input">
 	   <label for="$key_title">$key_title</label>
-       <div id="|.$col.qq|_liveupdate" class="keylist-text">$keylist_text</div>
+       <div id="|.$key.qq|_graph_list" class="keylist-text">$keylist_text</div>
        <div id="keylist-input-field" class="keylist-input-form">
 		    $input_field
-			<button type="button" id="|.$col.qq|_button" class="keylist-input-button" >Update</button>
+			<button type="button" id="|.$col.qq|_button" class="keylist-input-button" onClick="
+					var submitValue=\$('#|.$col.qq|').val();
+				   	submitData(
+					   {div:'|.$key.qq|_graph_result',
+					    cmd:'update',
+						table:'$table',
+						key:'$key',
+						id:'$id',
+						type: 'keylist',
+						value: submitValue,
+						});
+			">Update</button>
        </div>
+	   <div id="|.$key.qq|_graph_result"></div>
     </div>
-
-
-
-		<script>
-		\$(document).ready(function(){
-			\$('#|.$col.qq|').click(function() { onclick_function("$col","persist");  });
-			\$('#|.$col.qq|_button').click(function(){
-				var url = "$url";
-				var content = \$('#|.$col.qq|').val();
-				submit_function(url,"$table","$id","$col",content,"keylist");
-				var previewUrl = url+"?cmd=show&table=$table&id=$id&format=summary";
-				\$('#Preview').load(previewUrl);
-			});
-		});
-		</script>
-
 	|;
 }
 
 	# -------  File Select -----------------------------------------------------
 	#
+sub form_file_from_url {
+
+	my ($col,$placeholder,$value,$table,$id,$advice) = @_;
+
+	return qq|	<div class="text-input">
+			<label for="$col">Import From URL</label>
+			<div class="text-input-form">
+				<input type="text" class="text-input-field" placeholder="$placeholder" id="|.$col.qq|" value="$value" style="width:|.$size.qq|em;max-width:90%;" onChange="
+				   var submitValue=\$('#|.$col.qq|').val();
+				   submitData(
+					   {div:'|.$col.qq|_url_result',
+					    cmd:'update',
+						table:'$table',
+						field:'$col',
+						id:'$id',
+						type: 'file_url',
+						value: submitValue,
+						});
+				">$advice
+			</div>
+		</div>
+		<div id="|.$col.qq|_url_result"></div>
+	|;
+}	
+
+
+
+sub form_file_upload {
+
+	my ($col,$table,$id) = @_;
+
+	return qq|
+		<div class="text-input">
+			<label for="$col">Upload File</label>
+			<div class="text-input-form">
+				<form id="fileUploadForm"  class="text-input-field" >
+				<input type="hidden" name="div" value="|.$col.qq|_upload_result">
+				<input type="hidden" name="cmd"	value="update">
+				<input type="hidden" name="table" value="$table">
+				<input type="hidden" name="field" value="$col">
+				<input type="hidden" name="id" value="$id">
+				<input type="hidden" name="type" value="file">
+				<input type="file" id="fileUpload" />
+				</form>
+			</div>
+			<script>
+			document.querySelector('#fileUpload').addEventListener('change', event => {
+			  uploadFile(event,{div:'|.$col.qq|_upload_result'})
+			});
+			</script>
+
+
+		</div>
+		<div id="|.$col.qq|_upload_result"></div>
+	|;
+
+}
 	# Creates File Select Form Field
 sub form_file_select {
 
 	my ($dbh,$table,$id,$col) = @_;
-  my $url = $Site->{st_cgi}."api.cgi";
-	my $plugindir = $Site->{st_url}."assets/jQuery-File-Upload-master/";
-	# my ($table,$id,$col,$value,$size,$advice) = @_;
+  	my $fieldlable = &fieldlable($col,$table);
 
-	my $admin = 1 if ($Person->{person_status} eq "admin");
-
-	# Old Style Form
-	if (defined($vars->{raw_form})) {
-
-		my $content = qq|<tr><td>|.$table.qq|_file</td><td>Upload an image or a file...<br/><br/>
-		By URL: <input type="text" name="file_url" size="40"><br />
-		Or Select: <input type="file" accept="image/*;capture=camera" name="file_name" />
-		<input type="hidden" name="$countname" value="$value"><br>
-		File(s)... <br>|;
-		$content .= &form_graph_list($table,$id,"file");
-		$content .= qq|</td></tr>\n\n\n|;
-
-		return $content;
-	}
-
-
-
-	# Find eligible options defining the association between the file and the record
-	# Stored in optlist table under the heading $table_file
-	my $opts = &db_get_record($dbh,"optlist",{optlist_title=>$col});
-  unless ($opts) { $opts->{optlist_data} = "Enclosure,Enclosure;"}
-
-	# Create list of options for the form
-	my $options = "";
-	my $select = qq|File type: <select name='category'>|;
-	my @opts = split ";",$opts->{optlist_data};
-	foreach my $opt (@opts) {
-		$opt =~ s/\n|\r//g;
-		my ($oname,$ovalue) = split ",",$opt;
-		next unless ($oname && $ovalue);
-		$options .= qq|<option value='$ovalue'>$oname</option>|;
-	}
-	$select = $select . $options . qq|</select>|;
-
-
-	# Create list of already associated files
+	# Create list of already associated files - Put in div #file_graph_list
 	my $keylist_text = &form_graph_list($table,$id,"file");
 	$keylist_text ||= "None";
 
-
+	# Return the form for File Uploads, with options for URLs and Browse
 	return qq|
-	<hr>
-	$select
-  	<hr>
-			$col
-
-  	<!-- URL Input -->
-  	<div>
-	  	<span id="|.$col.qq|_liveupdate">$keylist_text</span>
-
-	  	<input type="text" class="empty-after" placeholder="Enter $col URL"
-	    	id="|.$col.qq|" style="width:|.$size.qq|em;max-width:100%;">
-    	<span id="|.$col.qq|_button"><button>Update</button></span>
-  		<span id="|.$col.qq|_result" style="float:left;"></span>$advice<br><br>
-  	</div>
-
- 		<script>
-			\$('#|.$col.qq|').click(function() { onclick_function("$col");});
-			\$('#|.$col.qq|_button').click(function(){
-				var content = \$('#|.$col.qq|').val();
-				var url = "$url";
-				submit_function(url,"$table","$id","$col",content,"file_url");
-				var previewUrl = url+"?cmd=show&table=$table&id=$id&format=summary";
-				\$('#Preview').load("previewUrl");
-			});
-		</script>
-
-
-  <!-- File Upload -->
-
-  <!-- JQuery code adapted from https://blueimp.github.io/jQuery-File-Upload/ by Downes  -->
-   <!-- CSS to style the file input field as button and adjust the Bootstrap progress bars -->
-  <link rel="stylesheet" href="|.$plugindir.qq|css/jquery.fileupload.css">
-  <hr size=1 width=15%>
-   <div>
-
-    <!-- The fileinput-button span is used to style the file input field as button -->
-    <span class="">
-    <!-- span class="btn btn-success fileinput-button" changed by Downes -->
-        <i class="glyphicon glyphicon-plus"></i>
-        <span>Add files...</span>
-        <!-- The file input field used as target for the file upload widget -->
-        <input id="fileupload" type="file" name="myfile"
-		multiple data-form-data='{"table_name": "|.$table.qq|",
-			"table_id": "|.$id.qq|",
-			"col_name": "|.$col.qq|",
-			"type": "file",
-			"value": "json input",
-			"updated":1}'>
-    </span>
-    <br>
-    <br>
-    <!-- The global progress bar -->
-    <div id="progress" class="progress">
-        <div class="progress-bar progress-bar-success" style="height:10px;background:green;width:0%"></div>
-    </div>
-
-    <!-- The container for the uploaded files -->
-    <div id="files" class="files"></div>
-    <br>
-
-   </div></td></tr>
-
-
-  <!-- The jQuery UI widget factory, can be omitted if jQuery UI is already included -->
-  <script src="|.$plugindir.qq|js/vendor/jquery.ui.widget.js"></script>
-  <!-- The Load Image plugin is included for the preview images and image resizing functionality -->
-  <script src="//blueimp.github.io/JavaScript-Load-Image/js/load-image.all.min.js"></script>
-  <!-- The Canvas to Blob plugin is included for image resizing functionality -->
-  <script src="//blueimp.github.io/JavaScript-Canvas-to-Blob/js/canvas-to-blob.min.js"></script>
-
-  <!-- The Iframe Transport is required for browsers without support for XHR file uploads -->
-  <script src="|.$plugindir.qq|js/jquery.iframe-transport.js"></script>
-  <!-- The basic File Upload plugin -->
-  <script src="|.$plugindir.qq|js/jquery.fileupload.js"></script>
-  <!-- The File Upload processing plugin -->
-  <script src="|.$plugindir.qq|js/jquery.fileupload-process.js"></script>
-  <!-- The File Upload image preview & resize plugin -->
-  <script src="|.$plugindir.qq|js/jquery.fileupload-image.js"></script>
-  <!-- The File Upload audio preview plugin -->
-  <script src="|.$plugindir.qq|js/jquery.fileupload-audio.js"></script>
-  <!-- The File Upload video preview plugin -->
-  <script src="|.$plugindir.qq|js/jquery.fileupload-video.js"></script>
-  <!-- The File Upload validation plugin -->
-  <script src="|.$plugindir.qq|js/jquery.fileupload-validate.js"></script>
-  <script>
-  /*jslint unparam: true, regexp: true */
-  /*global window, \$ */
-  \$(function () {
-    'use strict';
-    // Change this to the location of your server-side upload handler:
-    var url = '|.$Site->{st_cgi}.qq|api.cgi',
-        uploadButton = \$('<button/>')
-            .addClass('')   /* changed from 'btn btn-primary' - Downes */
-            .prop('disabled', true)
-            .text('Processing...')
-            .on('click', function () {
-                var \$this = \$(this),
-                    data = \$this.data();
-                \$this
-                    .off('click')
-                    .text('Abort')
-                    .on('click', function () {
-                        \$this.remove();
-                        data.abort();
-                    });
-                data.submit().always(function () {
-                    \$this.remove();
-                });
-            });
-    \$('#fileupload').fileupload({
-        url: url,
-        dataType: 'json',
-        autoUpload: false,
-        maxFileSize: 10000999000,
-        // Enable image resizing, except for Android and Opera,
-        // which actually support image resizing, but fail to
-        // send Blob objects via XHR requests:
-        disableImageResize: /Android(?!.*Chrome)\|Opera/
-            .test(window.navigator.userAgent),
-        previewMaxWidth: 100,
-        previewMaxHeight: 100,
-        previewCrop: true,
-				done: function(e, data) {
-           // Looking for data.result but it's only an object
-            }
-    }).on('fileuploadadd', function (e, data) {
-        data.context = \$('<div/>').appendTo('#files');
-        \$.each(data.files, function (index, file) {
-            var node = \$('<p/>')
-                    .append(\$('<span/>').text(file.name));
-            if (!index) {
-                node
-                    .append('<br>')
-                    .append(uploadButton.clone(true).data(data));
-            }
-            node.appendTo(data.context);
-        });
-    }).on('fileuploadprocessalways', function (e, data) {
-        var index = data.index,
-            file = data.files[index],
-            node = \$(data.context.children()[index]);
-
-        if (file.preview) {
-            node
-                .prepend('<br>')
-                .prepend(file.preview);
-        }
-        if (file.error) {
-            node
-                .append('<br>')
-                .append(\$('<span class="text-danger"/>').text(file.error));
-        }
-        if (index + 1 === data.files.length) {
-            data.context.find('button')
-                .text('Upload')
-                .prop('disabled', !!data.files.error);
-        }
-    }).on('fileuploadprogressall', function (e, data) {
-        var progress = parseInt(data.loaded / data.total * 100, 10);
-        \$('#progress .progress-bar').css(
-            'width',
-            progress + '%'
-        );
-    }).on('fileuploaddone', function (e, data) {
-        \$.each(data.result.files, function (index, file) {
-            if (file.url) {
-						
-                var link = \$('<a>')
-                    .attr('target', '_blank')
-                    .prop('href', file.url);
-                \$(data.context.children()[index])
-                    .wrap(link);
-            } else if (file.error) {
-                var error = \$('<span class="text-danger"/>').text(file.error);
-                \$(data.context.children()[index])
-                    .append('<br>')
-                    .append(error);
-            }
-					// Refresh Previews
-					\$('#Preview').load("|.$Site->{st_cgi}.qq|api.cgi?cmd=show&table=$table&id=$id&format=summary");
-        });
-    }).on('fileuploadfail', function (e, data) {
-        \$.each(data.files, function (index) {
-					alert("File upload failed"+data);
-            var error = \$('<span class="text-danger"/>').text('File upload failed.');
-            \$(data.context.children()[index])
-                .append('<br>')
-                .append(error);
-        });
-    }).prop('disabled', !\$.support.fileInput)
-        .parent().addClass(\$.support.fileInput ? undefined : 'disabled');
-
-  });
-  </script>
-
-
-   |;
-
-
-
-
+		<label for="keylist">File(s) Uploaded</label>
+		<div class="text-input">
+		<div id="file_graph_list" class="keylist-text">
+			$keylist_text
+		</div>
+		</div>|.
+		&form_file_from_url($col,$placeholder,$value,$table,$id,$advice).
+		&form_file_upload($col,$table,$id).
+		"<br /><br />";
 
 }
 	# -------  Form Submit -----------------------------------------------------
@@ -6469,6 +6412,7 @@ sub form_boolean {
 
 	my $output = "";
 	unless (defined $data) { $data = 1; }
+	my $fieldlable = &fieldlable($col,$table);
 
 
 	foreach my $opt ("TRUE","FALSE") {
@@ -6490,8 +6434,7 @@ sub form_boolean {
 		$open = "<tr>";
 	}
 
-	my $cname = $col; $cname =~ s/$table//; $cname =~s/_//; $cname=ucfirst($cname);
-	return qq|$open<td>$cname</td><td>$output</td>$close|;
+	return qq|$open<td><label for="$col">$fieldlable</label></td><td>$output</td>$close|;
 
 }
 
@@ -6503,9 +6446,13 @@ sub form_data {
 
 
 	my ($col,$data,$id,$table) = @_;
+	my $fieldlable = &fieldlable($col,$table);
+
 
 	my $output = qq|
-	</form><form id="$col" action="$Site->{st_cgi}api.cgi" method="post">
+	</form>
+	<label for="$col">$fieldlable</label>
+	<form id="$col" action="$Site->{st_cgi}api.cgi" method="post">
 	<input type="hidden" name="table_name" value="$table">
 	<input type="hidden" name="table_id" value="$id">
 	<input type="hidden" name="col_name" value="$col">
@@ -6619,16 +6566,36 @@ sub form_graph_list {
 		my $keyname = &get_key_name($key,$keyid);
 		if ($admin) {
 			 # Open Main: url,cmd,db,id,title,starting_tab
-			$editlink = qq|[<a href="#" onClick="openDiv('$onclickurl','main','edit','$key','$keyid','','Edit');">Edit</a>] |;
+		#	$editlink = qq|[<a href="#" onClick="openDiv('$onclickurl','main','edit','$key','$keyid','','Edit');">Edit</a>] |;
+
+			$editlink = qq|[<a href="#" onClick="openDiv(url,'editor','edit','$key','$keyid','Edit');">Edit</a>] |;
+
 			#$editlink = qq|[<a href="$Site->{st_cgi}admin.cgi?$key=$keyid&action=edit">Edit</a>]|;
-			$removelink = qq|[<a href="#" onClick="removeKey('$onclickurl','$table','$id','$key','$keyid');">Remove</a>] |;
+			$removelink = qq|[<a href="#" onClick="submitData(
+				{div:'|.$key.qq|_graph_result',
+				cmd:'remove',
+				table:'$table',
+				id: '$id',
+				key:'$key',
+				keyid:'$keyid',
+			});
+			">Remove</a>] |;
+			#removeKey('$onclickurl','$table','$id','$key','$keyid');
 			#$removelink = qq| [<a href="$Site->{st_cgi}admin.cgi?table=$table&id=$id&remove=$key/$keyid&action=remove_key">Remove</a>]|;
 		}
 		$output .= qq|<li class="graph-list-element"><a href="$Site->{st_url}$key/$keyid" target="new">$keyname</a> $editlink $removelink</li>|;
 		#$output .= $keyid." ".$keyname."<p>";
 	}
 
-  if ($output) {$output = qq|<ul class="graph_list" style="margin:0px;">|.$output.qq|</ul>|;}
+  	if ($output) {
+	$output = sprintf(qq|
+		<div id="%s">
+     		<ul class="graph_list" style="margin:0px;">
+			%s
+			</ul>  
+		</div>
+		<div id="%s"></div>|,$key."_graph_list",$output,$key."_graph_result");
+	}
 	return $output;
 
 }
@@ -6639,6 +6606,8 @@ sub form_graph_list {
 sub form_date_select {
 
 	my ($table,$id,$col,$value,$size,$fieldlable) = @_;
+	my $fieldlable = &fieldlable($col,$table);
+
   $size ||= 20;
   my $url = $Site->{st_cgi}."api.cgi";
 	# Default to today's date
@@ -6655,11 +6624,11 @@ sub form_date_select {
 		return $output;
 	}
 
-  if ($fieldlable) { $fieldlable = qq|<span class="fieldlable" id="$col-fieldlable">$fieldlable</span>|;}
+
 
 	return qq |
 	  <div>
-		$fieldlable
+		<label for="$col">$fieldlable</label>
 		<input type="text" id="$col" value="$value" style="width:|.$size.qq|em;max-width:100%;">
 		<span id="|.$col.qq|_result">
 		
@@ -6704,7 +6673,7 @@ sub form_date_time_select {
    my $output = qq|
 
 	 <div>
-	 $fieldlable
+  	 <label for="$col">$fieldlable</label>
 	 <input type="text" id="$col" value="$dpvalue" style="width:|.$size.qq|em;max-width:100%;">
 	 <span id="|.$col.qq|_result"></span>
 	 
@@ -6766,6 +6735,7 @@ sub form_dates_general {
   if ($fieldlable) { $fieldlable = qq|<span class="fieldlable" id="$col-fieldlable">$fieldlable</span>|;}
 
 	return qq|
+		<tr><td colspan=2><label for="$col">$fieldlable</label></td></tr>
 		<tr><td align="right" class="column-name" style="width:10%;min-width:50px;" valign="top">$col</td>
 		<td class="column-content" colspan=3 style="width:90%; min-width:200px;" valign="top">
 		<span id="|.$col.qq|" contenteditable="true" style="width:40em; line-height:1.8em;" >$value</span>
@@ -6796,14 +6766,15 @@ sub form_dates_general {
 sub form_timezone {
 
 	my ($name,$value,$table,$record) = @_;
-
+	my $col = $table."_timezone";
+	my $fieldlable = &fieldlable($col,$table);
 
 	# Time Zone - default to site defined time zone
 	my $tzkey = $table."_timezone";
 	unless ($record->{$tzkey}) { $record->{$tzkey} = $Site->{st_timezone};	}
 
 	my @dt = DateTime::TimeZone->all_names;
-	my $dtstr = qq|<select name="|.$table.qq|_timezone" style="height:18pt;">\n|; foreach my $dts (@dt) {
+	my $dtstr = qq|<label for="$col">$fieldlable</label><select name="|.$table.qq|_timezone" style="height:18pt;">\n|; foreach my $dts (@dt) {
 		my $sel; if ($dts eq $record->{$tzkey}) { $sel = " selected"; } else { $sel = ""; }
 		$dtstr .= qq|<option value="$dts" $sel>$dts</option>\n|;
 	}
@@ -6847,17 +6818,14 @@ sub form_yesno {
   my $url = $Site->{st_cgi}."api.cgi";
 	$value =~ s/"/\\"/sg;
 	my $placeholder = ucfirst($col); $placeholder =~ s/_/ /g;
-  if ($fieldlable) { $fieldlable = qq|<span class="fieldlable" id="$col-fieldlable">$fieldlable</span>|;}
-
-
-
+ 
 	# Old-Style Form Alternative
 	if (defined($vars->{raw_form})) { return qq|<tr><td class="column-name" align="right" width="200">$col</td><td><input type="text" name="$col" value="$value"></td></tr>|; }
 
   my $checked; $checked = "checked" if ($value eq "yes");
 	return qq|
 		<div>
-		$fieldlable
+	    <label for="$col">$fieldlable</label>
 		<label class="toggle-check">
 		  <input type="checkbox" id="$col-checkbox" class="toggle-check-input" $checked/>
 		  <span class="toggle-check-text"></span> $advice
@@ -6921,7 +6889,7 @@ sub form_optlist {
 		my $lableid = $col.$lablecounter; $lablecounter++;
 		$option_lables .= qq|
             <span class="form__answer"> <input type="radio" id="$lableid" name="$col" value="$ovalue" style="display:none;">
-            <label for="$lableid">$oname</label> </span>|;
+        	<label for="$col">$fieldlable</label></span>|;
 	}
 
 
@@ -7257,21 +7225,21 @@ sub form_publish {
 										# Future work - get this from the list of accounts
 	# Set up return content
 	my $return_text = qq|
-	    <div class="publish" style="width:100%; clear:all;">Publish!|;
+	    <div class="publish" style="width:100%; clear:all;"><label for="$col">Publish!</label>|;
 
 	foreach my $account (@accounts) {
 
 		$return_text .= qq|
 		<div style="height:2em; clear:all">
-		   <span class="account_name" style="min-width:50px;width:40%;float:left;">$account: </span> |;
+		   <span class="account_name" style="margin-left:3em;min-width:8em;width:10%;float:left;">$account: </span> |;
 		if ($value =~ /$account/i) { $return_text .= qq|
-		   <span id="|.$col.qq|" style="border:0px; width:60%;float:left;">Published</span>
+		   <span id="|.$col.qq|" style="border:0px;float:left;">Published</span>
 		</div>|; }
 		else {
 
 			$return_text .= qq|
-		    <span style="border:0px; float:left; width:60%" id="|.$col."_".$account.qq|">
-			<button id="|.$col."_".$account.qq|_button" value="$account">Publish</button>
+		    <span style="border:0px; float:left;" id="|.$col."_".$account.qq|">
+			<button id="|.$col."_".$account.qq|_button" value="$account" class="btn-sm action">Publish</button>
 		    </span>
 		 </div>
 			<script>
@@ -7340,7 +7308,7 @@ sub form_socialmedia {
 
 	my ($table,$id_number,$col,$value,$fieldsize,$advice) = @_;
   my $url = $Site->{st_cgi}."api.cgi";
-	my $return_text = qq|<tr><td>Publish</td><td colspan="3">|;
+	my $return_text = qq|<tr><td>dPublish</td><td colspan="3">|;
 
 	my @socialmedias = qw(twitter facebook web);				# List of supported social media sites
 
@@ -7883,7 +7851,7 @@ sub db_get_record {
 
 	my ($dbh,$table,$value_arr) = @_;
 	&error($dbh,"","","Database not ready") unless ($dbh);
-	if ($diag eq "on") { print "Get Record ($table $value_arr)<br/>\n"; }
+
 	my @value_list; my @value_vals;
 	while (my($kx,$ky) = each %$value_arr) { push @value_list,"$kx=?"; push @value_vals,$ky; }
 	my $value_str = join " AND ",@value_list;
@@ -8506,16 +8474,12 @@ sub db_insert {		# Inserts record into table from hash
 
 	my $sth = $dbh->prepare($sql) or print "Content-type: text/html\n\n".$sth->errstr;;		# Execute SQL Statement
 
-	if ($diag eq "on") {
-		print "Content-type: text/html\n\n";
-		print "$sql <br/>\n @sqlv <br/>\n";
-	}
-
-    	$sth->execute(@sqlv) or print "Content-type: text/html\n\n".$sth->errstr;
+   	$sth->execute(@sqlv) or print "Content-type: text/html\n\n".$sth->errstr;
 
 	if ($sth->errstr) { $vars->{err} = "DB INSERT ERROR: ".$sth->errstr." <p>"; }
 
 	my $insertid = $dbh->{'mysql_insertid'};
+	
 	$sth->finish(  );
 	return $insertid;
 
@@ -10342,6 +10306,7 @@ sub check_user {
     my $session = new CGI::Session(undef, $cgi, {Directory=>'/tmp'});
     $session->expires("+1y");
 
+
     if ($cgi->param("action") eq "logout") {
         $session->delete();
         print $cgi->header();
@@ -10358,6 +10323,8 @@ sub check_user {
 #print " Going to print my cookie for the session ".$session->id."<p>";
 
 
+
+
     my $cookie = CGI::Cookie->new(CGISESSID => $session->id);
 
     #my $cookie = $cgi->cookie(-name=>fCGISESSID,
@@ -10370,6 +10337,7 @@ sub check_user {
 		print $cgi->header(-type => $output_format,-cookie=>$cookie,-charset => 'utf-8');
 	}
 
+   
 #print "Content-type: text/html\n\n OK";
     my $profile = $session->param("~profile");
     my $username = $profile->{username};
@@ -10621,6 +10589,39 @@ sub generate_random_string {
 }
  #
 #
+
+
+sub status_error {
+
+	my ($message) = @_;
+	my $json = encode_json $message;
+	unless ($Person->{person_id}) { print "Content-type: text/json\n\n"; } 
+	print sprintf(qq|{"status":"Error","message":$json,"response":$json}|);
+	exit;
+
+}
+
+sub status_ok {
+
+	my ($div,$contents) = @_;		# Information to reload a div for a status update
+	my $json_text = encode_json ($contents);
+
+	unless ($Person->{person_id}) { print "Content-type: text/json\n\n"; } 
+	print "{";
+	print sprintf(qq|"response":"OK"|);
+	print sprintf(qq|,"status":"OK"|);
+	if ($div && $contents) {
+		print sprintf(qq|,"div":"$div"|);
+		print sprintf(qq|,"contents":$json_text|);
+	}
+	my $json = encode_json $vars->{message};
+	print sprintf(qq|,"message":%s|,$json) if ($vars->{message}); 
+	print "}";
+	exit;
+
+}
+
+
 sub error {
 
 	my ($dbh,$query,$person,$msg,$supl) = @_;
@@ -12949,8 +12950,8 @@ package gRSShopper::File;
   	my($class, %args) = @_;
    	my $self = bless({}, $class);
 
- 	$self->{file_title} = "";;
- 	$self->{file_dir} = "";;
+ 	$self->{file_title} = "Title";
+ 	$self->{file_dir} = "";
  	$self->{file_type} = "";
 
 
@@ -13505,21 +13506,19 @@ package gRSShopper::Person;
 
 	#----------------------------------------------------------------------------------------------------------
 	#
-	#                                             gRSShopper::Record;
+	#         gRSShopper::Record;
 	#
-	#      				table			   	(string) Record Table
-	#							id 						(int) Record ID
-	#             parent        (::Record) Parent record
-	#             person        (::Person) person creating the record
-	#							tags					Record type - associated with different types of record: feed, link, content, media, author, event
-	#   					db            (::Database) Pointer to database functions
-	#   					dbh          	(::DBI) Pointer to DBI database handler
-	#							data 					(hash reference) Data that accompanies the opening of the record
-	#						  load  				(boolean) if 1, load record data from database
+	#      	table			   	(string) Record Table
+	#		id 						(int) Record ID
+	#       parent        (::Record) Parent record
+	#       person        (::Person) person creating the record
+	#		tags		Record type - associated with different types of record: feed, link, content, media, author, event
+	#   	db            (::Database) Pointer to database functions
+	#   	dbh          	(::DBI) Pointer to DBI database handler
+	#		data 					(hash reference) Data that accompanies the opening of the record
+	#		load  				(boolean) if 1, load record data from database
 
-
-
-		#----------------------------------------------------------------------------------------------------------
+	#----------------------------------------------------------------------------------------------------------
 		#
 		#  Create using tag:  $item = gRSShopper::Record->new({tag=>'tagname'});
 		#  Tags are associated with different types of record: feed, link, content, media, author, event
@@ -13935,14 +13934,15 @@ package gRSShopper::Person;
 		  my $currenttab = "Edit"; my $temp;
 			foreach my $field (@fieldlist) {
 
-		      if ($field =~ /tab:/i) {
-						($temp,$currenttab) = split /:/,$field;
-						$currenttab =~ s/^\s|\s$//g;  # Remove leading or trailing space
-						if ($field =~ /,active/i) { $active = $currenttab; }
-						push @{$tablist->{$currenttab}},"Placeholder to make sure tab is found";
-					}	else {
-						push @{$tablist->{$currenttab}},$field;
-					}
+		      	if ($field =~ /tab:/i) {
+					($temp,$currenttab) = split /:/,$field;
+					$currenttab =~ s/^\s|\s$//g;  # Remove leading or trailing space
+					push @{$self->{tabs}},$currenttab;
+					if ($field =~ /,active/i) { $active = $currenttab; }
+					push @{$tablist->{$currenttab}},"Placeholder to make sure tab is found";
+				}	else {
+					push @{$tablist->{$currenttab}},$field;
+				}
 			}
 			$self->{tab_list} = $tablist;
 			$self->{show_active} = $active;
