@@ -13,24 +13,25 @@ downes/grsshopper
 gRSShopper is a tool that aggregates, organizes and distributes resources to support online learning. Read more here: https://grsshopper.downes.ca/
 
 
-Docker image is here: https://hub.docker.com/r/downes/grsshopper-ple
+Docker image is here: https://hub.docker.com/r/downes/grsshopper
 
-**Note: don't use Docker image just now, run from this GitHub repository**
+**Note: the Docker image is about a mointh behind the GitHub build**
 
 To run from Docker Image:
 =========================
  
 ```
-docker pull downes/grsshopper
-
-docker run -p 80:80 -p 443:443 --detach --name gr1 grsshopper
+curl https://raw.githubusercontent.com/Downes/gRSShopper/master/docker-compose.yml --output  docker-compose.yml
+mkdir init
+curl https://raw.githubusercontent.com/Downes/gRSShopper/master/init/gRSShopper-ple.sql --output init/gRSShopper-ple.sql
+docker-compose up
 ```
 
 
 OR, run from the GitHub repository:
 ==================================
 
-Process:
+Process: run docker-compose to create two Docker containers, one for the application and one for the database. If you want to build from GitHub code then you need to use docker-compose-with-build.yml - copy it to docker-compose.yml (replacing or backing up the existing docker-compose.yml) then execute the build with the docker-compose command.
 
  
 ```
@@ -40,28 +41,13 @@ git clone  https://github.com/Downes/gRSShopper
         (or git pull origin master if reloading the changed repo)
 
 
-
 ```
 cd gRSShopper
 
-docker build --tag grsshopper .
+cp docker-compose-with-build.yml docker-compose.yml
 
-docker run -p 443:443 --detach --name gr1 grsshopper
+docker-compose up
 ```
-
-Start cron
-==========
-
-Cron: cron *should* be starting automatically, but for reasons unknown to me, it is not. Therefore, to start cron, you need to enter the container and start it manually:
-
-```
-docker exec -e TERM=xterm -i -t gr1 bash
-cron
-crontab /etc/cron.d/cronfile
-exit
-```
-
-The first command opens a terminal in the container. Then 'cron' starts cron, and the crontab loads instructions into the cron table. Exit closes the terminal in the container. Sorry this doesn't work automatically.
 
 
 Testing the server 
@@ -70,9 +56,6 @@ Testing the server
 http://[your domain]  (should show gRSShopper start page)
 
 http://[your domain]/cgi-bin/server_test.cgi  (should show Perl test page)     
-
-(Note: on localhost you will run into CORS problems running the PLE
-engine at PLE.htm - the Docker image should be placed in the cloud and run under SSL) 
 
 
 Restart the Apache server
@@ -95,6 +78,21 @@ docker exec -e TERM=xterm -i -t gr1 bash
 ```
 
 (A lot of sites say ```docker exec -it gr1 bash``` but I find it generates an error. Also if you want to be able to use nano when entering a container, you will need to set -e TERM=xterm).
+
+Start cron
+==========
+
+Cron: cron starts automatically and runs in the gRSShopper container. if it ever stops (it shouldn't) you can enter the container and start it manually:
+
+```
+docker exec -e TERM=xterm -i -t gr1 bash
+cron
+crontab /etc/cron.d/cronfile
+exit
+```
+
+The first command opens a terminal in the container. Then 'cron' starts cron, and the crontab loads instructions into the cron table. Exit closes the terminal in the container. Sorry this doesn't work automatically.
+
 
 Credits
 =======
