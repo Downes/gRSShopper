@@ -317,8 +317,6 @@ use CGI::Carp qw(fatalsToBrowser);
 	# print &show_login($session);
 
 
-
-
 if ($vars->{cmd} eq "authenticate") {
 
 	if ($Person->{person_status} =~ /admin|Admin/) { print 1; } else { print 0; }
@@ -446,6 +444,33 @@ if ($vars->{cmd} eq "update") {
 }
 
 # -------------------------------------------------------------------------------------
+#          Delete Functions
+#
+#    These are requests to delete a record
+#		Note that record_delete() also removes graph entries pointing to 
+#		the deleted record
+#
+# -------------------------------------------------------------------------------------
+
+if ($vars->{cmd} eq "delete") {
+
+	my $apilink = $Site->{st_cgi}."api.cgi";
+	unless ($vars->{table}) { &status_error("Table to delete has not been specified."); }
+	unless ($vars->{id}) { &status_error("ID number to delete has not been specified."); }
+
+	&record_delete($dbh,$query,$vars->{table},$vars->{id},"silent");
+			# Back up table
+		  #my $savemsg = &api_backup($vars->{table});
+
+			# Drop table
+			#my $dropmsg = &db_drop_table($dbh,$vars->{table});
+	$vars->{message} = ucfirst($vars->{table})." has been deleted";
+	status_ok();
+	exit;
+
+}
+
+# -------------------------------------------------------------------------------------
 #          Publish Functions
 #
 #    These are requests put to the app to publish contents somewhere
@@ -474,12 +499,6 @@ if ($vars->{cmd} eq "publish") {
 # -------------------------------------------------------------------------------------
 
 if ($vars->{cmd} eq "clone") {
-	print &api_clone();
-	exit;
-}
-
-
-sub api_clone {
 
    	unless ($vars->{table}) { &status_error("Don't know which table to clone."); }
    	unless ($vars->{id}) { &status_error("Don't know which ".$vars->{table}." ID to clone."); }
@@ -491,7 +510,7 @@ sub api_clone {
 	$vars->{message} = "Cloning ".$record->{$vars->{table}."_title"}.": ".
 		qq|Created new <a href="|.$Site->{st_url}.$vars->{table}.qq|/$id" target="_new">|.
 		$vars->{table}.qq| number $id</a> |.
-		qq|[<a href="#" onclick="openDiv('$Site->{script}','main','edit','$vars->{table}','$id');">Edit</a>]|;
+		qq|[<a href="#" onclick="openDiv('$Site->{script}','editor','edit','$vars->{table}','$id','Edit');">Edit</a>]|;
 	&status_ok();
 	exit;
 }

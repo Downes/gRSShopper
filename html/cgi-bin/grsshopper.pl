@@ -5312,12 +5312,12 @@ sub Tab_Page {
 		$output .= &process_field_types($window,$table,$id_number,$field,$record,$data,$defined);
 	}
 
+
 	$output .= &form_pushbutton($table,$id_number,"tab","publish");
 
-	$output .= qq|<div id="clone">
-		 [<a href="#" onClick="Javascript:api_submit('$Site->{script}','clone','clone','record','page','$id_number','','');">Clone Page</a>]
-		 <div id="clone_result"></div>
-		 </div>|;
+	$output .= &form_pushbutton($table,$id_number,"tab","clone");
+
+	$output .= &form_pushbutton($table,$id_number,"tab","delete","none","confirm");
 
 	return  $output;
 }
@@ -6030,14 +6030,21 @@ sub form_publish_page {
 
 sub form_pushbutton {
 
-	my ($table,$id,$col,$cmd,$div,$label) = @_;
+	my ($table,$id,$col,$cmd,$div,$confirm) = @_;
 
 	unless ($table) { return qq|Table not specified for pushbutton|;}
 	unless ($id) { return ucfirst($table).qq| ID not specified for pushbutton|;}
 	unless ($cmd) { return qq|Cmd not specified for pushbutton|;}
 
-	$label ||= ucfirst($cmd);
+	my $label = ucfirst($cmd);
 	$div ||= $col."_".$cmd."_result";
+
+
+	my $ca; my $cb;
+	if ($confirm) { 
+		$ca = qq|var r = confirm('Are you sure?'); if (r == true) {|;
+		$cb = qq|}|;
+		}
 
 	return qq|
 		<div class="text-input">
@@ -6045,13 +6052,19 @@ sub form_pushbutton {
 			<div class="text-input-form">
 				<div tabindex="0" role="button" class="btn" aria-pressed="false" 
 			   		onclick="
-						submitData(
+					   $ca
+						   submitData(
 							{ div:'$div',
 								cmd:'$cmd',
 								col: '$col',
 								table:'$table',
 								id:'$id',
 							});
+							setTimeout(function(){ 
+								loadList({div:'List',cmd:'list',table:'$table'});
+							}, 3000);
+							
+						$cb
 					">$label
 				</div>
 			</div>
@@ -6078,8 +6091,8 @@ sub form_textinput {
 			<label for="$col">$fieldlable</label>
 			<div class="text-input-form">
 				<input type="text" class="text-input-field" placeholder="$placeholder" id="|.$col.qq|" value="$value" style="width:|.$size.qq|em;max-width:90%;" onChange="
-				   var submitValue=\$('#|.$col.qq|').val();
-				   submitData(
+				   	var submitValue=\$('#|.$col.qq|').val();
+					submitData(
 					   {div:'|.$col.qq|_result',
 					    cmd:'update',
 						table:'$table',
@@ -6156,7 +6169,7 @@ sub form_textarea {
 	# -------------------------------------------------------------------------
 sub form_wysihtml {
 	my ($table,$id,$col,$value,$size,$advice) = @_;
-  my $url = $Site->{st_cgi}."api.cgi";
+  	my $url = $Site->{st_cgi}."api.cgi";
 	my ($width,$height) = split 'x',$size;
 	$height ||= 10;
 	$width ||= 40;
@@ -6207,22 +6220,29 @@ sub form_wysihtml {
 		);
 
 	    var editor = CKEDITOR.instances['|.$col.qq|'];
+		var timer_|.$col.qq|;
 
 		editor.on('change',function(){
-			// Submit Changed Content
-			var url = "$url";
-			var editor = CKEDITOR.instances['|.$col.qq|'];
-			var content = editor.getData();
-			submitData(
-				{div:'|.$col.qq|_result',
-				cmd:'update',
-				table:'$table',
-				field:'$col',
-				id:'$id',
-				value: content,
-			});
-			var previewUrl = url+"?cmd=show&table=$table&id=$id&format=summary";
-			\$('#Preview').load("previewUrl");
+			// do stuff only when user has been idle for 1 second
+ 			clearTimeout(timer_|.$col.qq|);
+ 			timer_|.$col.qq| = setTimeout(function() {
+
+				// Submit Changed Content
+				var url = "$url";
+				var editor = CKEDITOR.instances['|.$col.qq|'];
+				var content = editor.getData();
+
+				submitData(
+					{div:'|.$col.qq|_result',
+					cmd:'update',
+					table:'$table',
+					field:'$col',
+					id:'$id',
+					value: content, }
+				);
+				var previewUrl = url+"?cmd=show&table=$table&id=$id&format=summary";
+				\$('#Preview').load("previewUrl");
+			},1000);
 		});
 
 		</script>
@@ -10596,7 +10616,7 @@ sub status_error {
 	my ($message) = @_;
 	my $json = encode_json $message;
 	unless ($Person->{person_id}) { print "Content-type: text/json\n\n"; } 
-	print sprintf(qq|{"status":"Error","message":$json,"response":$json}|);
+	print sprintf(qq|{"status":"Error","message":$json,"response":"Error"}|);
 	exit;
 
 }

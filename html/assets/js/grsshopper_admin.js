@@ -144,7 +144,6 @@ var panel = this.nextElementSibling;
 //  and div (to show the response)
 //
 
-
 function submitData(request) {
     spin_on();
     fetch('cgi-bin/api.cgi',{
