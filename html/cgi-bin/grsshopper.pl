@@ -764,7 +764,7 @@ sub output_record {
 	&format_content($dbh,$query,$options,$record);								# Format Page content
 
 	&make_pagedata($query,\$record->{page_content});							# Fill special Admin links and post-cache content
-	&make_admin_links(\$record->{page_content});
+
 	&make_login_info($dbh,$query,\$record->{page_content},$table,$id_number);
 
 	$record->{page_content} =~ s/\Q]]]\E/] ]]/g;  								# Fixes a Firefox XML CDATA bug
@@ -784,7 +784,7 @@ sub output_record {
 														# Fill special Admin links and post-cache data
 
 	&make_pagedata($query,\$wp->{page_content},\$wp->{page_title});
-	&make_admin_links(\$wp->{page_content});
+
 	&make_login_info($dbh,$query,\$wp->{page_content},$table,$id_number);
 	&autotimezones($query,\$record->{page_content});
 
@@ -1784,7 +1784,6 @@ sub format_record {
 	unless ($vars->{force} eq "yes") {
 		if (my $cached = &db_cache_check($dbh,$table,$id_number,$record_format)) {
 			if ($cached) {
-				&make_admin_links(\$cached);
 				return $cached;
 			}
 		}
@@ -1867,7 +1866,7 @@ sub format_record {
   #	&db_cache_save($dbh,$table,$id_number,$record_format,$view_text);					# Save To Cache
 
 
-	&make_admin_links(\$view_text);
+
 
 	$view_text =~ s/CDATA\((.*?)\)//g;		# Kludge to eliminate hanging CDATA tags
 
@@ -3093,87 +3092,6 @@ sub make_comment_form {
 		}
 	}
 
-		# -------  Make Adsmin Links -----------------------------------------------------------
-		#
-		# 
-
-sub make_admin_links {
-
-
-			my ($input) = @_;
-
-			my $count;
-			while ($$input =~ /<admin (.*?)>/mig) {
-
-				my $autotext = $1;
-				$count++; last if ($count > 100);			# Prevent infinite loop
-				my $replace = "";
-				my ($table,$id,$status) = split ",",$autotext;
-
-							# Define Admin Links (or Blanks)
-
-				if ($Person->{person_status} eq "admin") {
-					unless ($Site->{pubstatus} eq "publish") {
-
-						$replace = "";
-								# Special for feeds
-
-						if ($table eq "feed") {
-
-							my $sz = qq|width=10 height=10|;
-							my $A = qq|<img src="|.$Site->{st_img}.qq|A.jpg" $sz/> |;
-							my $R = qq|<img src="|.$Site->{st_img}.qq|R.jpg" $sz/> |;
-							my $O = qq|<img src="|.$Site->{st_img}.qq|O.jpg" $sz/> |;
-							my $was = "was=".$vars->{action};
-							my $adminlink = $Site->{st_cgi}."admin.cgi";
-							my $harvestlink = $Site->{st_cgi}."harvest.cgi";
-							my $ffeed = $filldata->{feed_id};
-							if ($status eq "A" || $status eq "Published") {
-								$replace .=  $A.
-									qq|[<a href="$harvestlink?feed=$id&analyze=on">@{[&printlang("Analyze")]}</a>]|.
-									qq|[<a href="$harvestlink?feed=$id">@{[&printlang("Harvest")]}</a>]|.
-									qq|[<a href="$adminlink?action=retire&feed=$id&$was">@{[&printlang("Retire")]}</a>]|
-							} elsif ($status eq "R" || $status eq "Retired") {
-								$replace .=  $R.
-									qq|[<a href="$adminlink?action=approve&feed=$id&$was">@{[&printlang("Approve")]}</a>]|;
-
-							} elsif ($status eq "O") {
-								$replace .=  $O.
-									qq|[<a href="$harvestlink?feed=$id&analyze=on">@{[&printlang("Analyze")]}</a>]|.
-									qq|[<a href="$adminlink?action=approve&feed=$id&$was">@{[&printlang("Approve")]}</a>]|.
-									qq|[<a href="$adminlink?action=retire&feed=$id&$was">@{[&printlang("Retire")]}</a>]|;
-							} else {
-								$replace .= qq|[$status]|;
-							}
-						}
-#    openDiv('<st_cgi>api.cgi','main','edit','feed','new','','Edit');">
-# 	[<a href="javascript:confirmDelete('$Site->{st_cgi}admin.cgi?$table=$id&action=Delete')">@{[&printlang("Delete")]}</a>]
-
-						my $onclickurl = $Site->{st_cgi}."api.cgi";
-						$replace .=  qq|
-						[<a href="#" onClick="openDiv('$onclickurl','main','edit','$table','$id','','Edit');">@{[&printlang("Edit")]}</a>]
-
-					|;
-
-						if ($table eq "post") {
-							$replace .= qq|[<a href="javascript:confirmDelete('$Site->{st_cgi}admin.cgi?$table=$id&action=Spam')">@{[&printlang("Spam")]}</a>]|;
-						}
-
-
-
-					}
-				}
-
-
-
-
-
-				$$input =~ s/<admin $autotext>/$replace/;
-			}
-
-
-
-		}
 sub make_enclosures {
 
 	my ($text_ptr,$table,$id,$filldata) = @_;

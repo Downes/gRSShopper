@@ -384,7 +384,6 @@ sub list_records {
 			$recformat,
 			$list_record,1);
 
-		&make_admin_links(\$record_text);
 		&autodates(\$record_text);
 
 						# Print Record
