@@ -4817,19 +4817,13 @@ sub Tab_Edit {
 	my $output = qq|<div>|;
 	#print "Content-type: text/html\n\n";
 
-  if ($id_number eq "me") { $id_number = $Person->{person_id}; }
+  	if ($id_number eq "me") { $id_number = $Person->{person_id}; }
 	foreach my $field (@{$window->{tab_list}->{Edit}}) {
-
 		$output .= &process_field_types($window,$table,$id_number,$field,$record,$data,$defined);
 	}
 
-	$output .= qq|[<a href="#" onClick="dump_record(event)">Show Record Data</a>]<div id="record-dump"></div>|;
-
-	$output .= qq|
-	<script>function dump_record(e){\$(document).ready(function(){ e.preventDefault();\$('#record-dump').load("|.
-	   $Site->{st_cgi}.qq|api.cgi?cmd=dump&table=$table&id=$id_number");return false;});}</script>
-
-	</div>|;
+	$output .= &form_pushbutton($table,$id_number,"tab","delete","none","Delete Record","confirm");
+	$output .= &form_showrecorddata($table,$id_number);
 
 	return  $output;
 
@@ -5948,13 +5942,14 @@ sub form_publish_page {
 
 sub form_pushbutton {
 
-	my ($table,$id,$col,$cmd,$div,$confirm) = @_;
+	my ($table,$id,$col,$cmd,$div,$label,$confirm) = @_;
 
 	unless ($table) { return qq|Table not specified for pushbutton|;}
 	unless ($id) { return ucfirst($table).qq| ID not specified for pushbutton|;}
 	unless ($cmd) { return qq|Cmd not specified for pushbutton|;}
 
-	my $label = ucfirst($cmd);
+	$label ||= ucfirst($cmd);
+	$bcmd = ucfirst($cmd);
 	$div ||= $col."_".$cmd."_result";
 
 
@@ -5983,7 +5978,7 @@ sub form_pushbutton {
 							}, 3000);
 							
 						$cb
-					">$label
+					">$bcmd
 				</div>
 			</div>
 		</div>
@@ -5991,7 +5986,16 @@ sub form_pushbutton {
 	|;
 }
 
+sub form_showrecorddata {
 
+	my ($table,$id) = @_;
+
+	my $output = &form_pushbutton($table,$id,"dump","dump","record-dump","Show Record Data").
+	qq|<div id="record-dump"></div>|;
+
+	return $output;
+
+}
 
 sub form_textinput {
 	my ($table,$id,$col,$value,$size,$fieldlable,$advice) = @_;

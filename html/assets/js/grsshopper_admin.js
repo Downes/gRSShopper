@@ -326,7 +326,9 @@ function showResponse(request,data) {
     // Shopw the API-specific response
     if (data.div && data.contents) {    
         var divContainer = document.getElementById(data.div);
-        if (divContainer) { divContainer.innerHTML = `${data.contents}`; }
+        if (divContainer) { 
+            divContainer.style.display='block';
+            divContainer.innerHTML = `${data.contents}`; }
     }
 
     // Update the preview

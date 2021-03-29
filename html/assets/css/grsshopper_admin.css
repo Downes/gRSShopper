@@ -8,6 +8,8 @@
   --third-fore-color:#444;
   --icon-color: green;
   --icon-size: 1.2rem;
+  --success-color: #ACE1AF;
+  --error-color: #FFC0CB;
   --back-color:#f8f8f8;
   --secondary-back-color:#f0f0f0;
   --third-back-color:#e4e4e4;
@@ -119,13 +121,13 @@ a {color:#a85038; }
 /* Success and Error Warnings */
 
 .success {
-    border: 5px solid #ACE1AF;
+    border: 5px solid var(--success-color);
     background-color: var(--secondary-back-color);
     padding: var(--tab-padding);
 }
 
 .error {
-    border: 5px solid #FFC0CB;
+    border: 5px solid var(--error-color);
     background-color: var(--secondary-back-color);
     padding: var(--tab-padding);
 
@@ -512,11 +514,11 @@ tab.active {
   display: inline-block;
   position: relative;
   text-transform: uppercase;
-  background: var(--secondary-back-color);
+  background: var(--error-color);
   padding: 0.25em 0.5em 0.25em 2em;
   border-radius: 1em;
   min-width: 2em;
-  color: #FFF;
+  color: var(--primary-color);
   cursor: pointer;
   transition: background-color 0.15s;
 }
@@ -524,7 +526,7 @@ tab.active {
 .toggle-check-text:after {
   content: ' ';
   display: block;
-  background: var(--back-color);
+  background:var(--primary-color);
   width: 1.1em;
   height: 1.1em;
   border-radius: 1em;
@@ -539,7 +541,7 @@ tab.active {
 }
 
 .toggle-check-input:checked ~ .toggle-check-text {
-  background: var(--third-back-color);
+  background: var(--success-color);
   padding-left: 0.5em;
   padding-right: 2em;
 }

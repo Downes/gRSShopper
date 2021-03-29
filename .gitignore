@@ -16,6 +16,7 @@ pm_to_blib
 awstats/
 tiny_mce/
 cgi-bin/sql/packs/
+archive/
 web-data/
 db-data/
 html/author/

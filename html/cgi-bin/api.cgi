@@ -489,7 +489,34 @@ if ($vars->{cmd} eq "publish") {
 	&status_error("Only publishing pages for now");
 }
 
+# -------------------------------------------------------------------------------------
+#          Dump Functions
+#
+#    Just dump the record into an HTML display
+#    Should probably be merged with show at some point
+#
+# -------------------------------------------------------------------------------------
 
+if ($vars->{cmd} eq "dump") {
+
+	&status_error("Table not specified") unless ($vars->{table});
+	&status_error("Record ID not specified") unless ($vars->{id});
+
+	my $record = &db_get_record($dbh,$vars->{table},{$vars->{table}."_id" => $vars->{id}});
+	&status_error("This ".$vars->{table}." does not exist.") unless ($record);
+
+	my $output = qq|<div tabindex="0" role="button" class="btn" aria-pressed="false" 
+		onclick="document.getElementById('record-dump').style.display='none';">Hide
+		</div>|.
+		"<p>Table: $vars->{table} <br />ID: $vars->{id}</p><p>";
+	while (my($dx,$dy) = each %$record) {
+		$output .= qq|<b>$dx</b>: $dy <br>|;
+	}
+	$output .= "</p>";
+		
+	&status_ok($vars->{div},$output);
+
+}
 
 # -------------------------------------------------------------------------------------
 #          Clone Functions
@@ -577,23 +604,7 @@ if ($vars->{table} eq "media") {
   # BACKUP
   elsif ($vars->{cmd} eq "backup") { print &api_backup(); exit; }
 
-	# DUMP
-  elsif ($vars->{cmd} eq "dump") {
 
-		my $output = "<p>Table: $vars->{table}  ID: $vars->{id}</p> ";
-		return "Table not specified" unless ($vars->{table});
-		return "Record ID not specified" unless ($vars->{id});
-
-	  my $record = &db_get_record($dbh,$vars->{table},{$vars->{table}."_id" => $vars->{id}});
-	  while (my($dx,$dy) = each %$record) {
-			$output .= qq|<b>$dx</b>: $dy <br>|;
-		}
-	  print $output;
-
-		exit;
-
-
-	}
 
   # CREATE
   elsif ($vars->{cmd} eq "create") {
