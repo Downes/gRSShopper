@@ -4827,6 +4827,8 @@ sub Tab_Edit {
 	$output .= &form_pushbutton($table,$id_number,"tab","delete","none","Delete Record","confirm");
 	$output .= &form_showrecorddata($table,$id_number);
 
+	$output .= "</div>";
+
 	return  $output;
 
 }
