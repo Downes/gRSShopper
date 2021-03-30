@@ -2357,7 +2357,7 @@ sub admin_update_grsshopper{
 		my $id_number = &db_insert($dbh,$query,$table,$post) || die "Couldn't inset post";
 		&rcomment_keylist_update($id_number,"author",$post->{post_author}) || die "Couldn't associate author";
 		&rcomment_keylist_update($id_number,"feed",$post->{post_feed}) || die "Couldn't associate author";		
-		print_record($dbh,$query,"post",$id_number,"html",$Site->{context});
+		print_record("post",$id_number,"html",$Site->{context});
 
 		# Send WebMention
 
@@ -4018,13 +4018,17 @@ $Site->{st_stale_expire} = (72 * 60 * 60);
 
 				
 
-			# Find the next record id and credate, and print it 
+			# Find the next record id and crdate, and print it 
 			my $nextsql = "SELECT ".$rtable."_id,".$rtable."_crdate FROM $rtable WHERE ".$rtable."_crdate >'".$reppub."' ORDER BY ".$rtable."_crdate LIMIT 1";
 			my ($newprevid,$newprevcrdate) = $dbh->selectrow_array($nextsql);
 
 			# Print record number id if it exists
 			if ($newprevid) { 
-				&print_record($dbh,$query,$rtable,$newprevid);
+				# But only print it if it has *already* been published - this function is
+				# intended to update existing content, not generate new content
+				# and may create permissions problems if cron is creating new files
+				my $page_file = $Site->{st_urlf}.$table."/".$id_number;
+				#if (-e $page_file) { &print_record($rtable,$newprevid);	}
 				$reppub = $newprevcrdate;
 			} else { $reppub = 0; }
 

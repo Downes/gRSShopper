@@ -97,6 +97,7 @@ use CGI::Carp qw(fatalsToBrowser);
 # -------------------------------------------------------------------------------------
 
 
+
 	# Show
 	if ($vars->{cmd} eq "show" && ($vars->{table} eq "link" || $vars->{table} eq "feed")) {
 		print "Content-type: text/json\n\n";
@@ -324,7 +325,6 @@ if ($vars->{cmd} eq "authenticate") {
 
 }
 
-
 	
 # Admin Only
 	unless (&admin_only()) { &status_error("Admin Login Required"); }
@@ -464,7 +464,7 @@ if ($vars->{cmd} eq "delete") {
 
 			# Drop table
 			#my $dropmsg = &db_drop_table($dbh,$vars->{table});
-	$vars->{message} = ucfirst($vars->{table})." has been deleted";
+	$vars->{message} .= ucfirst($vars->{table})." has been deleted";
 	status_ok();
 	exit;
 
@@ -486,7 +486,11 @@ if ($vars->{cmd} eq "publish") {
 		exit;
 	}
 
-	&status_error("Only publishing pages for now");
+
+
+	&api_publish();
+	
+	&status_error("Publishing account not found");
 }
 
 # -------------------------------------------------------------------------------------
@@ -534,7 +538,7 @@ if ($vars->{cmd} eq "clone") {
 	$record->{$vars->{table}."_name"} = sprintf(qq|Copy of "%s"|,$record->{$vars->{table}."_name"});
 	my $id = &make_new_record($vars->{table},$record);
 
-	$vars->{message} = "Cloning ".$record->{$vars->{table}."_title"}.": ".
+	$vars->{message} .= "Cloning ".$record->{$vars->{table}."_title"}.": ".
 		qq|Created new <a href="|.$Site->{st_url}.$vars->{table}.qq|/$id" target="_new">|.
 		$vars->{table}.qq| number $id</a> |.
 		qq|[<a href="#" onclick="openDiv('$Site->{script}','editor','edit','$vars->{table}','$id','Edit');">Edit</a>]|;
@@ -1788,10 +1792,10 @@ sub api_textfield_update {
  		&output_record($dbh,$query,$vars->{table_name},$vars->{table_id},"viewer");
 		my $published = &db_get_single_value($dbh,$vars->{table_name},$vars->{table_name}."_social_media",$vars->{table_id});
 
-		# Update if alread published to web
+		# Update if already published to web
 		# Autopublishing author, feed
 		if ($published =~ /web/ || $vars->{table_name} eq "author" || $vars->{table_name} eq "feed") { 
-			&print_record($dbh,$query,$vars->{table_name},$vars->{table_id});
+			&print_record($vars->{table_name},$vars->{table_id});
 		 }   
 		&api_ok();
   } else { &api_error(); }
@@ -1825,7 +1829,7 @@ sub api_datetime_update {
 		
 		&output_record($dbh,$query,$vars->{table_name},$vars->{table_id},"viewer");
 		my $published = &db_get_single_value($dbh,$vars->{table_name},$vars->{table_name}."_social_media",$vars->{table_id});
-		if ($published =~ /web/) { &print_record($dbh,$query,$vars->{table_name},$vars->{table_id}); }   # Update if alread published to web
+		if ($published =~ /web/) { &print_record($vars->{table_name},$vars->{table_id}); }   # Update if alread published to web
 
 		&api_ok();
 	} else { &api_error(); }
@@ -1845,10 +1849,10 @@ sub api_publish {
 
 	#die "Field $vars->{table_name},$vars->{col_name} does not exist" unless (&__check_field($vars->{table_name},$vars->{col_name}));
 
-	my $table = $vars->{table_name};
-	my $id = $vars->{table_id};
+	my $table = $vars->{table};
+	my $id = $vars->{id};
 	my $value = $vars->{value};
-	my $col = $vars->{col_name};
+	my $col = $table ."_social_media";
 
 
 	my $published = &db_get_single_value($dbh,$table,$col,$id);
@@ -1858,8 +1862,8 @@ sub api_publish {
 
 	my $result;
 	if ($published =~ /$vars->{value}/) {	# Already Published
-		print "Was already published";
-		exit;
+		$vars->{message} .= "Was already published";
+	#	exit;
 	} else {				# Not yet published, so publish it
 
 	# So now, ideally, I'd use the name of the social network service to pick a subroutine to actually do the publishing, but...
@@ -1947,11 +1951,15 @@ sub api_publish {
 	}
 
 		elsif ($vars->{value} =~ /web/i) {
-#print "Printing $table $id <p>";
+
+
+
 			$vars->{force} = "yes"; 							# Over-write cache
-			&output_record($dbh,$query,$table,$id,"html","api");
-			my $printed = &print_record($dbh,$query,$table,$id);					# Publish
-			die "Printing error ,$table,$id  $? $!" unless ($printed);
+			#&output_record($dbh,$query,$table,$id,"html","api");
+			
+			my $printed = &print_record($table,$id);					# Publish
+
+			&status_error("Printing error ,$table,$id  $? $!") unless ($printed);
 			my $url = $Site->{st_url}.$table."/".$id;
 			$published .= ",web";
 			my $result = &db_update($dbh,$table,{$table."_social_media"=>$published}, $id); # Prevent publishing twice
@@ -1959,14 +1967,16 @@ sub api_publish {
 			# Find the previous record, and print it (to create its 'next' link, which won't exist unless we do this)
 			my $nextsql ="SELECT ".$table."_id FROM $table WHERE ".$table."_id <'".$id."' ORDER BY ".$table."_id DESC  LIMIT 1";
 			my ($newprevid) = $dbh->selectrow_array($nextsql);
-			if ($newprevid) { &print_record($dbh,$query,$table,$newprevid); } 
+			if ($newprevid) { &print_record($table,$newprevid); } 
 
 			# Publish feed and author records
 			foreach my $assoc_table ("author","feed") {
 				my @assoc_graph = &find_graph_of($table,$id,$assoc_table);
-				foreach my $assoc_item (@assoc_graph) {
-					&print_record($dbh,$query,$assoc_table,$assoc_item);
-					print "Printed $assoc_table $assoc_item <br>";
+				if (@assoc_graph[0]) {
+					foreach my $assoc_item (@assoc_graph) { $vars->{message} .= "\nGraph: $assoc_table - $assoc_item \n";
+						&print_record($assoc_table,$assoc_item);
+						$vars->{message} .= "Printed $assoc_table $assoc_item <br>";
+					}
 				}
 			}
 
@@ -1976,11 +1986,11 @@ sub api_publish {
 			my $scan_content = $record->{$table."_description"}.$record->{$table."_content"};
 			my @links = $scan_content =~ /<a[^>]*\shref=['"](.*?)["']/gis;
 
-			# Add the post link to the list
-			push @links, $record->{post_link};
+			# Add the post link to the list, if it exists
+			if ($record->{post_link}) { push @links, $record->{post_link}; }
 
 			foreach my $l (@links) {
-
+				my $loc = $Site->{st_url}; next if ($l =~ /$loc/i); # Don't analyze local links
 				# Look for the link ID
        # print "Checking $l <br>";
 				my $lid = &db_locate($dbh,"link",{link_link => $l});
@@ -2013,7 +2023,8 @@ sub api_publish {
 			}
 
 			my $result = &db_update($dbh,$table, {$table."_web" => 1}, $id); # Prevent publishing twice
-			print qq|Published to <a href="$url">$url</a>|;
+			$vars->{message} .= qq|Published to <a href="$url" target="new">$url</a>|;
+			&status_ok();
 			exit;
 		}
 

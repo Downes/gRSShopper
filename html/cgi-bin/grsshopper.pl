@@ -594,9 +594,7 @@ sub quick_show_search {
             # Prints a record to its proper file location  ie. post=123 prints to /post/123
 
 sub print_record {
-
-            my ($dbh,$query,$table,$id_number,$format,$context) = @_;
-	my $vars = (); if (ref $query eq "CGI") { $vars = $query->Vars; }
+    my ($table,$id_number,$format,$context) = @_;
 
 	# Identify record to output																									# 
 	die "The Table not specified in request" unless ($table);			#   - table
@@ -607,7 +605,7 @@ sub print_record {
 
 	# Get Record
 	my $print_record = &db_get_record($dbh,$table,{$table."_id"=>$id_number});				# Get Record
-	die "Error getting record" unless ($print_record);
+	die "Error getting record $table $id_number" unless ($print_record);
 
 
 
@@ -647,10 +645,13 @@ sub print_record {
 
 	my $output = $print_record->{page_content};										# Print  to file
 	my $page_dir = $Site->{st_urlf}.$table;
-	unless (-d $page_dir) { mkdir($page_dir,0755); }
+
+	unless (-d $page_dir) { mkdir($page_dir,0775); }
 	my $page_file = $Site->{st_urlf}.$table."/".$id_number;
-            binmode(STDOUT, ":utf8");
-            open FILE, ">$page_file" or die $!;
+    binmode(STDOUT, ":utf8");
+
+    open FILE, ">$page_file" or &status_error($vars->{message}."Failed to open $page_file for print in print_record(): $!");
+
 	print FILE $output or die "Print failure: $!";
 	close FILE;
 	return $id_number;
@@ -791,6 +792,7 @@ sub output_record {
 	my $mime_type = set_mime_type($format);
 	unless ($context eq "api") {	print "Content-type: ".$mime_type."\n\n";			}					# Print header
 	if ($diag>9) { print "/Output Record<br>"; }
+
 	return $output;
 
 }
@@ -844,7 +846,7 @@ sub publish_page {
 
 		next unless (&is_allowed("publish","page",$wp));
 		unless ($opt eq "silent" || $opt eq "initialize") { 
-			$vars->{message} = "Publishing Page: ".$wp->{page_title}.$LF; 
+			$vars->{message} .= "Publishing Page: ".$wp->{page_title}.$LF; 
 		}
 
 
@@ -938,12 +940,12 @@ sub publish_page {
 
 
 
-		$vars->{message} = "Publishing to ".$pgfile.$LF;
+		$vars->{message} .= "Publishing to ".$pgfile.$LF;
 		&log_cron(1,sprintf("Page published to %s",$pgfile));
 
 		unless (open PSITE, ">$pgfile") { &publish_error($page_id,qq|Cannot open ".$wp->{page_title}."($page_id) $pgfile : $! $LF $LF|); exit; }
 		unless (print PSITE $wp->{page_content}) { &publish_error($page_id,qq| Cannot print to ".$wp->{page_title}."($page_id) $pgfile : $!  $LF $LF|); close PSITE; exit; }
-		unless ($opt eq "silent" || $opt eq "initialize") { $vars->{message} = qq|Saved page to <a href="$pgurl" target="new">$pgurl</a>  $LF|; }
+		unless ($opt eq "silent" || $opt eq "initialize") { $vars->{message} .= qq|Saved page to <a href="$pgurl" target="new">$pgurl</a>  $LF|; }
 		close PSITE;
 
 
@@ -962,7 +964,7 @@ sub publish_page {
 			print POUT $wp->{page_content} or &publish_error($page_id,qq|Error printing ".$wp->{page_title}."($page_id) to $save_to : $! $LF $LF|);
 			close POUT;
 			unless ($vars->{mode} eq "silent" || $opt eq "silent" || $opt eq "initialize") {
-				$vars->{message} = qq|Archived $wp->{page_title} to <a href="$save_url">$save_url</a> |;
+				$vars->{message} .= qq|Archived $wp->{page_title} to <a href="$save_url">$save_url</a> |;
 			}
 			$archive_url = $save_url;
 
@@ -1068,7 +1070,7 @@ sub publish_badge {
 
 			print PSITE $json or print qq| Cannot print to $pgfile : $!  $LF $LF|;
 
-			unless ($opt eq "silent" || $opt eq "initialize") { $vars->{message} = qq|Saved page to <a href="$pgurl"  target="new">$pgfile</a>  $LF|; }
+			unless ($opt eq "silent" || $opt eq "initialize") { $vars->{message} .= qq|Saved page to <a href="$pgurl"  target="new">$pgfile</a>  $LF|; }
 
 
 		close PSITE;
@@ -1129,7 +1131,7 @@ sub assign_badge {
 
 			print PSITE $json or print qq| Cannot print to $pgfile : $!  $LF $LF|;
 
-			unless ($opt eq "silent" || $opt eq "initialize") { $vars->{message} = qq|Saved page to <a href="$pgurl"  target="new">$pgfile</a>  $LF|; }
+			unless ($opt eq "silent" || $opt eq "initialize") { $vars->{message} .= qq|Saved page to <a href="$pgurl"  target="new">$pgfile</a>  $LF|; }
 
 
 		close PSITE;
@@ -7167,85 +7169,41 @@ sub form_publish {
 										# Future work - get this from the list of accounts
 	# Set up return content
 	my $return_text = qq|
-	    <div class="publish" style="width:100%; clear:all;"><label for="$col">Publish!</label>|;
+	    <div class="text-input">
+			<label for="$col">Publish!</label>
+		</div>|;
 
 	foreach my $account (@accounts) {
 
+		my $published = "";
+		# $value is the content of $table_social media, and contains a list of places already published
+		if ($value =~ /$account/i) { $published = "Previously published"; }
+
 		$return_text .= qq|
-		<div style="height:2em; clear:all">
-		   <span class="account_name" style="margin-left:3em;min-width:8em;width:10%;float:left;">$account: </span> |;
-		if ($value =~ /$account/i) { $return_text .= qq|
-		   <span id="|.$col.qq|" style="border:0px;float:left;">Published</span>
-		</div>|; }
-		else {
+			<div class="text-input">
+				<label for="$col">$account</label>
+				<div class="text-input-form">
+					<div tabindex="0" role="button" class="btn" aria-pressed="false" 
+						onclick="
+							submitData(
+								{   div:'|.$account.qq|_publish_result',
+									cmd:'publish',
+									value:'$account',
+									table:'$table',
+									id:'$id',
 
-			$return_text .= qq|
-		    <span style="border:0px; float:left;" id="|.$col."_".$account.qq|">
-			<button id="|.$col."_".$account.qq|_button" value="$account" class="btn-sm action">Publish</button>
-		    </span>
-		 </div>
-			<script>
-			\$(document).ready(function(){
-				\$('#|.$col."_".$account.qq|_button').click(function(){
-					var content = \$('#|.$col."_".$account.qq|_button').val();
-					var url = "$url";
-					submit_function(url,"$table","$id","$col",content,"publish");
-					\$('#|.$col."_".$account.qq|').text("Published");
-					var previewUrl = url+"?cmd=show&table=$table&id=$id&format=summary";
-					\$('#Preview').load("previewUrl");
-				});
-			});
-			</script>
-			|;
-
-		}
-
+								});
+						">Publish
+					</div> 
+				</div>
+			</div>
+			<div id="|.$account.qq|_publish_result">$published</div>
+		|;
 	}
-
-	$return_text .= qq|
-	        <div><span id="|.$col.qq|_result"></span><span>$advice</span></div>
-	    </div>|;
 	return $return_text;
-
-
-	my $button_text;
-	if ($value == 1) { $button_text = "Published"; }
-	else { $button_text = qq|<button id="|.$col.qq|_button" value="val_1" class="ajax-file-upload-green" style="line-height: normal;" name="but1">Publish</button>|; }
-
-	return qq|<tr><td align="right" valign="top">$col</td><td colspan=3 valign="top">
-  <div>
-  <div id="|.$col.qq|">
-  $button_text
-  </div>
-  <script>
-  \$(document).ready(function(){
-	\$("#|.$col.qq|_button").click(function(e) {
-		e.preventDefault();
-		\$.ajax({
-			type: "POST",
-			url: "|.$Site->{st_cgi}.qq|api.cgi",
-			data: {
-				table_name:'$table',
-				table_id:$id_value,
-				updated:1,
-				type:"publish",
-				name:"$col",
-			},
-			success: function(result) {
-				\$("#|.$col.qq|").html("Published");
-			},
-			error: function(result) {
-				\$("#|.$col.qq|").html("<span style='color:red;'>Error Publishing</span>");
-			}
-		});
-	});
-  });
-
-  </script>
-  </div></td></tr>
-  |;
-
 }
+
+
 sub form_socialmedia {
 
 	my ($table,$id_number,$col,$value,$fieldsize,$advice) = @_;
@@ -9158,6 +9116,7 @@ sub create_table_graph {
 sub find_graph_of {
 
 	my ($tableone,$idone,$tabletwo,$type) = @_;
+
 	return unless ($tableone && $idone);
 	return unless ($tabletwo || $type);
   #	if ($Site->{counter}) {$Site->{counter}++; } else { $Site->{counter} = 1; }
@@ -9187,9 +9146,11 @@ sub find_graph_of {
 		my $sql = qq|SELECT * FROM graph WHERE (graph_tableone = ? AND graph_idone = ?) OR (graph_tabletwo = ? AND graph_idtwo = ?)|;
 		my $sth = $dbh->prepare($sql);
 		$sth -> execute($tableone,$idone,$tableone,$idone); my $grfound=0;
+		
 		while (my $c = $sth -> fetchrow_hashref()) {
-			$grfound = 1;
 
+			next unless ($c->{graph_idtwo});		# Don't pass zero graph references
+			$grfound = 1;
 			if ($c->{graph_tableone} eq $tableone && $c->{graph_idone} eq $idone) {
 				push @{$Site->{$tableone}->{$idone}->{$c->{graph_tabletwo}}},$c->{graph_idtwo};
 				if ($c->{graph_type}) { push @{$Site->{$tableone}->{idone}->{$c->{graph_type}}},$c->{graph_idtwo}; }
@@ -9201,7 +9162,7 @@ sub find_graph_of {
 		if ($grfound) {
 			my @connections = &find_graph_of($tableone,$idone,$tabletwo,$type);  # Once we've stored the data, call the result from cache
 			return @connections;
-		} else { return 0; }
+		} else { return qw(0 0); }
 
 	}
 
