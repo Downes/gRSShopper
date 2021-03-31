@@ -1,7 +1,7 @@
 downes/grsshopper
 ==========
 
-![docker_logo](https://raw.githubusercontent.com/downes/grsshopper/master/docker_139x115.png)![docker_fauria_logo](https://raw.githubusercontent.com/downes/grsshopper/master/docker_fauria_161x115.png)![grsshopper_logo](https://raw.githubusercontent.com/downes/grsshopper/master/grsshopper_header.jpg)
+[grsshopper_logo](https://raw.githubusercontent.com/downes/grsshopper/master/grsshopper_header.jpg)
 
 [![Docker Pulls](https://img.shields.io/docker/pulls/downes/grsshopper.svg?style=plastic)](https://hub.docker.com/r/downes/grsshopper/)
 [![Docker Build Status](https://img.shields.io/docker/build/downes/grsshopper.svg?style=plastic)](https://hub.docker.com/r/downes/grsshopper/builds/)
@@ -12,10 +12,12 @@ gRSShopper is a tool that aggregates, organizes and distributes resources to sup
 
 Docker image is here: https://hub.docker.com/r/downes/grsshopper
 
-**Note: the Docker image is about a month behind the GitHub build**
+The Docker image automatically updates following changes to this repository.
 
 To run from Docker Image:
 =========================
+
+gRSShopper uses two containers, a server container and a database container. Before running docker-compose you need to download the SQL startup file and place it in the init directory; docker-compose will then load it into the generic database container.
  
 ```
 curl https://raw.githubusercontent.com/Downes/gRSShopper/master/docker-compose.yml --output  docker-compose.yml
@@ -50,9 +52,11 @@ docker-compose up
 Testing the server 
 ==================
 
-http://[your domain]  (should show gRSShopper start page)
+Note that gRSShopper runs in SSL (on post 443) and requires that you access it using https.
 
-http://[your domain]/cgi-bin/server_test.cgi  (should show Perl test page)     
+https://[your domain]  (should show gRSShopper start page)
+
+https://[your domain]/cgi-bin/server_test.cgi  (should show Perl test page)     
 
 
 Restart the Apache server
@@ -71,7 +75,7 @@ docker exec -it gr1 /etc/init.d/apache2 reload
 Open a terminal in the container
 ================================
 ```
-docker exec -e TERM=xterm -i -t gr1 bash
+docker exec -e TERM=xterm -i -t grsshopper_grsshopper_1 bash
 ```
 
 (A lot of sites say ```docker exec -it gr1 bash``` but I find it generates an error. Also if you want to be able to use nano when entering a container, you will need to set -e TERM=xterm).
@@ -82,13 +86,13 @@ Start cron
 Cron: cron starts automatically and runs in the gRSShopper container. if it ever stops (it shouldn't) you can enter the container and start it manually:
 
 ```
-docker exec -e TERM=xterm -i -t gr1 bash
+docker exec -e TERM=xterm -i -t grsshopper_grsshopper_1 bash
 cron
 crontab /etc/cron.d/cronfile
 exit
 ```
 
-The first command opens a terminal in the container. Then 'cron' starts cron, and the crontab loads instructions into the cron table. Exit closes the terminal in the container. Sorry this doesn't work automatically.
+The first command opens a terminal in the container. Then 'cron' starts cron, and the crontab loads instructions into the cron table. Exit closes the terminal in the container. Sorry if this doesn't work automatically.
 
 
 Credits
