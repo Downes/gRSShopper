@@ -3799,6 +3799,10 @@ sub make_where {
 		next if	($cx =~ /^(prefix|postfix|separator|color|number|startbefore|startafter|expires|heading|format|db|dbs|sort|start|next|all|none|wrap|lookup|nohtml|truncate|helptext|groupby|readmore)$/);
 		if ($cx eq "event_start") { $cx = "start"; }
 
+		if ($cx =~ /person_id/ && $cy eq "me") {			# Show my own personal info to me
+			$cy = $Person->{person_id}; 
+		}
+
 		my $flds; my $tval; my @fid_list;
 		if ($cx =~ '!~') {								# does not contain
 			($flds,$tval) = split "!~",$cx;
@@ -4555,12 +4559,7 @@ sub main_window {
 	
      <style>
 
-		label {
-  			padding: 12px 12px 0px 12px;
-  			margin:0;
-  			display: inline-block;
-  			color:green;
-		}
+
 
 		p.info {
   			padding: 0px 12px 0px 12px;
@@ -4725,7 +4724,7 @@ sub admin_frame {
 		my $vars = $query->Vars;
 		return unless (&is_viewable("admin","general")); 		# Permissions
 
-		print "Content-type: text/html; charset=utf-8\n\n";
+		
 		print qq|<div class="container">
   		   <!-- Admin Frame -->
 		   |.$content.qq|
@@ -5283,7 +5282,7 @@ sub Tab_Harvester {
 	return "Permission Denied" unless (&is_viewable("admin","database"));
 	my $adminlink = $Site->{st_cgi}."admin.cgi";
 
-  my $output = qq|<iframe style="border:0;width:100%;height:800px;" src="$adminlink?action=harvester"></iframe>|;
+  my $output = qq|<iframe class="admin-iframe"  src="$adminlink?action=harvester"></iframe>|;
 	return $output;
 
 }
@@ -5297,7 +5296,7 @@ sub Tab_Permissions {
 
    return "Permission Denied" unless (&is_viewable("admin","database"));
    my $adminlink = $Site->{st_cgi}."admin.cgi";
-   my $output = qq|<iframe style="border:0;width:100%;height:800px;" src="$adminlink?action=permissions"></iframe>|;
+   my $output = qq|<iframe class="admin-iframe"  src="$adminlink?action=permissions"></iframe>|;
    return $output;
 
 }
@@ -5311,7 +5310,8 @@ sub Tab_Users {
 
  return "Permission Denied" unless (&is_viewable("admin","users"));
  my $adminlink = $Site->{st_cgi}."admin.cgi";
- my $output = qq|<iframe style="border:0;width:100%;height:800px;" src="$adminlink?action=users"></iframe>|;
+ my $output = qq|<iframe class="admin-iframe"  src="$adminlink?action=users"></iframe>|;
+
  return $output;
 
 }
@@ -5325,7 +5325,7 @@ sub Tab_General {
 
    return "Permission Denied" unless (&is_viewable("admin","database"));
    my $adminlink = $Site->{st_cgi}."admin.cgi";
-   my $output = qq|<iframe style="border:0;width:100%;height:800px;" src="$adminlink?action=general"></iframe>|;
+   my $output = qq|<iframe class="admin-iframe"  src="$adminlink?action=general"></iframe>|;
    return $output;
 
 }
@@ -5339,7 +5339,7 @@ sub Tab_Subscribers {
 
    return "Permission Denied" unless (&is_viewable("admin","database"));
    my $adminlink = $Site->{st_cgi}."admin.cgi";
-   my $output = qq|<iframe style="border:0;width:100%;height:800px;" src="$adminlink?action=users"></iframe>|;
+   my $output = qq|<iframe class="admin-iframe"  src="$adminlink?action=users"></iframe>|;
    return $output;
 
 }
@@ -5353,7 +5353,7 @@ sub Tab_Accounts {
 
    return "Permission Denied" unless (&is_viewable("admin","database"));
    my $adminlink = $Site->{st_cgi}."admin.cgi";
-   my $output = qq|<iframe style="border:0;width:100%;height:800px;" src="$adminlink?action=accounts"></iframe>|;
+   my $output = qq|<iframe class="admin-iframe"  src="$adminlink?action=accounts"></iframe>|;
    return $output;
 
 }
@@ -5367,7 +5367,7 @@ sub Tab_Meetings {
 
   return "Permission Denied" unless (&is_viewable("admin","database"));
   my $adminlink = $Site->{st_cgi}."admin.cgi";
-  my $output = qq|<iframe style="border:0;width:100%;height:800px;" src="$adminlink?action=meetings"></iframe>|;
+  my $output = qq|<iframe class="admin-iframe"  src="$adminlink?action=meetings"></iframe>|;
   return $output;
 
 }
@@ -5381,7 +5381,7 @@ sub Tab_Newsletters {
 
 	return "Permission Denied" unless (&is_viewable("admin","database"));
 	my $adminlink = $Site->{st_cgi}."admin.cgi";
-	my $output = qq|<iframe style="border:0;width:100%;height:800px;" src="$adminlink?action=newsletters"></iframe>|;
+	my $output = qq|<iframe class="admin-iframe" src="$adminlink?action=newsletters"></iframe>|;
 	return $output;
 
 }
@@ -5468,7 +5468,7 @@ sub Tab_Logs {
 
 	return "Permission Denied" unless (&is_viewable("admin","database"));
 	my $adminlink = $Site->{st_cgi}."admin.cgi";
-	my $output = qq|<iframe style="border:0;width:100%;height:800px;" src="$adminlink?action=logs"></iframe>|;
+	my $output = qq|<iframe class="admin-iframe" src="$adminlink?action=logs"></iframe>|;
 	return $output;
 
 }
@@ -7183,7 +7183,6 @@ sub form_publish {
 
 		$return_text .= qq|
 			<div class="text-input">
-				<label for="$col">$account</label>
 				<div class="text-input-form">
 					<div tabindex="0" role="button" class="btn" aria-pressed="false" 
 						onclick="
@@ -7195,11 +7194,11 @@ sub form_publish {
 									id:'$id',
 
 								});
-						">Publish
-					</div> 
+						">Publish to $account
+					</div> <div class="results" id="|.$account.qq|_publish_result">$published</div>
 				</div>
 			</div>
-			<div id="|.$account.qq|_publish_result">$published</div>
+			
 		|;
 	}
 	return $return_text;
@@ -10611,7 +10610,7 @@ sub login_needed {
 	my ($status) = @_;
 
 	print "Content-type: text/html\n";
-	if ($status eq "Admin") {print "You must be an admin to continue.";  } else {
+	if ($status eq "Admin") { print "You must be an admin to continue.";  } else {
 	print "A login is needed to continue."; }
 	if ($dbh) { $dbh->disconnect; }
 	exit;
@@ -12072,11 +12071,18 @@ sub twitter_post {
 
   &admin_only(); # We only want the site owner to be able to use icchat to post to Twitter
 
-	unless ($Site->{tw_post} eq "yes") { $vars->{twitter} .= "Twitter turned off."; return $vars->{twitter}; }
+	unless ($Site->{tw_post} eq "yes") { &status_error(qq|
+		Twitter turned off. 
+		<span class="btn-inline" onClick="
+		  openDiv('cgi-bin/api.cgi','Profile','social','Accounts','','','Accounts');
+          openTab(event, 'Profile', 'mainlinks');
+		  ">Turn on?</span>|); }
 
 
 
-	if ($record->{$table."_social_media"} =~ "twitter") { $vars->{twitter} .= "Already posted this $table to Twitter."; return; }
+	if ($record->{$table."_social_media"} =~ "twitter") { 
+		&status_error("Already posted this $table to Twitter.");
+	}
 
 	#use Net::Twitter::Lite::WithAPIv1_1;
 	#use Scalar::Util 'blessed';
@@ -12089,7 +12095,7 @@ sub twitter_post {
 
 										# Access Account
 
-	&error($dbh,"","","Twitter posting requires values for consumer key, consumer secret, token and token secret")
+	&status_error("Twitter posting requires values for consumer key, consumer secret, token and token secret")
 		unless ($Site->{tw_cckey} && $Site->{tw_csecret} && $Site->{tw_token} && $Site->{tw_tsecret});
 
 
@@ -12103,19 +12109,19 @@ sub twitter_post {
 		ssl                 => 1,  ## enable SSL! ##
 	);
 
-        my $result = eval {$nt->update({ status => $tweet})};
+    my $result = eval {$nt->update({ status => $tweet})};
 
 	if ( my $err = $@ ) {
-		die $@ unless blessed $err && $err->isa('Net::Twitter::Lite::Error');
-		$vars->{twitter} = "<p><b>Twitter posting error</b><br>Attempted to tweet: $tweet <br>HTTP Response Code: ". $err->code. "<br>".
-			"HTTP Message......: ". $err->message. "<br>Twitter error.....: ". $err->error. "</p>";
-		return $vars->{twitter};
+		&status_error($@) unless blessed $err && $err->isa('Net::Twitter::Lite::Error');
+		my $error_message=sprintf("Twitter posting error<br>Attempted to tweet: %s<br>HTTP Response Code: %s<br>HTTP Message: %s<br>Twitter error: %s", $tweet,$err->code,$err->message,$err->error);
+		&status_error($error_message);
 	}
 
 
-	if ($result) { $vars->{twitter} .= "Twitter: OK" }
+	if ($result) { $vars->{message} .= "Twitter: OK" } 
+	else { &status_error("No result returned from Twitter"); }
 
-	return $vars->{twitter};
+	return 1;
 
 }
 

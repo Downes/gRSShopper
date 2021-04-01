@@ -150,6 +150,24 @@ use CGI::Carp qw(fatalsToBrowser);
 	if ($action eq "list") { $format = "list"; }
 	$format ||= "html";		# Default to HTML
 
+
+# Print HTML Page header
+
+unless ($Site->{context} eq "cron") {
+
+	print qq|
+		<html>
+		<head>
+		<title>Admin $vars->{action} </title>
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/mini.css/3.0.1/mini-default.min.css">
+		<link rel="stylesheet" href="|.$Site->{st_url}.qq|assets/css/grsshopper_admin.css">
+		</head>
+		<body>
+
+	|;
+}
+
+
 # Actions ------------------------------------------------------------------------------
 
 	# Perform Action, or
@@ -271,7 +289,7 @@ use CGI::Carp qw(fatalsToBrowser);
 
 			/count/ && do { &count_feed($dbh,$query); last; };
 
-			/cache_clear/ && do { print "Content-type: text/html\n\n"; &cache_clear($dbh,$query); last; };
+			/cache_clear/ && do { &cache_clear($dbh,$query); last; };
 			#/stats/ && do { &calculate_stats($dbh,$query); last;  };
 			/graph/ && do { &make_graph($dbh,$query); last;  };
 			/sendmsg/ && do { &admin_users_send_message($dbh,$query); last; };
@@ -889,8 +907,6 @@ print "Admin General";
 
 
 
-
-		 print "Content-type: text/html; charset=utf-8\n\n";
 		 print $Site->{header};
 		 print $content;
 		 print $Site->{footer};
@@ -927,7 +943,7 @@ print "Admin General";
 
 
 
-		 print "Content-type: text/html; charset=utf-8\n\n";
+
 		 print $Site->{header};
 		 print $content;
 		 print $Site->{footer};
@@ -1053,7 +1069,7 @@ print "Admin General";
 	return 1;
 	#	use Email::Verify::SMTP;
 	  $|++;
-	  print "Content-type: text/html\n\n";
+
 		my $sth = $dbh -> prepare("SELECT * FROM person"); $sth -> execute();
 
 
@@ -1392,7 +1408,6 @@ print "Admin General";
 
 		my ($table) = @_;
 
-		print "Content-type: text/html\n\n";
 
 		# Normalize table names
 		$table =~ s/[^a-zA-Z0-9_]//g;
@@ -1415,7 +1430,6 @@ print "Admin General";
 
 		my ($table) = @_;
 
-		print "Content-type: text/html\n\n";
 
 		# Back up table
 		my $savemsg = &admin_db_backup($table);
@@ -1659,7 +1673,7 @@ sub admin_update_grsshopper{
 	sub delete_all_users {
 
 		my ($dbh,$query) = @_;
-		print "Content-type: text/html; charset=utf-8\n\n";					# Header
+
 		$Site->{header} =~ s/\Q[*page_title*]\E/Delete All Users/g;
 		$Site->{header} =~ s/\Q<page_title>\E/Delete All Users/g;
 		print $Site->{header};
@@ -1724,7 +1738,7 @@ sub admin_update_grsshopper{
 
 		$Site->{header} =~ s/\Q[*page_title*]\E/$title/g;
 		$Site->{header} =~ s/\Q<page_title>\E/$title/g;
-		return qq|Content-type: text/html; charset=utf-8\n\n|.
+		return 
 			$Site->{header}.
 			qq|<h2>$title</h2>
 			<p>Select a person to edit. Enter:
@@ -1751,7 +1765,7 @@ sub admin_update_grsshopper{
 
 		my $vars = $query->Vars;
 
-	  print "Content-type: text/html\n\n";
+	  
 	  #while (my($fx,$fy) = each %$vars) { print "$fx = $fy<br>";}
 		print "<h1>Importing List</h1>";
 		print "Table: $table File: ".$vars->{myfile}."<br>";                  #"
@@ -2038,7 +2052,7 @@ sub admin_update_grsshopper{
 		my $vars = $query->Vars;
 
 		return unless (&is_allowed("edit",$vars->{table})); 			# Get variables
-		print "Content-type: text/html\n\n";
+		
 
 		my $format = $vars->{format};							# Set Format
 		if ($vars->{type}) { $format = $vars->{type}."_".$format; }
@@ -2107,7 +2121,7 @@ sub admin_update_grsshopper{
 	sub news_rollup {
 		my ($dbh,$query) = @_;
 		my $vars = $query->Vars;
-		print "Content-type: text/html; charset=utf-8\n\n";
+
 		print $Site->{header};
 		print "<h1>Content for Today & Future Issues</h1>";
 
@@ -2147,7 +2161,7 @@ sub admin_update_grsshopper{
 
 	sub autosubscribe_all {
 
-	print "Content-type: text/html; charset=utf-8\n\n";
+
 
 		my ($dbh,$query) = @_;
 		my $vars = $query->Vars;
@@ -2194,7 +2208,7 @@ sub admin_update_grsshopper{
 		my $vars = $query->Vars;
 
 		unless ($return) {
-			print "Content-type: text/html; charset=utf-8\n\n";
+
 			print $Site->{header};
 			print "<h2>Autosubscribe</h2>";
 		}
@@ -2263,7 +2277,7 @@ sub admin_update_grsshopper{
 		my $vars = $query->Vars;
 		exit unless ($Person->{person_status} eq "admin");
 		my $postid = &auto_post($dbh,$query,$vars->{id});
-		print "Content-type: text/html\n\n";
+
 		print "Autopost $postid";
 		exit;
 
@@ -2276,7 +2290,7 @@ sub admin_update_grsshopper{
 		my ($dbh,$query) = @_;
 		my $vars = $query->Vars;
 		exit unless ($Person->{person_status} eq "admin");
-		print "Content-type: text/html\n\n";
+
 		my $postid = &auto_post($dbh,$query,$vars->{id});
 		my $posttext = &edit_record($dbh,$query,"post",$postid,1);
 
@@ -2344,7 +2358,7 @@ sub admin_update_grsshopper{
 		my $l;
 		if (($l = &db_locate($dbh,"post",{post_link => $post->{post_link}})) ||
 		    ($l = &db_locate($dbh,"post",{post_title => $post->{post_title}})) ) {
-			print "Content-type: text/html\n\n";
+
 			my $url = $Site->{st_url} . "post/" . $l;	
 			printf(qq|<p>Duplicate Entry: <a href="%s">Post %s</a></p>|,$url,$l);
 			exit;
@@ -3066,7 +3080,6 @@ sub admin_update_grsshopper{
 			&admin_frame($dbh,$query,$action,$vars->{msg});
 			exit;
 		} elsif ($vars->{from} eq "api") {
-			print "Content-type: text/html\n\n";
 			print $vars->{api};
 			exit;
 		} else {
@@ -3125,7 +3138,6 @@ sub admin_update_grsshopper{
 		my ($dbh,$query) = @_;
 		my $vars = $query->Vars;
 
-	print "Content-type: text/html\n\n";
 	print "Accessing API <p>";
 
 	  my $server_endpoint = $vars->{url};
@@ -3462,7 +3474,7 @@ $Site->{st_stale_expire} = (72 * 60 * 60);
 	  $|++; # Stream output
 		my ($dbh,$query,$page_id,$send_list,$verbose) = @_;
 		my $vars = $query->Vars;
-		print "Content-type: text/html; charset=utf-8\n\n";
+
 		my $report;
 
 		# return unless (&is_allowed("send","newsletter"));	# Admin Only
@@ -3931,7 +3943,7 @@ $Site->{st_stale_expire} = (72 * 60 * 60);
 		#   For example, a field named 'keyname_author' will refer to the name of an author in the 'author' table
 		#   The function produces a record in the graph table
 		#   It will also create a new record in the other table, if necessary
-	print "Content-type: text/html\n\n";
+
 	print "Posts.<p>";
 		my $sth = $dbh->prepare("SELECT * FROM post");
 		$sth -> execute();

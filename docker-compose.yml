@@ -26,7 +26,7 @@ services:
     volumes:
       - ./html:/var/www/html   
     networks:
-      - grss          
+      - grss
 
 volumes:
   db-data: {}

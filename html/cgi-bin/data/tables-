@@ -46,7 +46,7 @@
 		<li class="table-list-element">[<a href="#" 
 			onClick="
 			openTab(event,'List','tablinks','list-button');
-			loadList({div:'List',cmd:'list',table:'feed'});
+			loadList({div:'List',cmd:'list',table:'feed',status:'A'});
 			">List</a>] Feed </li>
 		<li class="table-list-element">[<a href="#" 
 			onClick="

@@ -1,34 +1,374 @@
-<html>
-<head>
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!-->
+<html style="" class=" js flexbox canvas canvastext webgl touch geolocation postmessage no-websqldatabase indexeddb hashchange history draganddrop websockets rgba hsla multiplebgs backgroundsize borderimage borderradius boxshadow textshadow opacity cssanimations csscolumns cssgradients no-cssreflections csstransforms csstransforms3d csstransitions fontface generatedcontent video audio localstorage sessionstorage webworkers applicationcache svg inlinesvg smil svgclippaths"><!--<![endif]--><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="google-site-verification" content="JpKCsE4k0qiGU4zw7TcoNCrbvqAwdxygaBU-rVu_Xig" />
 
-<title>gRSShopper</title>
+<title>Home Page ~ Page 152</title>
+<meta name="description" content="This is a fancy home page with niftyy box-type post updates etc. It's from my home page. Notice the use of specialized responsive templates.">
+<meta name="keywords" content="">
+
+<link rel="alternate" title="OLDaily JSON" type="application/json" href="https://www.downes.ca/news/OLDaily.json" />
+<link rel="alternate" title="OLDaily RSS" type="application/rss" href="https://www.downes.ca/news/OLDaily.xml" />
 
 
-<link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<!-- Mobile viewport -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<!-- icons -->
+<link rel="apple-touch-icon" sizes="57x57" href="https://localhost/assets/icons/apple-icon-57x57.png">
+<link rel="apple-touch-icon" sizes="60x60" href="https://localhost/assets/icons/apple-icon-60x60.png">
+<link rel="apple-touch-icon" sizes="72x72" href="https://localhost/assets/icons/apple-icon-72x72.png">
+<link rel="apple-touch-icon" sizes="76x76" href="https://localhost/assets/icons/apple-icon-76x76.png">
+<link rel="apple-touch-icon" sizes="114x114" href="https://localhost/assets/icons/apple-icon-114x114.png">
+<link rel="apple-touch-icon" sizes="120x120" href="https://localhost/assets/icons/apple-icon-120x120.png">
+<link rel="apple-touch-icon" sizes="144x144" href="https://localhost/assets/icons/apple-icon-144x144.png">
+<link rel="apple-touch-icon" sizes="152x152" href="https://localhost/assets/icons/apple-icon-152x152.png">
+<link rel="apple-touch-icon" sizes="180x180" href="https://localhost/assets/icons/apple-icon-180x180.png">
+<link rel="icon" type="image/png" sizes="192x192"  href="https://localhost/assets/icons/android-icon-192x192.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://localhost/assets/icons/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="96x96" href="https://localhost/assets/icons/favicon-96x96.png">
+<link rel="icon" type="image/png" sizes="16x16" href="https://localhost/assets/icons/favicon-16x16.png">
+  <link rel="icon" href="https://localhost/assets/icons/favicon.ico" type="image/x-icon"/>
+<link rel="manifest" href="https://localhost/assets/icons//manifest.json">
+<meta name="msapplication-TileColor" content="#ffffff">
+<meta name="msapplication-TileImage" content="/ms-icon-144x144.png">
+<meta name="theme-color" content="#ffffff"><!-- End Icons -->
+
+<!-- CSS-->
+<!-- Google web fonts. You can get your own bundle at https://www.google.com/fonts. Don't forget to update the CSS accordingly!-->
+<link href='https://fonts.googleapis.com/css?family=Droid+Serif|Ubuntu' rel='stylesheet' type='text/css'>
+
+<link rel="stylesheet" href="https://localhost/assets/css/normalize.css">
+<link rel="stylesheet" href="https://localhost/assets/js/flexslider/flexslider.css">
+<link rel="stylesheet" href="https://localhost/assets/css/basic-style.css">
+
+<!-- end CSS-->
+    
+<!-- JS-->
+<script src="https://localhost/assets/js/libs/modernizr-2.6.2.min.js"></script>
+
+<!-- end JS-->
+
+</style>
+
+
 </head>
 
-<body>
+<body id="home">
+  
+<!-- header area -->
+    <header class="wrapper clearfix">
+		       
+        <div id="banner">        
+        	<div id="logo">
+                        <span style="float:left"><a  href="https://localhost/index.html" style="text-decoration:none;"><img src="https://localhost/assets/images/sparrow-100.jpg" border=0></a></span>
+                         <span style="float:left; margin-left:10px;"><a  href="https://localhost/index.html" style="text-decoration:none; margin-bttom:0pt;"><h1>Stephen Downes</h1></a>Knowledge, Learning, Community</div> 
+        </div>  <div style="float:right"><!-- Search box that goes in the upper right part of the page -->
+<!-- It searches posts by default -->
 
-<img src="assets/images/grsshopper_header.jpg" style="margin-top:150px;"><br/><br/>
-
-<div style="margin: auto;width:600px;text-align:left;">
-<h1>Welcome to gRSShopper</h1>
-gRSShopper is your personal web environment that combines resource aggregation, a personal dataspace, and personal publishing. 
-It allows you to organize your online content any way you want to, to import content - your own or others' - from remote 
-sites, to remix and repurpose it, and to distribute it as RSS, web pages, JSON data, or RSS feeds.<br/><br/>
-<b>Notice:</b> this version of gRSShopper is still a bit rough. You may have to update some scripts as I fix a bunch 
-of things that broke when I put it into a Docker container. Most importantly, the RSS reader isn't working.
-   When it doubt, be sure to back up your database.<br/><br/>
-<b>Getting Started</b>:<br/>
-- Run the server test script and create a new Admin user: <a href="cgi-bin/server_test.cgi">Server Test</a><br/>
-- Access your personal learning environment right here: <a href="PLE.html">Personal Learning Environment</a><br/><br/>
-<br/><br/>
-[<a  href="about.htm">About</a>]
-[<a  href="https://github.com/Downes/gRSShopper">Code</a>]
-[<a  href="https://grsshopper.downes.ca/videos.htm">Videos</a>]
-[<!--a href="https://demo.downes.ca"--><s>Demo</s><!-- /a -->] (not available at the moment)</center>
+<div class="search-area"><div class="search-wrapper" style="float:right;width:300px;""><form action="https://localhost/cgi-bin/page.cgi" method="post" id="search-section-form" accept-charset="UTF-8"><input name="action" value="search" type="hidden"><input type="text" id="edit-section-keys" name="q" value="" size="60" maxlength="128" class="form-text" /><input type="submit" id="edit-section-search" name="op" value="Search" class="form-submit" /></form></div></div>
 </div>
+        
+        <!-- main navigation -->
+
+        <nav id="topnav" role="navigation">
+          <div class="menu-toggle">Menu</div>  
+          <ul class="srt-menu" id="menu-main-navigation">
+              <li><a  href="https://localhost/articles.htm">Articles</a></li>
+              <li><a  href="https://localhost/presentations.htm">Presentations</a></li>
+              <li><a  href="https://localhost/about.htm">About</a></li>	
+          </ul>    
+		</nav><!-- end main navigation -->
+  
+    </header><!-- end header --><!-- hero area (the grey one with a slider -->
+    <section id="hero" class="clearfix">    
+    <!-- responsive FlexSlider image slideshow -->
+    <div class="wrapper">
+       <div class="row"> 
+        <div class="grid_5">
+            <p>I work in the Digital Technologies Research Centre at the National Research Council, a multi-year effort to develop personal learning technology and learning analytics. I am one of the originators of the Massive Open Online Course, write about online and networked learning, have authored learning management and content syndication software, and am the author of the widely read e-learning newsletter OLDaily.
+            </p>
+
+
+            <p><a  href="http://eepurl.com/dzf4Ub" class="buttonlink">SUBSCRIBE TO OLDAILY</a>
+<a  href="http://eepurl.com/dzgGcD" class="buttonlink">SUBSCRIBE TO OLWEEKLY</a> </p>
+<p>
+<a  href="https://localhost/donate.htm" class="buttonlink">DONATE TO DOWNES.CA</a> <a  href="https://www.downes.ca/vision.htm" class="buttonlink">~ ~ Vision Statement ~ ~</a></p>
+</div>
+        <div class="grid_7 rightfloat">
+
+<!-- Feature Video -->
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/n69kCVWn2D8" frameborder="0" allowfullscreen></iframe>
+
+<!-- /Feature Video -->
+
+
+              </div><!-- end grid_7 -->
+        </div><!-- end row -->
+       </div><!-- end wrapper -->
+    </section><!-- end hero area -->
+
+
+
+
+
+<!-- main content area -->   
+<div id="main" class="wrapper">
+    
+    
+<!-- content area -->    
+	<section id="content" class="wide-content">
+
+      <div class="row">
+        <div class="grid_4">
+        	<h3 class="first-header"><a  href="https://localhost/post/68406" style="text-decoration:none;">A New Test Post!</a></h3>
+            <p>
+              
+<p style="font-size:9pt;">Today:  Total:  
+<a  href="https://localhost/author/21812" style="text-decoration:none;">Stephen Downes</a>, 
+ 2021/03/29 [<a  href="https://localhost/post/68406/rd">Direct Link</a>] <admin post,68406> 
+</p>
+        </div>
+
+
+       </div>
+
+      <div class="row">
+        <div class="grid_4">
+        	<h3 class="first-header"><a  href="https://localhost/post/68400" style="text-decoration:none;">New post</a></h3>
+            <p>
+              
+<p style="font-size:9pt;">Today:  Total:  
+
+ 2021/03/27 [<a  href="https://localhost/post/68400/rd">Direct Link</a>] <admin post,68400> 
+</p>
+        </div>
+
+        <div class="grid_4">
+        	<h3 class="first-header"><a  href="https://localhost/post/68398" style="text-decoration:none;">New post</a></h3>
+            <p>
+              
+<p style="font-size:9pt;">Today:  Total:  
+
+ 2021/03/27 [<a  href="https://localhost/post/68398/rd">Direct Link</a>] <admin post,68398> 
+</p>
+        </div>
+
+
+       </div>
+<div>
+[<a  href="https://www.downes.ca/cgi-bin/page.cgi?action=search">All the Posts</a>]
+</div>
+ <div class="row">	  <div class="grid_12">
+
+  <h2>Everything</h2><br><br>
+
+<div class="grid_3"><!-- OLDaily -->
+
+<b>Subscribe</b><br /><br />
+
+<a  href="https://www.downes.ca/news/OLDaily.htm">Web - Today's OLDaily</a><br>
+
+<a  href="http://eepurl.com/dzf4Ub">OLDaily Email - Subscribe</a><br />
+<a  href="https://www.downes.ca/news/OLWeekly.htm">Web - This Week's OLWeekly</a><br>
+
+<a  href="http://eepurl.com/dzgGcD">OLWeekly Email - Subscribe</a><br />
+
+<a  href="https://www.downes.ca/news/OLDaily.xml"><img src="https://www.downes.ca/assets/images/rss-icon.png" border=0 width=30> RSS - Individual Posts</a><br>
+
+<a  href="https://www.downes.ca/news/oldailycombined.xml">RSS - Combined version</a><br>
+
+<a  href="https://www.downes.ca/news/OLDaily.json"><img src="https://www.downes.ca/assets/images/json_feed_icon.png" width=30 border=0> JSON - OLDaily</a><br>
+
+<a  href="https://www.downes.ca/news/audio.xml">Podcast - OLDaily Audio</a>
+<br><br>
+
+<b>Websites</b><br><br>
+
+<a  href="https://www.downes.ca/">Stephen's Web and OLDaily</a><br>
+
+<a  href="https://halfanhour.blogspot.com/">Half an Hour Blog</a><br>
+
+<a  href="https://www.mooc.ca">MOOC.ca</a><br />
+
+<a  href="https://www.fallacies.ca">Stephen's Guide to the Logical Fallacies</a><br/>
+
+<a  href="https://grsshopper.downes.ca">gRSShopper</a><br/>
+
+<s>Moncton Free Press</s><br>
+
+<a  href="https://letsmakesomeartdammit.blogspot.com">Let's Make Some Art Dammit</a><br>
+
+
+
+
+</div><!-- end OLDaily -->
+
+<div class="grid_3"><!-- Professional -->
+
+
+<b>Contact</b><br><br>
+
+Email: <a  href="mailto:stephen@downes.ca">stephen@downes.ca</a><br> 
+ 
+Email: <a  href="Stephen.Downes@nrc-cnrc.gc.ca">Stephen.Downes@nrc-cnrc.gc.ca</a><br> 
+
+Skype: Downes<br> <br>
+
+<b>Professional</b><br><br>
+
+<a  href="https://www.nrc-cnrc.gc.ca/index.html">National Research Council Canada<br>
+		
+
+</a><a  href="https://www.downes.ca/publications.htm">Publications</a> <br>
+
+<a  href="https://www.downes.ca/presentations.htm">Presentations</a><br> 
+
+<a  href="https://www.downes.ca/articles.htm">All My Articles</a><br>
+<a  href="https://www.downes.ca/me/mybooks.htm">My eBooks</a><br><br>
+<a  href="https://www.downes.ca/me/mybooks.htm"><img src="https://www.downes.ca/files/books/FreeLearning.jpg" width="150"></a>
+
+</div><!-- end Professional -->
+
+<div class="grid_3"><!-- About -->
+
+<b>About</b><br><br>
+
+
+<a  href="https://www.downes.ca/me/index.htm">About Stephen Downes</a><br>
+
+
+<a  href="https://www.downes.ca/about_this_website.htm">About Stephen's Web</a><br> 
+
+
+<a  href="https://www.downes.ca/news/about_old.htm">About OLDaily</a><br>
+
+
+<a  href="https://www.downes.ca/cgi-bin/login.cgi?action=Register">Subscribe to Newsletters</a><br>
+
+
+<a  href="https://grsshopper.downes.ca">gRSShopper</a><br>
+
+
+<a  href="https://www.downes.ca/about_clist.htm">Threads Discussions</a><br>
+
+
+<a  href="https://www.downes.ca/privacy.htm">Privacy and Security Policy</a><br>
+<a  href="https://www.downes.ca/cgi-bin/awstats/awstats.pl?month=01&year=2018&output=main&config=downes&framename=index">Statistics</a><br>
+<a  href="https://www.downes.ca/cgi-bin/archive.cgi">Archives</a>
+
+<br><br>
+<b>Courses</b><br><br>
+CCK <a  href="https://sites.google.com/site/themoocguide/3-cck08---the-distributed-course">2008</a>, <a  href="https://sites.google.com/site/themoocguide/4-cck09---the-students-teach-the-course">2009</a>, <a  href="https://cck11.mooc.ca">2011</a>, <a  href="https://cck12.mooc.ca">2012</a><br/>
+
+<a  href="https://connect.downes.ca">PLENK 2010</a><br/>
+<a  href="https://change.mooc.ca">Change 11 - 2011</a><br/>
+<a  href="https://edfuture.mooc.ca">Education Futures - 2012</a><br/>
+<a  href="https://lak12.mooc.ca">Learning Analytics - 2012</a><br/>
+<a  href="https://moocrel.mooc.ca">REL 2014</a><br/>
+<a  href="https://course.downes.ca">Personal Learning - 2015</a><br/><br/>
+
+
+</div>
+<!-- end About -->
+
+<div class="grid_3"><!-- social network -->
+
+<b>Social Network</b>
+<br><br>
+
+
+<a  href="https://gplus.to/downes">Google Plus Page</a><br>
+
+<a  href="https://twitter.com/Downes">Twitter Feed</a><br>
+
+<a  href="https://getpocket.com/users/*em14818314579534611/feed/all">Pocker Feed</a> (RSS)<br>
+
+<a  href="https://www.flickr.com/people/stephen_downes/">Flickr Photos</a> <br>
+
+<a  href="https://www.huffingtonpost.com/stephen-downes">Huffington Post Blog</a> <br>
+
+<a  href="https://sharedli.st/downes">Pocket Shared</a><br />
+
+<a  href="https://www.slideshare.net/Downes/">Slideshare</a><br> 
+
+<s><a  href="https://www.facebook.com/downes/">Facebook</a></s><br> 
+
+<s><a  href="https://downes.blip.tv/">Blip TV</a></s><br> 
+
+<br><br>
+<b>Services</b>
+<br><br>
+<a  href="https://www.downes.ca/cgi-bin/page.cgi?action=viewer">Viewer</a><br />
+
+<a  href="https://www.downes.ca/cgi-bin/cchat.cgi">Backchannel</a><br />
+
+<a  href="https://www.downes.ca/edradio.htm">Ed Radio</a><br />
+
+<a  href="https://demo.downes.ca/">gRSShopper Demo</a><br />
+
+</div> <!-- end social network -->
+
+
+
+</div></div><!-- end social media area -->
+
+</div></div><!-- end social media area -->
+
+
+      <div class="row">	 <div class="grid_12"><div class="grid_1"></div> <div class="grid_9">
+<div style="border:solid black 1px; padding:5px;margin-bottom:10px;">
+Thanks to <a  href="https://www.reclaimhosting.com">Reclaim Hosting</a> for their generous donation to support this site.</a></div>
+
+
+<em> Are not two <a  href="https://www.downes.ca/archive/02/11_26_news_OLDaily.htm">sparrows</a> sold for a penny? Yet not one of them will fall to the ground outside your Fatherâ€™s care.</em></div></div></div>
+
+	</section><!-- end content area -->   
+      
+
+      
+  </div><!-- #end div #main .wrapper -->  <!-- footer area -->    
+<footer  >
+	<div id="colophon" class="wrapper clearfix">
+
+
+<span style="float:right"><img src="https://localhost/assets/images/Jamlx-DeviantArt-Canada-100.JPG"></span>
+
+<a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/3.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by-nc-sa/3.0/88x31.png" /></a>.
+<a  href="https://grsshopper.downes.ca/about.htm"><img alt="gRSShopper" style="border-width:0" src="https://localhost/assets/img/gRsshopper_88x31.png"></a>
+
+<p>Copyright 2018 Stephen Downes ~ 
+
+		Contact: <a  href="mailto:stephen@downes.ca">stephen@downes.ca</a><br />
+This page generated by <a  href="https://grsshopper.downes.ca">gRSShopper</a>. <br />
+Last Updated: Apr 01, 2021 12:30 p.m. <br />
+<!-- Page Hit Counter -->
+    <SCRIPT language="JavaScript" SRC="https://localhost/cgi-bin/page.cgi?action=counter&page=152"></SCRIPT>
+
+
+    </div>
+    
+    
+</footer><!-- #end footer area --> 
+
+
+<!-- jQuery -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
+<script >window.jQuery || document.write('<script src="https://localhost/assets/js/libs/jquery-1.9.0.min.js">\x3C/script>')</script>
+
+<script defer src="https://localhost/assets/js/flexslider/jquery.flexslider-min.js"></script>
+
+<!-- fire ups - read this file!  -->   
+<script src="https://localhost/assets/js/main.js"></script>
+
+<script type="text/javascript" src="//downloads.mailchimp.com/js/signup-forms/popup/embed.js" data-dojo-config="usePlainJson: true, isDebug: false"></script><script type="text/javascript">require(["mojo/signup-forms/Loader"], function(L) { L.start({"baseUrl":"mc.us18.list-manage.com","uuid":"0db1946a4fdb6209a60697e55","lid":"f461fc1560"}) })</script>
 
 </body>
 </html>

@@ -42,7 +42,7 @@ body {
   font-weight:normal; 
   margin:0; 
   padding:0; 
-  width:100vh; 
+  width:100vw; 
   height: 95vh;
   color: var(--fore-color);
   background-color: var(--back-color);
@@ -78,6 +78,13 @@ a {color:#a85038; }
   font: 400 12pt/16pt Verdana,Arial, sans-serif;
   color: var(--fore-color);
   line-height:120%;
+}
+
+label {
+  padding: 12px 12px 0px 12px;
+  margin:0;
+  display: inline-block;
+  color:green;
 }
 
 .head h1 {
@@ -121,17 +128,30 @@ a {color:#a85038; }
 /* Success and Error Warnings */
 
 .success {
-    border: 5px solid var(--success-color);
-    background-color: var(--secondary-back-color);
-    padding: var(--tab-padding);
+    border: 1px solid var(--success-color); 
+    background-color:  var(--back-color);
+    margin: 0.1rem;
+    padding: calc(0.3 * var(--tab-padding)) calc(0.75 * var(--tab-padding));
+    -moz-box-sizing: border-box;
+    vertical-align: middle;
+ 
 }
 
 .error {
-    border: 5px solid var(--error-color);
-    background-color: var(--secondary-back-color);
-    padding: var(--tab-padding);
-
+    border: 1px solid var(--error-color); 
+    background-color: var(--back-color);
+    margin: 0.1rem;
+    padding: calc(0.3 * var(--tab-padding)) calc(0.75 * var(--tab-padding));
+    -moz-box-sizing: border-box;
+    vertical-align: middle;
 }
+
+/* Tables */
+
+table th, table td {
+  padding: calc(0.5 * var(--universal-padding));
+}
+
 
 /* Left side navigation elements */
 
@@ -220,30 +240,6 @@ a {color:#a85038; }
     font-family: Roboto, Arial, sans-serif;
 }
 
-
-
-/* Reader Buttons */
-.navbutton {
-  width:4em;
-  height:2em;
-  line-height:2em;
-  text-align:center;
-  vertical-align:middle;
-  background-color: var(--back-color);
-  color:#a0a0a0;
-  border:solid #a0a0a0 0.5px;
-  border-radius: 5px;
-}
-.floatleft {
-  float:left;
-  margin-right:5px;
-}
-
-.floatright {
-  float:right;
-  margin-left:5px;
-}
-
 /* Left Navigation Tabs */
 
 
@@ -269,15 +265,18 @@ a {color:#a85038; }
 
 .tab {
   margin:0;
-  padding:calc(0.5 * var(--tab-padding)) calc(0.75 * var(--tab-padding));
+  padding:calc(0.3 * var(--tab-padding)) calc(0.75 * var(--tab-padding));
   transition: 0.3s;
   background-color: var(--secondary-back-color); 
 }
 
-
+[aria-pressed="true"] {
+  background-color: var(--third-back-color);
+  color: #137a5a;
+}
 
 .tabs {
-  color:blue;
+  color var(--primary-color);
   overflow: hidden;
   border: 1px solid #ccc;
   background-color: var(--back-color);
@@ -289,7 +288,7 @@ a {color:#a85038; }
 }
 
 tab.active {
-  background-color: var(--secondary-back-color);
+  background-color: var(--third-back-color);
 }
 
 .mainlinks {
@@ -300,7 +299,7 @@ tab.active {
 }
 
 .mainlinks.active {
-  background-color: var(--back-color);
+  background-color: var(--third-back-color);
 }
 .tablinks {
    
@@ -313,7 +312,7 @@ tab.active {
 
 /* Create an active/current tablink class */
 .tablinks.active {
-  background-color: var(--secondary-back-color);
+  background-color: var(--third-back-color);
 }
 
 /* Style the buttons that are used to open the tab content */
@@ -332,19 +331,20 @@ tab.active {
   background-color: var(--third-back-color);
 }
 
-/* Style the tab content */
-.tabcontent {
-    display: none;
-    border: 1px solid #ccc;
-    border-top: none;
-}
 
 /* Used for main page navigation in PLE.html only */
 .tabcontents {
   max-width: 100%;
 }
 
-/* Style the tab content */
+/* Style the left side tab content */
+.tabcontent {
+  display: none;
+  border: 1px solid #ccc;
+  border-top: none;
+}
+
+/* Style the right side tab content */
 .talktabcontent {
     display: none;
     border: 1px solid #ccc;
@@ -393,7 +393,6 @@ tab.active {
 
 
 /* side panel css */
-
 
 
 .sidenav {
@@ -462,6 +461,14 @@ tab.active {
   
 }
 
+/* Admin Frame */
+
+.admin-iframe {
+  border:0;
+  width:100%;
+  height:800px;
+  padding:15px 0px 0px 15px;
+}
 
 /*  Table used in show_columns  */
 
@@ -553,4 +560,25 @@ tab.active {
 .toggle-check-input:checked ~ .toggle-check-text:after {
   left: 100%;
   margin-left: -1.4em;
+}
+
+/* Button */
+
+.btn {
+  margin:0.1rem;
+  padding:calc(0.3 * var(--tab-padding)) calc(0.75 * var(--tab-padding));
+}
+
+.btn-inline {
+  /* Used to create options in, eg., error messages */
+  margin:0;
+  padding:calc(0.0 * var(--tab-padding)) calc(0.75 * var(--tab-padding));
+  background-color: var(--button-back-color);
+  color: var(--button-fore-color);
+}
+/* Results Box, generic */
+
+.results {
+  display: inline-block;
+  max-width: 60%;
 }

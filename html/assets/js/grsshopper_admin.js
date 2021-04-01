@@ -46,11 +46,9 @@ function executeStartUp(url) {
             loadList({div:'myData',cmd: 'list', table: 'media' });  // Load audio podcast
             loadList({div:'Read',cmd:'list',table:'link'});         // Load links from RSS Aggregator
 
-            
-
 
             $('#list-button').hide();    // Hide some tabs
-            $('#admin-button').hide();
+
             
             closeTalkNav();  // To get it to slide the right way when first started
             document.getElementById("main").style.width = viewportWidth+"px";  // Initialize main window width
@@ -315,9 +313,9 @@ function showResponse(request,data) {
                 mainContainer.innerHTML = `${data.response}`;
             }
             if (data.status == "Error") {
-                mainContainer.className = "error";
+                mainContainer.classList.add("error"); 
             } else {
-                mainContainer.className = "success";
+                mainContainer.classList.add("success");
             }
         } 
         
@@ -731,13 +729,18 @@ function openTab(event, tabName, tabType, tabID) {
     // Declare all variables
     var i, tabcontent, tablinks;
     // Get all siblings and hide them
+   
     $('#'+tabName).siblings().hide();
+
     // Get all elements with class=tabType and remove the class "active"
     $('.'+tabType).removeClass("active");
     // Show the current tab, and add an "active" class to the button that opened the tab
     $('#'+tabName).show();
     $('#'+tabName).addClass("active");
-    $('#'+tabName+"Button").addClass("active");
+    $('#'+tabName+"Button").addClass("active"); 
+    $('#'+tabName+"Button").attr('aria-pressed', 'true');
+    $('#'+tabName+"Button").siblings().removeClass("active");     
+    $('#'+tabName+"Button").siblings().attr('aria-pressed', 'false');
     if (tabID) { 
         $('#'+tabID).show(); // Force hidden tab to reveal itself
         $('#'+tabID).addClass("active"); // and be active

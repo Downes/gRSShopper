@@ -56,6 +56,7 @@ use CGI::Carp qw(fatalsToBrowser);
   	if ($vars->{source} && $vars->{target}) { $vars->{cmd} = "webmention"; }
 
 
+
 # Get Post Data
   our $request_data; our $request_type;
   my $postdata = $query->param('POSTDATA');
@@ -383,7 +384,7 @@ if ($vars->{cmd} eq "remove") { &api_keylist_remove(); }
 if ($vars->{cmd} eq "update") {
 
 	# Restrict to Admin
-	&admin_only();
+	unless (&admin_only()) { &status_error("Admin Login Required"); }
 	
 	#print qq|{"response":"hello"}|; exit;
 	# Verify Data
@@ -546,6 +547,36 @@ if ($vars->{cmd} eq "clone") {
 	exit;
 }
 
+
+# -------------------------------------------------------------------------------------
+#          Admin Functions
+#
+# This is the interface to admin.cgi
+# Though I'd like to evolve that over time
+#
+# -------------------------------------------------------------------------------------
+
+if ($vars->{cmd} eq "admin") {
+
+#print qq|{"cmd":"|.$vars->{cmd}.qq|","app":"|.$vars->{app}.qq|","db":"|.$vars->{db}.qq|"}|;
+
+		my $starting_tab = $vars->{db} || "Database";
+		print &main_window(['Database','Harvester','Newsletters','Users','Permissions','Logs','General'],$starting_tab);
+	 	exit;
+	}
+
+
+
+# SOCIAL
+if ($vars->{cmd} eq "social") {
+
+
+		my $starting_tab = $vars->{db} || "Accounts";
+		print &main_window(['Subscribers','Newsletters','Accounts','Meetings'],$starting_tab);
+		exit;
+	}
+
+
 # -------------------------------------------------------------------------------------
 #          App Functions
 #
@@ -696,19 +727,7 @@ if ($vars->{table} eq "media") {
 		}
 	}
 
-  # ADMIN
-  elsif ($vars->{cmd} eq "admin") {
-		my $starting_tab = $vars->{starting_tab} || "Database";
-		print &main_window(['Database','Harvester','Newsletters','Users','Permissions','Logs','General'],$starting_tab);
-	 	exit;
-	}
 
-	# SOCIAL
-  elsif ($vars->{cmd} eq "social") {
-		my $starting_tab = $vars->{starting_tab} || "Accounts";
-		print &main_window(['Subscribers','Newsletters','Accounts','Meetings'],$starting_tab);
-		exit;
-	}
 
 	# PUBLISHING
   elsif ($vars->{cmd} eq "publishing") {
@@ -1870,13 +1889,11 @@ sub api_publish {
 
 		if ($vars->{value} =~ /twitter/i) {
 
-			print "Sending to Twitter<br>";
 			my $twitter = &twitter_post($dbh,"post",$id);
-			print "Twitter result: $twitter<br>";
 			$published .= ",twitter";
 			my $result = &db_update($dbh,$table, {$col => $published}, $id); # Prevent publishing twice
-			print "Recorded publication success $result<br>";
-			exit;
+			$vars->{message} .= "Recorded publication success $result<br>";
+			&status_ok();
 
 		}
 
@@ -1973,9 +1990,8 @@ sub api_publish {
 			foreach my $assoc_table ("author","feed") {
 				my @assoc_graph = &find_graph_of($table,$id,$assoc_table);
 				if (@assoc_graph[0]) {
-					foreach my $assoc_item (@assoc_graph) { $vars->{message} .= "\nGraph: $assoc_table - $assoc_item \n";
+					foreach my $assoc_item (@assoc_graph) { 
 						&print_record($assoc_table,$assoc_item);
-						$vars->{message} .= "Printed $assoc_table $assoc_item <br>";
 					}
 				}
 			}
