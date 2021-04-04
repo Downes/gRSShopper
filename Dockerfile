@@ -89,10 +89,8 @@ VOLUME /etc/apache2
 
 COPY run-lamp.sh /usr/sbin/
 COPY . /usr/src
-RUN rm -rf /var/www/html && mkdir -p /var/www && mv /usr/src /var/www &&\
-    find /var/www/html/ -type f -exec chmod 644 {} \; &&\
-    find /var/log/nginx -type f -name '*.cgi' exec chmod 755 {} \; &&\
-    find /var/www/html/ -type d -exec chmod 755 {} \; 
+RUN rm -rf /var/www/html && mkdir -p /var/www && mv /usr/src /var/www 
+
 
 # Set up cron
 COPY cronfile /etc/cron.d/cronfile
