@@ -1892,7 +1892,7 @@ sub api_publish {
 			my $twitter = &twitter_post($dbh,"post",$id);
 			$published .= ",twitter";
 			my $result = &db_update($dbh,$table, {$col => $published}, $id); # Prevent publishing twice
-			$vars->{message} .= "Recorded publication success $result<br>";
+			$vars->{message} .= "Published to <a href='$twitter' target='new'>$twitter</a>";
 			&status_ok();
 
 		}

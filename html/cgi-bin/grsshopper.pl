@@ -12110,6 +12110,8 @@ sub twitter_post {
 	);
 
     my $result = eval {$nt->update({ status => $tweet})};
+	#use Data::Dumper;
+ 	#print Dumper $result;
 
 	if ( my $err = $@ ) {
 		&status_error($@) unless blessed $err && $err->isa('Net::Twitter::Lite::Error');
@@ -12117,8 +12119,8 @@ sub twitter_post {
 		&status_error($error_message);
 	}
 
-
-	if ($result) { $vars->{message} .= "Twitter: OK" } 
+	my $tweet_url = "https://twitter.com/".$Site->{tw_account}."/status/".$result->{id};
+	if ($result) { return $tweet_url; } 
 	else { &status_error("No result returned from Twitter"); }
 
 	return 1;

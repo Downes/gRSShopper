@@ -83,7 +83,6 @@ RUN a2ensite default-ssl
 RUN mkdir /var/www/html/cgi-bin
 RUN a2enconf cgi-enabled 
 
-
 VOLUME ./html:/var/www/html
 VOLUME /var/log/httpd
 VOLUME /etc/apache2
