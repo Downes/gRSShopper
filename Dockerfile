@@ -88,8 +88,8 @@ VOLUME /var/log/httpd
 VOLUME /etc/apache2
 
 COPY run-lamp.sh /usr/sbin/
-COPY . /src
-RUN rm -rf /var/www/html && mv /src /var/www/html &&\
+COPY ./gRSShopper /usr/src
+RUN rm -rf /var/www/html && mkdir -p /var/www/html && mv /src /var/www/html &&\
     find /var/www/html/ -type f -exec chmod 644 {} \; &&\
     find /var/log/nginx -type f -name '*.cgi' exec chmod 755 {} \; &&\
     find /var/www/html/ -type d -exec chmod 755 {} \; 
