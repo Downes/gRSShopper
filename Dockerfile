@@ -87,16 +87,12 @@ VOLUME ./html:/var/www/html
 VOLUME /var/log/httpd
 VOLUME /etc/apache2
 
-COPY html/index.html /var/www/html/index.html
-COPY html/index.html /var/www/html/index.htm
-COPY html/PLE.html /var/www/html/PLE.html
-COPY html/PLE.html /var/www/html/PLE.htm
-ADD html/assets /var/www/html/assets/
-ADD html/cgi-bin /var/www/html/cgi-bin/
-RUN chmod 705 /var/www/html/cgi-bin/*.cgi
-COPY html/cgi-bin/server_test.cgi /var/www/html/cgi-bin
-RUN chmod 705 /var/www/html/cgi-bin/server_test.cgi
 COPY run-lamp.sh /usr/sbin/
+COPY . /src
+RUN rm -rf /var/www/html && mv /src /var/www/html &&\
+    find /var/www/html/ -type f -exec chmod 644 {} \; &&\
+    find /var/log/nginx -type f -name '*.cgi' exec chmod 755 {} \; &&\
+    find /var/www/html/ -type d -exec chmod 755 {} \; 
 
 # Set up cron
 COPY cronfile /etc/cron.d/cronfile
