@@ -1,5 +1,5 @@
 FROM ubuntu:20.10
-
+USER root
 LABEL Description="gRSShopper - personal content aggregation, management and publishing platform." \
 	License="Apache License 2.0" \
 	Usage="docker run -d -p [HOST WWW PORT NUMBER]:443 -v [HOST WWW DOCUMENT ROOT]:/var/www/html downes/grsshopper" \
