@@ -12,7 +12,7 @@ services:
       MYSQL_PASSWORD: user_password
     volumes: 
       - ./init:/docker-entrypoint-initdb.d
-      - /var/lib/mysql
+      - ./db-data:/var/lib/mysql
     expose:
       - '3306'
     ports:
@@ -20,27 +20,18 @@ services:
     networks:
       - grss  
   grsshopper:
-    build: 
-      context: .
-      dockerfile: Dockerfile
-    volumes:
-      - ./html:/var/www/html
+    image: downes/grsshopper 
     ports:
-      - "443:443"   
+      - "443:443"
+    volumes:
+      - ./html:/var/www/html   
     networks:
-      - grss          
-  adminer:
-    image: adminer
-    restart: always
-    ports: 
-      - 8080:8080
-    networks:
-      - grss 
+      - grss
+
 volumes:
   db-data: {}
+  html: {}
 
 networks:
   grss:
-
-
-
+  
