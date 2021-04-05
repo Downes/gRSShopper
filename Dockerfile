@@ -92,7 +92,9 @@ RUN rm -R -f /var/www/html/*
 RUN rmdir /var/www/html
 RUN mkdir -p /var/www/html
 RUN mkdir /var/www/grsshopper
-ADD html /var/www/grsshopper/
+RUN cd /var/www/grsshopper
+WORKDIR /var/www/grsshopper
+COPY html /var/www/grsshopper/
 
 
 # Set up cron
