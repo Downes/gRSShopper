@@ -94,7 +94,7 @@ RUN mkdir -p /var/www/html
 RUN mkdir /var/www/grsshopper
 RUN cd /var/www/grsshopper
 WORKDIR /var/www/grsshopper
-COPY html /var/www/grsshopper/
+ADD html /var/www/grsshopper/
 
 
 # Set up cron
