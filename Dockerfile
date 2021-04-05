@@ -88,7 +88,10 @@ VOLUME /var/log/httpd
 VOLUME /etc/apache2
 
 COPY run-lamp.sh /usr/sbin/
-ADD ./html /usr/src
+RUN mkdir /var/www/grsshopper
+RUN cd /var/www/grsshopper
+WORKDIR /var/www/grsshopper
+ADD html to /var/www/grsshopper
 
 # Set up cron
 COPY cronfile /etc/cron.d/cronfile
