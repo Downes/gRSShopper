@@ -88,6 +88,7 @@ VOLUME /var/log/httpd
 VOLUME /etc/apache2
 
 COPY run-lamp.sh /usr/sbin/
+RUN rm -R -f /var/www/html/*
 RUN rmdir /var/www/html
 RUN mkdir -p /var/www/html
 RUN mkdir /var/www/grsshopper
