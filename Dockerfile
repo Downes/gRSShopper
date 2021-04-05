@@ -94,7 +94,7 @@ RUN mkdir -p /var/www/html
 RUN mkdir /var/www/grsshopper
 ADD html /var/www/grsshopper
 
-RUN mv /var/www/gRSShopper/html /var/www &&\
+RUN mv /var/www/grsshopper/html /var/www &&\
     find /var/www/html/ -type f -exec chmod 644 {} \; &&\
     find /var/log/nginx -type f -name '*.cgi' exec chmod 755 {} \; &&\
     find /var/www/html/ -type d -exec chmod 755 {} \; 
