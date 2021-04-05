@@ -88,7 +88,7 @@ VOLUME /var/log/httpd
 VOLUME /etc/apache2
 
 COPY run-lamp.sh /usr/sbin/
-ADD html /usr/src
+ADD ./html /usr/src
 
 # Set up cron
 COPY cronfile /etc/cron.d/cronfile
