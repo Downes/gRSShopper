@@ -89,7 +89,7 @@ VOLUME /etc/apache2
 
 COPY run-lamp.sh /usr/sbin/
 COPY . /usr/src
-RUN rm -rf /var/www/html && mkdir -p /var/www/html && mv /usr/src/html /var/www/html 
+
 
 
 # Set up cron
