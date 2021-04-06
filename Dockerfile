@@ -87,15 +87,16 @@ VOLUME ./html:/var/www/html
 VOLUME /var/log/httpd
 VOLUME /etc/apache2
 
+COPY html/index.html /var/www/html/index.html
+COPY html/index.html /var/www/html/index.htm
+COPY html/PLE.html /var/www/html/PLE.html
+COPY html/PLE.html /var/www/html/PLE.htm
+ADD html/assets /var/www/html/assets/
+ADD html/cgi-bin /var/www/html/cgi-bin/
+RUN chmod 705 /var/www/html/cgi-bin/*.cgi
+COPY html/cgi-bin/server_test.cgi /var/www/html/cgi-bin
+RUN chmod 705 /var/www/html/cgi-bin/server_test.cgi
 COPY run-lamp.sh /usr/sbin/
-RUN rm -R -f /var/www/html/*
-RUN rmdir /var/www/html
-RUN mkdir -p /var/www/html
-RUN mkdir /var/www/grsshopper
-RUN cd /var/www/grsshopper
-WORKDIR /var/www/grsshopper
-ADD html /var/www/grsshopper/
-
 
 # Set up cron
 COPY cronfile /etc/cron.d/cronfile
