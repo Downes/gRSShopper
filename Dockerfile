@@ -96,6 +96,14 @@ ADD html/cgi-bin /var/www/html/cgi-bin/
 RUN chmod 705 /var/www/html/cgi-bin/*.cgi
 COPY html/cgi-bin/server_test.cgi /var/www/html/cgi-bin
 RUN chmod 705 /var/www/html/cgi-bin/server_test.cgi
+
+# Addressing the chmod problem
+RUN mkdir /var/www/html/cgi-bin/test
+RUN cp /var/www/html/cgi-bin/server_test.cgi /var/www/html/cgi-bin/test/server_test.cgi
+RUN chmod 775 /var/www/html/cgi-bin/test/server_test.cgi
+RUN chown www-data /var/www/html/cgi-bin/test/server_test.cgi
+
+
 COPY run-lamp.sh /usr/sbin/
 
 # Set up cron
