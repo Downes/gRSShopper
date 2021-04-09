@@ -495,6 +495,23 @@ if ($vars->{cmd} eq "publish") {
 }
 
 # -------------------------------------------------------------------------------------
+#          Backup Functions
+#
+#     Create backups of database tables and make these available for download
+#     (or possibly sharing, we'll see)
+#     Looks for a table name in $vars->{table} or it might be 'all'
+#
+# -------------------------------------------------------------------------------------
+
+if ($vars->{cmd} eq "backup") { 
+	
+	unless ($vars->{table}) { &status_error("API need a table name to know what to backup"); }
+	$vars->{message} = &api_backup();
+	&status_ok(); 
+}
+
+
+# -------------------------------------------------------------------------------------
 #          Dump Functions
 #
 #    Just dump the record into an HTML display
@@ -636,8 +653,7 @@ if ($vars->{table} eq "media") {
 
 
 
-  # BACKUP
-  elsif ($vars->{cmd} eq "backup") { print &api_backup(); exit; }
+
 
 
 
@@ -1132,7 +1148,7 @@ sub api_backup {
 	my $saveurl = $savefile;
 	$saveurl =~ s/$Site->{st_urlf}/$Site->{st_url}/;
 	$output .= qq|Table '$vars->{table}' backed up to <a href="$saveurl">$savefile</a>|;
-  return $output;
+  	return $output;
 
 }
 

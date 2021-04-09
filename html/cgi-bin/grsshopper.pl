@@ -5533,20 +5533,26 @@ sub Tab_Database {
 	# Back Up Database
 
 	$content .= qq|
-		<div>Back Up Database:
-		    <select id="database_table_backup" name="database_table_backup">
+		<div class="text-input">
+			<label for="database_table_backup">Back Up Database</label>
+			<div class="text-input-form">
+				<select id="database_table_backup" name="database_table_backup">
 				  $select_a_table
 				  <option value="all">All Tables</option>
-					$table_dropdown</select>
-				<div id="database_table_backup_result"></div>
-	  </div>
-		<script>
- 			\$('#database_table_backup').on('change',function(){
- 			var content = \$('#database_table_backup').val();
-			api_submit('$apilink','database_table_backup','backup','table',content,'','',content);
- 			});
- 	 </script>|;
-
+				  $table_dropdown</select>
+				<div tabindex="0" role="button" class="btn" aria-pressed="false" 
+			   		onclick="
+					    var content = \$('#database_table_backup').val();
+						submitData(
+							{ div:'back_up_database_result',
+								cmd:'backup',
+								table: content,
+							});
+					">Back Up Database
+				</div>
+			</div>
+		</div>
+		<div id="back_up_database_result"></div>|;
 
 
 	# Create a Table
@@ -6026,10 +6032,10 @@ sub form_textinput {
 						id:'$id',
 						value: submitValue,
 						});
-				">$advice
+				">
+				<div id="|.$col.qq|_result"></div>$advice
 			</div>
 		</div>
-		<div id="|.$col.qq|_result"></div>
 	|;
 
 
@@ -6067,20 +6073,20 @@ sub form_textarea {
 		<div class="text-input">
 		   <label for="$col">$fieldlable</label>
 		   <div class="text-input-form">
-		   <textarea id="|.$col.qq|" placeholder="$placeholder" class="text-input-textarea" 
-		      style="width:|.$width.qq|em;height:|.$height.qq|em;" 
-			  contenteditable="true" onChange="
-				   var submitValue=\$('#|.$col.qq|').val();
-				   submitData(
-					   {div:'|.$col.qq|_result',
-					    cmd:'update',
-						table:'$table',
-						field:'$col',
-						id:'$id',
-						value: submitValue,
-						});
-				">$value</textarea>
-			 <br><span id="|.$col.qq|_result"></span>$advice 
+				<textarea id="|.$col.qq|" placeholder="$placeholder" class="text-input-textarea" 
+					style="width:|.$width.qq|em;height:|.$height.qq|em;" 
+					contenteditable="true" onChange="
+						var submitValue=\$('#|.$col.qq|').val();
+						submitData(
+							{   div:'|.$col.qq|_result',
+								cmd:'update',
+								table:'$table',
+								field:'$col',
+								id:'$id',
+								value: submitValue,
+							});
+						">$value</textarea>
+				<div id="|.$col.qq|_result"></div>$advice 
 		   </div>
 		</div>
 	|;
@@ -6123,7 +6129,7 @@ sub form_wysihtml {
 			<div class="text-input-form">
     			<textarea id="|.$col.qq|" contenteditable="true" class="text-input-textarea"
 					style="width:|.$width.qq|em;height:|.$height.qq|em;">$value</textarea>
-				<span id="|.$col.qq|_result"></span>$advice
+				<div id="|.$col.qq|_result"></div>$advice
 			</div>
    		</div>
 	
@@ -6252,8 +6258,9 @@ sub form_keylist {
 						value: submitValue,
 						});
 			">Update</button>
+			<div id="|.$key.qq|_graph_result"></div>
        </div>
-	   <div id="|.$key.qq|_graph_result"></div>
+
     </div>
 	|;
 }
@@ -6278,10 +6285,11 @@ sub form_file_from_url {
 						type: 'file_url',
 						value: submitValue,
 						});
-				">$advice
+				">
+				<div id="|.$col.qq|_url_result"></div>$advice
 			</div>
 		</div>
-		<div id="|.$col.qq|_url_result"></div>
+		
 	|;
 }	
 
@@ -6554,8 +6562,8 @@ sub form_date_select {
 	my ($table,$id,$col,$value,$size,$fieldlable) = @_;
 	my $fieldlable = &fieldlable($col,$table);
 
-  $size ||= 20;
-  my $url = $Site->{st_cgi}."api.cgi";
+  	$size ||= 20;
+  	my $url = $Site->{st_cgi}."api.cgi";
 	# Default to today's date
 	unless ($value) {
 		$value = &cal_date(time);
@@ -6573,28 +6581,34 @@ sub form_date_select {
 
 
 	return qq |
-	  <div>
-		<label for="$col">$fieldlable</label>
-		<input type="text" id="$col" value="$value" style="width:|.$size.qq|em;max-width:100%;">
-		<span id="|.$col.qq|_result">
+		<div class="text-input">
+			<label for="$col">$fieldlable</label>
+			<div class="text-input-form">
+				<input type="text" id="$col" value="$value" style="width:|.$size.qq|em;max-width:100%;">
+				<div id="|.$col.qq|_result"></div>
+			</div>
+		</div>
 		
 		<script>
 		\$( function() {
-
 			\$( "#$col" ).datepicker({
 				dateFormat: "yy/mm/dd",
 				onSelect: function(date, instance) {
-          var url = "$url";
-					var content = \$('#|.$col.qq|').val();
-					submit_function(url,"$table","$id","$col",content,"text");
-				  var previewUrl = url+"?cmd=show&table=$table&id=$id&format=summary";
+					var submitValue = \$('#|.$col.qq|').val();
+					submitData(
+					   {div:'|.$col.qq|_result',
+					    cmd:'update',
+						table:'$table',
+						field:'$col',
+						id:'$id',
+						value: submitValue,
+						});
+					var previewUrl = url+"?cmd=show&table=$table&id=$id&format=summary";
 					\$('#Preview').load(previewUrl);
 				}
 			});
-
 		} );
 		</script>
-		</div>
 	|;
 
 }
@@ -7992,8 +8006,8 @@ sub db_backup {
 	my $output =  qq|"$table"|;
 	if ($table eq "all") { $table = ""; }
 
+  	my $data_file = $self->{st_cgif}."data/multisite.txt";
 
-  	my $data_file = $Site->{data_dir} . "multisite.txt";
 	open IN,"$data_file" or die "Couldn't open $data_file $!";
 	my $dbinfo;
 
@@ -8004,22 +8018,28 @@ sub db_backup {
 	my $url_located = 0;
   	while (<IN>) {
 		my $line = $_; $line =~ s/(\s|\r|\n)$//g;
-		if ($line =~ /^$Site->{st_home}/) {
+		( $dbinfo->{st_home},
+		  $dbinfo->{database}->{name},
+		  $dbinfo->{database}->{loc},
+		  $dbinfo->{database}->{usr},
+		  $dbinfo->{database}->{pwd},
+		  $dbinfo->{site_language},
+		  $dbinfo->{urlf},
+		  $dbinfo->{cgif} ) = split "\t",$line;   # Assign defualts with first line
+		if ($line =~ /^$Site->{st_host}/) {
 			( $dbinfo->{st_home},
 			  $dbinfo->{database}->{name},
 			  $dbinfo->{database}->{loc},
 			  $dbinfo->{database}->{usr},
 			  $dbinfo->{database}->{pwd},
 			  $dbinfo->{site_language},
-			  $dbinfo->{st_urlf},
-			  $dbinfo->{st_cgif} ) = split "\t",$line;
+			  $dbinfo->{urlf},
+		  	  $dbinfo->{cgif} ) = split "\t",$line;
 			$url_located = 1;
 			last;
 		}
 	}
 	close IN;
-
-
 
 	$table =~ s/$dbinfo->{database}->{name}\.//;
 	unless (-d $Site->{st_urlf}."files/backup/") { mkdir $Site->{st_urlf}."files/backup/"; }
@@ -8031,7 +8051,7 @@ sub db_backup {
 	$Site->{database}="";							# Clear site database info so it's not available later
 	$_ = "";								# Prevent accidental (or otherwise) print of config file.
 
-	return $backup_filename;
+	return $backup_filename . qq|mysqldump --user=$dbinfo->{database}->{usr} --password=$dbinfo->{database}->{pwd} $dbinfo->{database}->{name} $table > $backup_filename|;
 
 
 }

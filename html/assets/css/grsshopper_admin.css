@@ -134,6 +134,7 @@ label {
     padding: calc(0.3 * var(--tab-padding)) calc(0.75 * var(--tab-padding));
     -moz-box-sizing: border-box;
     vertical-align: middle;
+    display:inline;
  
 }
 
