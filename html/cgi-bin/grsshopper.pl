@@ -4741,7 +4741,7 @@ sub make_new_record {
 	# Record might be a database table where we know the title but not the id
 	# so we'll try to look up the ID
 	my $input_data_type = ref($data) || "string";
-	if ($data && $input_data_type eq "string") {	 
+	if ($data && $input_data_type eq "string" && $id ne "new") {	 
 		$id = &db_locate($dbh,"form",{$table."_title"=>$data}); }
 
 	# Otherwise, yes, we're creating a new record
@@ -4763,7 +4763,12 @@ sub make_new_record {
 		}
 
 		# Initialize values for NEW record, overwriting seed data as needed
+			
+			# Undefined forms are throwing an error here - may be a db error for event
+			unless ($table eq "event") {
 			$record->{$table."_creator"} = $Person->{person_id};
+			}
+
 			$record->{$table."_crdate"} = time;
 			$record->{$table."_pub_date"} = &tz_date(time,"day","");
 
@@ -5773,6 +5778,13 @@ sub process_field_types {
 	# Normalize column names
 	$sc = $col;	$col = $table."_".$col;
 
+	# Find Advice
+	my $advice_location = $col.".htm";
+	my $advice_page = &db_locate($dbh,"page",{page_location => $advice_location});
+	if ($advice_page) { $advice = sprintf(qq|
+		<a href="%s/page/$advice_page" target="advice"><i class="fa fa-asterisk"></i></a>
+	|,$Site->{st_url},$advice_location);$advice_page} else { $advice = "No advice for $col"; }
+
 	# Isolate Field Type
 	my $fieldstem = $col; my $tabstem = $table."_";
 	$fieldstem =~ s/$tabstem//;
@@ -6071,7 +6083,7 @@ sub form_textarea {
 	return qq|
 
 		<div class="text-input">
-		   <label for="$col">$fieldlable</label>
+		   <label for="$col">$fieldlable</label>$advice
 		   <div class="text-input-form">
 				<textarea id="|.$col.qq|" placeholder="$placeholder" class="text-input-textarea" 
 					style="width:|.$width.qq|em;height:|.$height.qq|em;" 
@@ -6086,7 +6098,7 @@ sub form_textarea {
 								value: submitValue,
 							});
 						">$value</textarea>
-				<div id="|.$col.qq|_result"></div>$advice 
+				<div id="|.$col.qq|_result"></div> 
 		   </div>
 		</div>
 	|;
@@ -6635,7 +6647,7 @@ sub form_date_time_select {
 	 <div>
   	 <label for="$col">$fieldlable</label>
 	 <input type="text" id="$col" value="$dpvalue" style="width:|.$size.qq|em;max-width:100%;">
-	 <span id="|.$col.qq|_result"></span>
+	 <div id="|.$col.qq|_result"></div>
 	 
 	 <script>
    \$( document ).ready(function() {
@@ -6643,15 +6655,29 @@ sub form_date_time_select {
 			 inline:false,
 			 onSelectDate: function(date, instance) {
 				 var url = "$url";
-				 var content = \$('#|.$col.qq|').val();
-				 submit_function(url,"$table","$id","$col",content,"datetime");
+				 var submitValue = \$('#|.$col.qq|').val();
+				 submitData(
+					   {div:'|.$col.qq|_result',
+					    cmd:'update',
+						table:'$table',
+						field:'$col',
+						id:'$id',
+						value: submitValue,
+				 });
 				 var previewUrl = url+"?cmd=show&table=$table&id=$id&format=summary";
 				 \$('#Preview').load(previewUrl);
 			 },
 			 onSelectTime: function(date, instance) {
 				 var url = "$url";
-				 var content = \$('#|.$col.qq|').val();
-				 submit_function(url,"$table","$id","$col",content,"datetime");
+				 var submitValue = \$('#|.$col.qq|').val();
+				 submitData(
+					   {div:'|.$col.qq|_result',
+					    cmd:'update',
+						table:'$table',
+						field:'$col',
+						id:'$id',
+						value: submitValue,
+				 });
 				 var previewUrl = url+"?cmd=show&table=$table&id=$id&format=summary";
 				 \$('#Preview').load(previewUrl);
 			 },
