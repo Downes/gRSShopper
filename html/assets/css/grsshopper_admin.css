@@ -28,12 +28,6 @@
 
 
 
-html,
-body {
-
-}
-
-
 body {
   -ms-text-size-adjust:100%; 
   -webkit-text-size-adjust:100%; 
@@ -120,7 +114,7 @@ label {
 
 .navlink {
 
-  border: 1px solid #white;
+  border: 1px solid white;
   background-color: var(--back-color);
   padding: 2px;
 
@@ -132,6 +126,7 @@ label {
     background-color:  var(--back-color);
     margin: 0.1rem;
     padding: calc(0.3 * var(--tab-padding)) calc(0.75 * var(--tab-padding));
+    box-sizing: border-box;
     -moz-box-sizing: border-box;
     vertical-align: middle;
     display:inline;
@@ -143,7 +138,9 @@ label {
     background-color: var(--back-color);
     margin: 0.1rem;
     padding: calc(0.3 * var(--tab-padding)) calc(0.75 * var(--tab-padding));
+    box-sizing: border-box;
     -moz-box-sizing: border-box;
+
     vertical-align: middle;
 }
 
@@ -217,7 +214,7 @@ table th, table td {
 
 .html-record {
    padding:1em;
-   margin 0.5em;
+   margin: 0.5em;
    margin-top:1em;
    background-color: var(--back-color);
 }
@@ -277,7 +274,7 @@ table th, table td {
 }
 
 .tabs {
-  color var(--primary-color);
+  color: var(--primary-color);
   overflow: hidden;
   border: 1px solid #ccc;
   background-color: var(--back-color);
@@ -293,21 +290,24 @@ tab.active {
 }
 
 .mainlinks {
-
+  background-color: var(--primary-back-color);
 }
 
 .mainlinks:hover {
+  background-color: var(--third-back-color);
 }
 
 .mainlinks.active {
   background-color: var(--third-back-color);
 }
 .tablinks {
+  background-color: var(--primary-back-color);
    
 }
 
 /* Change background color of buttons on hover */
 .tablinks:hover {
+  background-color: var(--third-back-color);
 
 }
 
@@ -319,11 +319,13 @@ tab.active {
 /* Style the buttons that are used to open the tab content */
 /*     background-color: inherit; */
 .editorlinks {
+  background-color: var(--primary-back-color);
   
 }
 
 /* Change background color of buttons on hover */
 .editorlinks:hover {
+  background-color: var(--third-back-color);
 
 }
 
@@ -583,3 +585,146 @@ tab.active {
   display: inline-block;
   max-width: 60%;
 }
+
+
+/* Editor Styles */
+
+p.info {
+    padding: 0px 12px 0px 12px;
+    margin:0;
+    display: block;
+    color:black;
+
+}
+
+.graph-list-element {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 0.875em; /* 14px/16=0.875em */
+  margin-left:1em;
+}
+
+.text-input {
+  z-index: 1;
+}
+
+.text-input-form {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 0.875em; /* 14px/16=0.875em */
+  margin-left:12px;
+  max-width: 60em;
+}
+
+.text-input-field {
+  margin:0;
+  padding:10;
+  width: 40%;
+  height: 1.6em;
+  line-height: 1.8em;
+}
+
+.text-input-textarea {
+  
+   max-width:90%; 
+   line-height:1.8em;
+}
+
+.keylist-input {
+  background-color: var(--primary-back-color);
+
+}
+.keylist-input-form {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 0.875em; /* 14px/16=0.875em */
+  margin-left:10px;
+}
+
+.keylist-input-field {
+  margin:0;
+  padding:10;
+  width: 40%;
+  height: 1.6em;
+  line-height: 1.6em;
+}
+
+.keylist-input-button {
+  margin:0;
+  padding:0;
+  padding-left:5px;padding-right:5px;
+  height: 1.6em;
+  line-height: 1.6em;
+}
+
+.optlist-input {
+  background-color: var(--primary-back-color);
+
+}
+
+.action {
+  padding-top:0;padding-bottom:0;
+}
+
+.optlist-input-form {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 0.875em; /* 14px/16=0.875em */
+  margin-left:10px;
+}
+
+.harvest-button {
+  height: 1.6em;
+  line-height: 1.6em;
+  margin:0;
+  margin-right:5px;
+  padding:0;
+  padding-left:5px;padding-right:5px;
+}
+
+.harvest-select {
+  height: 1.9em;
+  line-height: 1.9em;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 0.875em; /* 14px/16=0.875em */
+  margin:0;
+  padding:0;
+  margin-top:8px;
+  margin-left:10px;
+}
+
+.harvest-option {
+  height: 1.9em;
+  line-height: 1.9em;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 0.875em; /* 14px/16=0.875em */
+  margin:0;
+  margin-left:10px;
+  padding:0;
+}
+
+.row button {
+  margin:0;
+  margin-right:3px;
+  padding:0;
+  padding-left:5px;padding-right:5px;
+  height: 1.6em;
+  line-height: 1.6em;
+}
+
+.editor-selected {
+  height: 1.6em;
+  line-height: 1.6em;
+  margin:0;
+  margin-right:5px;
+  padding:0;
+  padding-left:5px;padding-right:5px;
+  color:red;
+}
+
+.editor-unselected {
+  height: 1.6em;
+  line-height: 1.6em;
+  margin:0;
+  margin-right:5px;
+  padding:0;
+  padding-left:5px;padding-right:5px;
+  color:blue;
+}
+

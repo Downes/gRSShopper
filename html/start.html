@@ -1,0 +1,363 @@
+<html>
+<head>
+<title>Yes this is my start page</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+
+* {
+  box-sizing: border-box;
+}
+
+.row::after {
+  content: "";
+  clear: both;
+  display: table;
+}
+
+[class*="col-"] {
+  float: left;
+  padding: 15px;
+}
+
+/* For mobile phones: */
+[class*="col-"] {
+  width: 100%;
+}
+
+@media only screen and (min-width: 600px) {
+  /* For tablets: */
+  .col-s-1 {width: 8.33%;}
+  .col-s-2 {width: 16.66%;}
+  .col-s-3 {width: 25%;}
+  .col-s-4 {width: 33.33%;}
+  .col-s-5 {width: 41.66%;}
+  .col-s-6 {width: 50%;}
+  .col-s-7 {width: 58.33%;}
+  .col-s-8 {width: 66.66%;}
+  .col-s-9 {width: 75%;}
+  .col-s-10 {width: 83.33%;}
+  .col-s-11 {width: 91.66%;}
+  .col-s-12 {width: 100%;}
+}
+@media only screen and (min-width: 768px) {
+  /* For desktop: */
+  .col-1 {width: 8.33%;}
+  .col-2 {width: 16.66%;max-width: 200px;}
+  .col-3 {width: 25%;}
+  .col-4 {width: 33.33%;}
+  .col-5 {width: 41.66%;}
+  .col-6 {width: 50%;}
+  .col-7 {width: 58.33%;}
+  .col-8 {width: 66.66%;}
+  .col-9 {width: 75%;}
+  .col-10 {width: 83.33%;}
+  .col-11 {width: 91.66%;}
+  .col-12 {width: 100%;}
+}
+
+body {
+   background-color: #efefef;
+}
+
+.heading {
+   padding: 0 0 0 0;
+   font-family: 'Trebuchet MS', 'Lucida Grande',
+   Verdana, Lucida, Geneva, Helvetica, 
+   Arial, sans-serif;
+   font-size: 150%;
+   line-height:110%;
+   background-color: #efefef;
+   color: #333;
+   
+}
+
+.search {
+   padding: 0 0 0 0;
+   font-family: 'Trebuchet MS', 'Lucida Grande',
+   Verdana, Lucida, Geneva, Helvetica, 
+   Arial, sans-serif;
+   font-size: 75%;
+   line-height:100%;
+   background-color: #efefef;
+   color: #333;
+   
+}
+
+.base {
+
+ border: 0.5px solid #bababa;
+ 
+ padding: 0;
+ margin: 0 0.5em 0.5em 0;;
+ font-family: 'Trebuchet MS', 'Lucida Grande',
+   Verdana, Lucida, Geneva, Helvetica, 
+   Arial, sans-serif;
+font-size: 80%;font-weight:lighter;
+ background-color: #efefef;
+ color: #333;
+
+ }
+
+.base h1 {
+   font-size:100%;
+   padding:0.5em;
+   margin:0px;
+   border-bottom: 1px solid #bababa;
+   background-color: #e7e7e0;
+}
+ .base ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border: none;
+  }
+  
+.base li {
+  border-bottom: 1px solid #bababa;
+  margin: 0;
+  }
+  
+.base li a {
+  display: block;
+  padding: 5px 5px 5px 0.5em;
+  border-left: 10px solid #868282;
+  border-right: 10px solid #fff;
+  background-color: #efefef;
+  color: #000;
+  text-decoration: none;
+  width: 100%;
+  } 
+  
+  html>body .base li a {
+  width: auto;
+  } 
+    
+  .base li a:hover {
+  border-left: 10px solid #1c64d1;
+  border-right: 10px solid #5ba3e0;
+  background-color: #2586d7;
+  color: #fff;
+  }
+
+</style>
+
+<script type="text/javascript">
+   function dosearch() {
+   var sf=document.searchform;
+   var submitto = sf.sengines.options[sf.sengines.selectedIndex].value + escape(sf.searchterms.value);
+   window.location.href = submitto;
+   return false;
+   }
+</script>
+
+
+</head>
+
+
+<body>
+
+
+   <div class="heading">
+      <form name="searchform" onSubmit="return dosearch();">
+      <span>Yes this is my start page</span>&nbsp;&nbsp;&nbsp; 
+      <select class="search" name="sengines">
+         <option value="http://www.google.com/search?q=" selected>Google</option>
+         <option value="http://scholar.google.com/scholar?q=">Scholar</option>
+         <option value="http://search.yahoo.com/search?p=">Yahoo!</option>
+      </select>
+      : 
+      <input class="search" type="text" size=60 name="searchterms">
+      <input class="search" type="submit" name="SearchSubmit" value="Go!">
+      </form> 
+   </div>   
+         
+         
+
+
+
+
+
+
+
+<div class="base col-2 col-s-5">
+   <h1>Files</h1>
+   <ul>
+      <li><a href="http://drive.google.com">Drive</a></li>
+      <li><a href="https://onedrive.live.com/">OneDrive</a></li>
+      <li><a href="https://www.dropbox.com/">DropBox</a></li>
+      <li><a href="https://send.firefox.com/">Firefox Send</a></li>
+
+   </ul>
+
+   <h1>Documents</h1>
+   <ul>
+      <li><a href="https://www.downes.ca/cgi-bin/page.cgi?post=70593&format=html">My Research</a></li>  
+      <li><a href="https://docs.google.com/">Docs</a></li>   
+      <li><a href="https://sheets.google.com/">Sheets</a></li>
+      <li><a href="http://translate.google.com/">Translate</a></li> 
+   </ul>
+
+   <h1>Slides</h1>
+   <ul>
+      <li><a href="https://www.slideshare.net/">Slideshare</a></li> 
+      <li><a href="https://www.slideshare.net/upload">Upload</a></li>       
+      <li><a href="https://slides.google.com/">Google Slides</a></li>   
+      <li><a href="https://onedrive.live.com/?id=F0DFC684359BC6C7%2117249&cid=F0DFC684359BC6C7">OneDrive Presentations</a></li>  
+   </ul>
+
+
+</div>
+
+<div class="base col-2 col-s-5">
+   <h1>Photos</h1>
+   <ul>
+   <li><a href="https://www.flickr.com/photos/upload/">Flickr Upload</a></li>
+   <li><a href="https://www.flickr.com/photos/stephen_downes/">Photostream</a></li>
+   <li><a href="https://www.flickr.com/photos/stephen_downes/albums">Albums</a></li>
+   <li><a href="https://www.flickr.com/cameraroll">Camera Roll</a></li>
+   <li><a href="http://photos.google.com">Google Photos</a></li>  
+   <li><a href="https://onedrive.live.com/?v=photos&id=root&cid=F0DFC684359BC6C7&qt=allmyphotos">OneDrive Photos Photos</a></li>  
+   </ul>
+
+   <h1>Audio</h1>
+   <ul>
+      <li><a href="http://music.google.com">Google Music</a></li>   
+      <li><a href="http://www.cbc.ca/radio/">CBC Radio</a></li>   
+      <li><a href="https://player.fm/player414590284/subs/all">Player FM</a></li>
+      <li><a href="https://www.jamendo.com/?language=en">Jamendo</a></li> 
+      <li><a href="http://www.soundcloud.com/">SoundCloud</a></li>                
+   </ul>
+
+   <h1>Video</h1>
+   <ul>
+      <li><a href="http://www.youtube.com">YouTube</a></li>   
+      <li><a href="http://www.netflix.com/">NetFlix</a></li>   
+      <li><a href="https://www.primevideo.com/">Amazon</a></li>
+      <li><a href="http://watch.cbc.ca">CBC Gem</a></li>
+      <li><a href="https://tv.bell.ca/">Bell</a></li>
+      <li><a href="https://www.dailymotion.com/ca">DailyMotion</a></li>   
+      <li><a href="https://studio.youtube.com/">YouTube Studio Live</a></li>   
+          
+   </ul>
+</div>
+
+
+<div class="base col-2 col-s-5">
+   <h1>News</h1>
+   <ul>
+      <li><a href="https://calendar.google.com">Calendar</a></li>
+      <li><a href="https://news.google.ca/">Google News</a></li>
+      <li><a href="http://www.medium.com/">Medium</a></li>
+      <li><a href="http://feedly.com/">Feedly</a></li> 
+      <li><a href="http://www.getpocket.com/">Pocket</a></li>             
+   </ul>
+
+   <h1>Weather</h1>
+   <ul>
+      <li><a href="https://weather.gc.ca/forecast/hourly/on-118_metric_e.html">Hourly</a></li>
+      <li><a href="https://weather.gc.ca/city/pages/on-118_metric_e.html">7 Days</a></li>
+      <li><a href="https://www.theweathernetwork.com/ca/14-day-weather-trend/ontario/ottawa">14 Days</a></li>
+      <li><a href="https://weather.gc.ca/radar/index_e.html?id=xft">Radar</a></li>             
+   </ul>
+
+   <h1>Email</h1>
+   <ul>
+      <li><a href="http://mail.google.com">GMail</a></li>
+      <li><a href="http://owa.nrc-cnrc.gc.ca">NRC OWA</a></li>
+      <li><a href="https://mailchimp.com/">MailChimp</a></li> 
+   </ul>
+
+
+   <h1>Blogs</h1>
+   <ul>
+      <li><a href="https://leftish.media">Leftish</a></li>
+      <li><a href="http://halfanhour.blogspot.com/">Half an Hour</a></li>
+      <li><a href="http://letsmakesomeartdammit.blogspot.com/">Let's Make Art</a></li>
+      <li><a href="https://www.blogger.com/blogger.g?blogID=11679714#editor/src=dashboard">New Blogger Post</a></li>
+   </ul>
+</div>
+
+<div class="base col-2 col-s-5">
+   <h1>Social</h1>
+   <ul>
+      <li><a href="http://www.twitter.com/">Twitter</a></li>
+      <li><a href="https://twitter.com/i/notifications">Twitter Activity</a></li>
+      <li><a href="https://tweetdeck.twitter.com/">Tweetdeck</a></a></li>
+      <li><a href="http://mastodon.social/">Mastodon</a></li>
+      <li><a href="https://www.linkedin.com/">LinkedIn</a></li>              
+      <li><a href="https://www.imgur.com/">Imgur</a></li> 
+   </ul>
+
+   <h1>Website</h1>
+   <ul>
+      <li><a href="http://www.downes.ca/PLE.html">gRSShopper</a></li>
+      <li><a href="http://www.downes.ca/">Home Page</a></li>
+      <li><a href="http://www.downes.ca/presentations.htm">Presentations</a></li>
+      <li><a href="http://www.downes.ca/news/OLDaily.htm">OLDaily</a></li>
+      <li><a href="https://portal.reclaimhosting.com/clientarea.php">Reclaim</a></li>
+      <li><a href="https://www.cadomains.ca/">caDomains</a></li>
+      
+   </ul>
+
+   <h1>Services</h1>
+   <ul>
+      <li><a href="http://www.desjardins.com/">Bank</a></li>
+      <li><a href="http://www.onlineconversion.com/unix_time.htm">Unix Date</a></li>
+      <li><a href="http://translate.google.com/">Translate</a></li> 
+      <li><a href="http://www.linguee.com/english-french">Linguee</a></li>  
+   </ul>
+</div>
+
+<div class="base col-2 col-s-5">
+      <h1>Baseball</h1>
+      <ul>
+         <li><a href="https://www.snnow.ca/">SportsNet</a></li>
+         <li><a href="http://mlb.mlb.com/mediacenter/index.jsp">Games</a></li>
+         <li><a href="http://m.mlb.com/scoreboard">Scores</a></li>
+         <li><a href="http://mlb.mlb.com/mlb/standings/index.jsp">Standings</a></li>
+         <li><a href="https://www.mlb.com/bluejays">Blue Jays</a></li>
+         <li><a href="https://bluejaysaggr.com/">Aggregators</a></li>
+      </ul>
+   
+      <h1>Hockey</h1>
+      <ul>
+         <li><a href="https://www.snnow.ca/">SportsNet</a></li>
+         <li><a href="http://nhl.com">NHL.com</a></li>
+         <li><a href="https://www.nhl.com/senators">Senators</a></li>
+      </ul>
+   
+      <h1>Travel</h1>
+      <ul>
+         <li><a href="http://maps.google.com">Maps</a></li>   
+         <li><a href="https://www.expedia.ca/">Expedia</a></li>
+         <li><a href="http://aircanada.ca/">Air Canada</a></li>
+         <li><a href="http://lufthansa.com/">Lufthansa</a></li>
+         <li><a href="https://www.viarail.ca/en">Via Rail</a></li>
+      </ul>
+   </div>
+
+<div class="base col-2 col-s-5">
+      <h1>NRC</h1>
+      <ul>
+         <li><a href="http://gcpedia.gctools.nrc.ca/">gcPedia</a></li>
+         <li><a href="http://gcconnex.gctools.nrc.ca/newsfeed/">gcConnex</a></li>
+         <li><a href="https://gccollab.ca/newsfeed/">gcCollab</a></li>
+         <li><a href="https://fsl-bsf.scitech.gc.ca/eng/intranet/home/">Federal Science Library</a></li>
+         <li><a href="https://learn-apprendre.csps-efpc.gc.ca/">gcCampus</a></li>  
+         <li><a href="https://isuite6.hrgworldwide.com/gcportal/STS/tabid/291/language/en-CA/Default.aspx?returnurl=%2fgcportal%2fen-ca%2fhome.aspx">Travel</a></li>  
+      </ul>
+
+      <h1>Dev and Cloud</h1>
+      <ul>
+         <li><a href="https://github.com/Downes">GitHub</a></li> 
+         <li><a href="https://azure.microsoft.com/en-ca/">Azure</a></li> 
+         <li><a href="https://aws.amazon.com/">AWS</a></li>   
+         <li><a href="https://cloud.ibm.com/">IBM Cloud</a></li>    
+         <li><a href="https://cloud.google.com/">Google Cloud</a></li>   
+         <li><a href="https://www.digitalocean.com/">Digital Ocean</a></li>  
+         <li><a href="https://bitnami.com/">Bitnami</a></li>    
+	 <li><a href="https://app.my.reclaim.cloud/">Reclaim Cloud</a></li>   
+      </ul>
+   </div>
+
+</body></html>
