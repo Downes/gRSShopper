@@ -53,7 +53,7 @@ RUN cpanm MIME::Lite::TT::HTML
 
       
 RUN apt-get install apache2 -y
-RUN apt-get install mariadb-common mariadb-server mariadb-client -y
+# RUN apt-get install mariadb-common mariadb-server mariadb-client -y
 # Postfix is currently generating errors
 # RUN apt-get install postfix -y
 RUN apt-get install git -y
