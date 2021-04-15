@@ -1,10 +1,10 @@
 downes/grsshopper
 ==========
 
-[grsshopper_logo](https://raw.githubusercontent.com/downes/grsshopper/master/grsshopper_header.jpg)
+[![grsshopper_logo](https://raw.githubusercontent.com/downes/grsshopper/master/grsshopper_header.jpg)](https://grsshopper.downes.ca)
 
 [![Docker Pulls](https://img.shields.io/docker/pulls/downes/grsshopper.svg?style=plastic)](https://hub.docker.com/r/downes/grsshopper/)
-[![Docker Build Status](https://img.shields.io/docker/build/downes/grsshopper.svg?style=plastic)](https://hub.docker.com/r/downes/grsshopper/builds/)
+[![Docker Cloud Build Status](https://img.shields.io/docker/cloud/build/downes/grsshopper?style=plastic)](https://hub.docker.com/r/downes/grsshopper/builds/)
 
 
 gRSShopper is a tool that aggregates, organizes and distributes resources to support online learning. Read more here: https://grsshopper.downes.ca/
