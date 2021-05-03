@@ -1137,9 +1137,10 @@ print "Admin General";
 		my $adminlink = $Site->{st_cgi}."admin.cgi";
 
 		if ($vars->{dbmsg}) { $vars->{dbmsg} = qq|<p class="notice"><br>$vars->{dbmsg}</p>|; }
-		my $content = qq|$vars->{dbmsg}<h2>Database</h2><p>Get database information and manage database tables.</p>|;
+		my $content = qq|$vars->{dbmsg}<h2>Database</h2>
+		<p>Get database information and manage database tables.</p>|;
 
-
+exit;
 		# Manage Database
 
 		# Create generic tables dropdown
@@ -1166,9 +1167,10 @@ print "Admin General";
 
 		$content .= qq|
 			<h3>Manage Database</h3>
-			<div class="adminpanel">
+			pp
+			<div class="adminpanel">eeee
 			<form method="post" action="admin.cgi">Select table:
-			<select name="stable">$table_dropdown</select><br>\n
+			fff<select name="stable">$table_dropdown</select><br>\n
 			<select name="action">\n
 			<option value="showcolumns">Show Columns</option>\n
 			<option value="db_add_column">Add Column</option>\n

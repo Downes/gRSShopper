@@ -24,6 +24,14 @@
 			">List</a>] Box </li>
 		<li class="table-list-element"> [<a href="#" onClick="
 			openTab(event, 'editor', 'mainlinks');
+			openDiv('https://localhost/cgi-bin/api.cgi','editor','edit','bruce','new','','Edit');
+			">New</a>][<a href="#" 
+			onClick="
+			openTab(event,'List','tablinks','list-button');
+			loadList({div:'List',cmd:'list',table:'bruce'});
+			">List</a>] Bruce </li>
+		<li class="table-list-element"> [<a href="#" onClick="
+			openTab(event, 'editor', 'mainlinks');
 			openDiv('https://localhost/cgi-bin/api.cgi','editor','edit','chat','new','','Edit');
 			">New</a>][<a href="#" 
 			onClick="
@@ -62,6 +70,30 @@
 			openTab(event,'List','tablinks','list-button');
 			loadList({div:'List',cmd:'list',table:'course'});
 			">List</a>] Course </li>
+		<li class="table-list-element"> [<a href="#" onClick="
+			openTab(event, 'editor', 'mainlinks');
+			openDiv('https://localhost/cgi-bin/api.cgi','editor','edit','credit','new','','Edit');
+			">New</a>][<a href="#" 
+			onClick="
+			openTab(event,'List','tablinks','list-button');
+			loadList({div:'List',cmd:'list',table:'credit'});
+			">List</a>] Credit </li>
+		<li class="table-list-element"> [<a href="#" onClick="
+			openTab(event, 'editor', 'mainlinks');
+			openDiv('https://localhost/cgi-bin/api.cgi','editor','edit','credits','new','','Edit');
+			">New</a>][<a href="#" 
+			onClick="
+			openTab(event,'List','tablinks','list-button');
+			loadList({div:'List',cmd:'list',table:'credits'});
+			">List</a>] Credits </li>
+		<li class="table-list-element"> [<a href="#" onClick="
+			openTab(event, 'editor', 'mainlinks');
+			openDiv('https://localhost/cgi-bin/api.cgi','editor','edit','ddd','new','','Edit');
+			">New</a>][<a href="#" 
+			onClick="
+			openTab(event,'List','tablinks','list-button');
+			loadList({div:'List',cmd:'list',table:'ddd'});
+			">List</a>] Ddd </li>
 		<li class="table-list-element"> [<a href="#" onClick="
 			openTab(event, 'editor', 'mainlinks');
 			openDiv('https://localhost/cgi-bin/api.cgi','editor','edit','event','new','','Edit');
@@ -104,12 +136,36 @@
 			">List</a>] Form </li>
 		<li class="table-list-element"> [<a href="#" onClick="
 			openTab(event, 'editor', 'mainlinks');
+			openDiv('https://localhost/cgi-bin/api.cgi','editor','edit','geese','new','','Edit');
+			">New</a>][<a href="#" 
+			onClick="
+			openTab(event,'List','tablinks','list-button');
+			loadList({div:'List',cmd:'list',table:'geese'});
+			">List</a>] Geese </li>
+		<li class="table-list-element"> [<a href="#" onClick="
+			openTab(event, 'editor', 'mainlinks');
 			openDiv('https://localhost/cgi-bin/api.cgi','editor','edit','graph','new','','Edit');
 			">New</a>][<a href="#" 
 			onClick="
 			openTab(event,'List','tablinks','list-button');
 			loadList({div:'List',cmd:'list',table:'graph'});
 			">List</a>] Graph </li>
+		<li class="table-list-element"> [<a href="#" onClick="
+			openTab(event, 'editor', 'mainlinks');
+			openDiv('https://localhost/cgi-bin/api.cgi','editor','edit','hotels','new','','Edit');
+			">New</a>][<a href="#" 
+			onClick="
+			openTab(event,'List','tablinks','list-button');
+			loadList({div:'List',cmd:'list',table:'hotels'});
+			">List</a>] Hotels </li>
+		<li class="table-list-element"> [<a href="#" onClick="
+			openTab(event, 'editor', 'mainlinks');
+			openDiv('https://localhost/cgi-bin/api.cgi','editor','edit','hunt','new','','Edit');
+			">New</a>][<a href="#" 
+			onClick="
+			openTab(event,'List','tablinks','list-button');
+			loadList({div:'List',cmd:'list',table:'hunt'});
+			">List</a>] Hunt </li>
 		<li class="table-list-element"> [<a href="#" onClick="
 			openTab(event, 'editor', 'mainlinks');
 			openDiv('https://localhost/cgi-bin/api.cgi','editor','edit','institution','new','','Edit');
@@ -142,6 +198,22 @@
 			openTab(event,'List','tablinks','list-button');
 			loadList({div:'List',cmd:'list',table:'media'});
 			">List</a>] Media </li>
+		<li class="table-list-element"> [<a href="#" onClick="
+			openTab(event, 'editor', 'mainlinks');
+			openDiv('https://localhost/cgi-bin/api.cgi','editor','edit','mice','new','','Edit');
+			">New</a>][<a href="#" 
+			onClick="
+			openTab(event,'List','tablinks','list-button');
+			loadList({div:'List',cmd:'list',table:'mice'});
+			">List</a>] Mice </li>
+		<li class="table-list-element"> [<a href="#" onClick="
+			openTab(event, 'editor', 'mainlinks');
+			openDiv('https://localhost/cgi-bin/api.cgi','editor','edit','motels','new','','Edit');
+			">New</a>][<a href="#" 
+			onClick="
+			openTab(event,'List','tablinks','list-button');
+			loadList({div:'List',cmd:'list',table:'motels'});
+			">List</a>] Motels </li>
 		<li class="table-list-element"> [<a href="#" onClick="
 			openTab(event, 'editor', 'mainlinks');
 			openDiv('https://localhost/cgi-bin/api.cgi','editor','edit','optlist','new','','Edit');

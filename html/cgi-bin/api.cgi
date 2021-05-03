@@ -337,12 +337,45 @@ if ($vars->{cmd} eq "authenticate") {
 	}
 
 
+
+# -------------------------------------------------------------------------------------
+#          Create Functions
+#
+# 		   Create major new elements in the database
+#		   Input variables: obj  - the type of thing to be created (eg. table, )
+#			                name - the name of the thing to be created (eg., 'Hotels')
+#
+# -------------------------------------------------------------------------------------
+
+if ($vars->{cmd} eq "create") {
+   	if ($vars->{obj} eq "table") {
+		&status_error("Thing to create not defined") unless ($vars->{obj});
+		&status_error("Name of the $vars->{obj} to create not defined") unless ($vars->{name});
+		$vars->{name} =~ s/[^a-zA-Z0-9_-]//g;
+		&db_create_table($dbh,$vars->{name});
+
+		my $apilink = $Site->{st_cgi}."api.cgi";
+
+		$vars->{message} .= "Creating table $vars->{name} " .
+		sprintf(qq|<a href="#" onClick="
+			openTab(event, 'editor', 'mainlinks');
+			openDiv('%s','editor','edit','form','','%s','mainWindowTable');
+			">Edit the New Table</a>|,$apilink,$vars->{name});
+		&status_ok();
+		exit;
+
+    }
+}
+
+
 # -------------------------------------------------------------------------------------
 #          Editor Functions
 #
 # 		   Produce an Editor screen for a given table + id
 #
 # -------------------------------------------------------------------------------------
+
+
 
 
 
@@ -657,21 +690,7 @@ if ($vars->{table} eq "media") {
 
 
 
-  # CREATE
-  elsif ($vars->{cmd} eq "create") {
-   if ($vars->{obj} eq "table") {
 
-		 my $apilink = $Site->{st_cgi}."api.cgi";
-		 unless ($vars->{table}) { print "Table to $vars->{cmd} has not been specified."; exit; }
-		 $vars->{table} =~ s/[^a-zA-Z0-9_-]//g;
-		 &db_create_table($dbh,$vars->{table});
-	   print "Creating table $vars->{table} " .
-		    qq|<a href="#" onClick="openDiv('$apilink','main','edit','form','','|.$vars->{table}.qq|','Database');">Edit the New Table</a>|;
-		 exit;
-
-
-    }
-	}
 
 
   # EDIT

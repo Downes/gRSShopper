@@ -228,49 +228,49 @@ sub form_wysihtml {
    		</div>
 	
 		<script>
+   		$( document ).ready(function() {
+			CKEDITOR.replace( '|.$col.qq|', {
+				width: '100%',
+				height: '|.$ckheight.qq|em',
+				// Define the toolbar groups as it is a more accessible solution.
+				toolbarGroups: [
+					{"name":"basicstyles","groups":["basicstyles"]},
+					{"name":"links","groups":["links"]},
+					{"name":"insert","groups":["insert"]},
+					{"name":"paragraph","groups":["list","blocks"]},
+					{"name":"styles","groups":["styles"]},
+					{"name":"document","groups":["mode"]}
+				],
+				// Remove the redundant buttons from toolbar groups defined above.
+				removeButtons: 'Underline,Strike,Subscript,Superscript,Anchor,Styles,Specialchar'} 
+			);
 
-		CKEDITOR.replace( '|.$col.qq|', {
-			width: '100%',
-    		height: '|.$ckheight.qq|em',
-			// Define the toolbar groups as it is a more accessible solution.
-			toolbarGroups: [
-				{"name":"basicstyles","groups":["basicstyles"]},
-				{"name":"links","groups":["links"]},
-				{"name":"insert","groups":["insert"]},
-				{"name":"paragraph","groups":["list","blocks"]},
-				{"name":"styles","groups":["styles"]},
-				{"name":"document","groups":["mode"]}
-			],
-			// Remove the redundant buttons from toolbar groups defined above.
-			removeButtons: 'Underline,Strike,Subscript,Superscript,Anchor,Styles,Specialchar'} 
-		);
+			var editor = CKEDITOR.instances['|.$col.qq|'];
+			var timer_|.$col.qq|;
 
-	    var editor = CKEDITOR.instances['|.$col.qq|'];
-		var timer_|.$col.qq|;
+			editor.on('change',function(){
+				// do stuff only when user has been idle for 1 second
+				clearTimeout(timer_|.$col.qq|);
+				timer_|.$col.qq| = setTimeout(function() {
 
-		editor.on('change',function(){
-			// do stuff only when user has been idle for 1 second
- 			clearTimeout(timer_|.$col.qq|);
- 			timer_|.$col.qq| = setTimeout(function() {
+					// Submit Changed Content
+					var url = "$url";
+					var editor = CKEDITOR.instances['|.$col.qq|'];
+					var content = editor.getData();
 
-				// Submit Changed Content
-				var url = "$url";
-				var editor = CKEDITOR.instances['|.$col.qq|'];
-				var content = editor.getData();
-
-				submitData(
-					{div:'|.$col.qq|_result',
-					cmd:'update',
-					table:'$table',
-					field:'$col',
-					id:'$id',
-					value: content, }
-				);
-				var previewUrl = url+"?cmd=show&table=$table&id=$id&format=summary";
-				\$('#Preview').load("previewUrl");
-			},1000);
+					submitData(
+						{div:'|.$col.qq|_result',
+						cmd:'update',
+						table:'$table',
+						field:'$col',
+						id:'$id',
+						value: content, }
+					);
+					var previewUrl = url+"?cmd=show&table=$table&id=$id&format=summary";
+					\$('#Preview').load("previewUrl");
+				},1000);
+			});
 		});
-
 		</script>
 
 	|;
@@ -684,7 +684,7 @@ sub form_date_select {
 		</div>
 		
 		<script>
-		\$( function() {
+		\$( document ).ready(function() {
 			\$( "#$col" ).datepicker({
 				dateFormat: "yy/mm/dd",
 				onSelect: function(date, instance) {
@@ -1268,12 +1268,15 @@ sub form_database {
                <a href="#" id="database_functions_selection">More Database Functions</a>
 					</div>
 					<script>
-							\$('#database_table_selection').on('change',function(){
-							  var content = \$('#database_table_selection').val();
-								openDiv('$onclickurl','main','edit','form','',content,'','Database');
-						  });
+						\$('#database_table_selection').on('change',function(){
+							var content = \$('#database_table_selection').val();
+							openTab(event, 'editor', 'mainlinks');
+							openDiv('$onclickurl','editor','edit','form','',content,'mainWindowTable');
+						});
+
 							\$('#database_functions_selection').on('click',function(){
-								openDiv('$onclickurl','main','admin','database','','','Database');
+								openTab(event, 'Admin', 'mainlinks');
+								openDiv('$onclickurl','Admin','admin','database','','','mainWindowDatabase');
 							});
 					</script>|;
 }

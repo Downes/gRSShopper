@@ -683,7 +683,9 @@ sub Tab_Database {
   my $adminlink = $Site->{st_cgi}."admin.cgi";
 
 	my $content = qq|<div class="container"><div id="admin_editor_area" style="width:100%;">
-	   $vars->{dbmsg}<h2 style='font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";'>Database</h2><p>Get database information and manage database tables.</p>|;
+	   $vars->{dbmsg}
+	   <h2>Database</h2>
+		<p>Get database information and manage database tables.</p>|;
 
 
 	# Manage Database
@@ -710,20 +712,26 @@ sub Tab_Database {
 
 
 	# Edit a Database
-   # Open Main: url,cmd,db,id,title,starting_tab
+
+
 	$content .= qq|
-	  <div>Select a database:
-			 <select id="database_table_selection" name="stable">
+		<div class="text-input">
+			<label for="database_table_backup">Edit Database</label>
+			<div class="text-input-form">
+				Select a database:
+			 	<select id="database_table_selection" name="stable">
 			    $select_a_table
-					$table_dropdown
-			 </select>
-	 </div>
-	 <script>
+				$table_dropdown
+			    </select>
+			</div>
+		</div>
+		<script>
 			\$('#database_table_selection').on('change',function(){
-			var content = \$('#database_table_selection').val();
-			openDiv('$apilink','main','edit','form','',content,'Database');
+				var content = \$('#database_table_selection').val();
+				openTab(event, 'editor', 'mainlinks');
+				openDiv('$apilink','editor','edit','form','',content,'mainWindowTable');
 			});
-	 </script>|;
+		</script>|;
 
 
 	# Back Up Database
@@ -754,34 +762,51 @@ sub Tab_Database {
 	# Create a Table
 
 	$content .= qq|
-		<div>
-    Add Table: <input type="text" id="add_table_content" name="add_table_content" placeholder="Enter table name" required>
-    <input type="button" id="add_table_submit" name="add_table_submit"  value="Add Table">
-		<div id="add_table_submit_result"></div>
+		<div class="text-input">
+			<label for="database_table_backup">Create a Table</label>
+			<div class="text-input-form">
+				<input type="text" id="add_table_content" 
+					name="add_table_content" placeholder="Enter table name" required>
+    			<input type="button" id="add_table_submit" name="create_table" value="Add Table">
+				<div id="create_table_result"></div>
+			</div>
 		</div>
-
 		<script>
-		\$('#add_table_submit').on('click',function(){
-			var content = \$('#add_table_content').val();
-			if (content.length == 0) {
-					\$('#add_table_submit_result').html("<div class='error'>You must provide a table name.</div>"); return;
-			}
-			api_submit('$apilink','add_table_submit','create','table',content,'','',content);
-		});
-	 </script>|;
+			\$('#add_table_submit').on('click',function(){
+				var content = \$('#add_table_content').val();
+				if (content.length == 0) {
+					alert("Error. You must provide a table name."); return;
+				} else {
+					submitData({
+						div:'create_table_result',
+						cmd:'create',
+						obj: 'table',
+						name: content,
+					});
+				}
+
+			});
+	 	</script>|;
 
 
 
 	# Drop a Table
 
-	 $content .= qq|
- 		<div>Drop Table:
+	$content .= qq|
+		<div class="text-input">
+			<label for="database_table_backup">Drop a Table</label>
+			<div class="text-input-form">
+
+
+
 		<select id="drop_table_content" name="drop_table_content">
 			$select_a_table
 			$table_dropdown</select>
- 		<input type="button" id="drop_table_submit" name="drop_table_submit" value="Drop Table">
- 		<div id="drop_table_submit_result"><span style="color:red;">Warning</span>: dropping a table will eliminate all data in the table. Table data will be saved in a backup file.</div>
- 		</div>
+ 		<input type="button" id="drop_table_submit" name="drop_table" value="Drop Table">
+<span style="color:red;">Warning</span>: dropping a table will eliminate all data in the table. Table data will be saved in a backup file.</div>
+				<div id="drop_table_result"></div>
+			</div>
+		</div>
 
  		<script>
  		\$('#drop_table_submit').on('click',function(){
@@ -791,7 +816,6 @@ sub Tab_Database {
  		});
  	 </script>|;
 
-	# Drop a Table
 
 
 
@@ -803,38 +827,44 @@ sub Tab_Database {
 
 
 	$content  .= qq|
-		<br/><h3>Import Data From File</h3>
-		<div class="adminpanel">
-		The file needs to be preloaded on the server. The system expects a tab delimited file with
-		field names in the first row. Importer will ignore field names it does not recognize.<br/><br/>
-		<form method="post" action="$adminlink" enctype="multipart/form-data">
-		<input type="hidden" name="action" value="import">
-		<table cellpadding=2>
-		<tr><td>Import into table:</td><td>$tout</td></tr>
-		<tr><td>File URL:</td><td><input type="text" name="file_url" size="40"></td></tr>
-		<tr><td>Or Select:</td><td><input type="file" name="myfile" /></td></tr>
-		<tr><td>Data Format:</td><td><select name="file_format"><option value="">Select a format...</option>
-		<option value="tsv">Tab delimited (TSV)</option>
-		<option value="csv">Comma delimited (CSV)</option>
-		<option value="json">JSON</option></select></td>
-		<tr><td colspan=2><input type="submit" value="Import" class="button"></tr></tr></table>
-		</form></div>|;
+		<div class="text-input">
+			<label for="database_table_backup">Import Data</label>
+			<div class="text-input-form">
+				The file needs to be preloaded on the server. The system expects a tab delimited file with
+				field names in the first row. Importer will ignore field names it does not recognize.<br/><br/>
+				<form method="post" action="$adminlink" enctype="multipart/form-data">
+					<input type="hidden" name="action" value="import">
+					<table cellpadding=2>
+					<tr><td>Import into table:</td><td>$tout</td></tr>
+					<tr><td>File URL:</td><td><input type="text" name="file_url" size="40"></td></tr>
+					<tr><td>Or Select:</td><td><input type="file" name="myfile" /></td></tr>
+					<tr><td>Data Format:</td><td><select name="file_format"><option value="">Select a format...</option>
+					<option value="tsv">Tab delimited (TSV)</option>
+					<option value="csv">Comma delimited (CSV)</option>
+					<option value="json">JSON</option></select></td>
+					<tr><td colspan=2><input type="submit" value="Import" class="button"></tr></tr></table>
+				</form>
+			</div>
+		</div>|;
 
 	# Export data
 
-	$content  .= qq|
-		<br/><h3>Export Data</h3>
-		<div class="adminpanel">
-		<form method="post" action="$adminlink">
-		<input type="hidden" name="action" value="export_table">
-		<table cellpadding=2>
-		<tr><td>Export from table:</td><td>$tout</td></tr>
-		<tr><td>Data Format:</td><td><select name="export_format"><option value="">Select a format...</option>
-		<option value="tsv">Tab delimited (TSV)</option>
-		<option value="csv">Comma delimited (CSV)</option>
-		<option value="json">JSON</option></select></td>
-		<tr><td colspan=2><input type="submit" value="Export" class="button"></tr></tr></table>
-		</form></div>|;
+	$content  .= qq|		
+		<div class="text-input">
+			<label for="database_table_backup">Export Data</label>
+			<div class="text-input-form">
+				<form method="post" action="$adminlink">
+					<input type="hidden" name="action" value="export_table">
+					<table cellpadding=2>
+					<tr><td>Export from table:</td><td>$tout</td></tr>
+					<tr><td>Data Format:</td><td><select name="export_format"><option value="">Select a format...</option>
+					<option value="tsv">Tab delimited (TSV)</option>
+					<option value="csv">Comma delimited (CSV)</option>
+					<option value="json">JSON</option></select></td>
+					<tr><td colspan=2><input type="submit" value="Export" class="button"></tr></tr></table>
+				</form>
+			</div>
+		</div>|;
 
 
 	$content .=  qq|</table></ul>|;
@@ -848,9 +878,15 @@ sub Tab_Database {
 	$Site->{ServerStat}  =  $dbh->{'mysql_stat'};
 
 	$content .= qq|
-		<h3>Database Information</h3><br/><ul>
-		&nbsp;&nbsp;Server Info: $Site->{ServerInfo} <br/>
-		&nbsp;&nbsp;Server Stat: $Site->{ServerStat}<br/><br/></ul>|;
+		<div class="text-input">
+			<label for="database_table_backup">Database Information</label>
+			<div class="text-input-form">
+				<ul>
+				Server Info: $Site->{ServerInfo} <br/>
+				Server Stat: $Site->{ServerStat}<br/><br/>
+				</ul>
+			</div>
+		</div>|;
 
   $content .= "</div></div>";
    return $content;

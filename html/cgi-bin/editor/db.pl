@@ -546,13 +546,15 @@ sub db_backup {
 	unless (-d $Site->{st_urlf}."files/backup/") { mkdir $Site->{st_urlf}."files/backup/"; }
 	my $backup_filename = $Site->{st_urlf}."files/backup/".$dbinfo->{database}->{name}."-".$table."-".time.".sql";
 	$backup_filename =~ s/--/-/;
-	`mysqldump --user=$dbinfo->{database}->{usr} --password=$dbinfo->{database}->{pwd} $dbinfo->{database}->{name} $table > $backup_filename`;
+	`mysqldump --host=db --user=$dbinfo->{database}->{usr} --password=$dbinfo->{database}->{pwd} $dbinfo->{database}->{name} $table > $backup_filename`;
 
+	# `mysqldump -h db -uroot –p test_db > backup.sql`;
 
 	$Site->{database}="";							# Clear site database info so it's not available later
 	$_ = "";								# Prevent accidental (or otherwise) print of config file.
 
-	return $backup_filename . qq|mysqldump --user=$dbinfo->{database}->{usr} --password=$dbinfo->{database}->{pwd} $dbinfo->{database}->{name} $table > $backup_filename|;
+	return $backup_filename; 
+	# qq|mysqldump --user=$dbinfo->{database}->{usr} --password=$dbinfo->{database}->{pwd} $dbinfo->{database}->{name} $table > $backup_filename|;
 
 
 }

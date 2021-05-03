@@ -293,11 +293,18 @@ function appendData(request,data) {
 
     var mainContainer = document.getElementById(request.div);
     removeElementsByClass('list-result');  // clear previous list data
-    for (var i = 0; i < data.length; i++) {
-      var div = document.createElement("div");
-      var templ = selectTemplate(request,data,i);
-      div.innerHTML = templ;
-      mainContainer.appendChild(div);
+    if (data) {
+        for (var i = 0; i < data.length; i++) {
+            var div = document.createElement("div");
+            var templ = selectTemplate(request,data,i);
+            div.innerHTML = templ;
+            mainContainer.appendChild(div);
+        }
+    } else {
+        var div = document.createElement("div");
+        div.innerHTML = "<p>No Records</p>";
+        mainContainer.appendChild(div);
+       // alert("No data");
     }
 }
 
@@ -507,6 +514,7 @@ function templater(strings, ...keys) {
 //  openDiv
 //
 //  Load content into a div and show the div
+//  Optionally specify a starting tab in the div and make the tab active
 //
 
 function openDiv(url,div,app,db,id,title,starting_tab,autopost) {
@@ -517,6 +525,7 @@ function openDiv(url,div,app,db,id,title,starting_tab,autopost) {
     else if (id) { url = url + "?cmd="+app+"&app="+app+"&db="+db+"&id="+id+"&autopost="+autopost; }
     else { url = url + "?cmd="+app+"&app="+app+"&db="+db; }
 
+
     var openme = 'main';
     if (div) { openme=div;}
     $('#'+openme).load(url, function(respose, status, xhr) {
@@ -526,6 +535,7 @@ function openDiv(url,div,app,db,id,title,starting_tab,autopost) {
         }
      });
      $('#'+openme+'-tab').show();
+     if (starting_tab) { openTab(event,starting_tab, 'editorlinks'); }
 
 }
 
@@ -729,7 +739,7 @@ function openTab(event, tabName, tabType, tabID) {
     // Declare all variables
     var i, tabcontent, tablinks;
     // Get all siblings and hide them
-   
+// alert("opening tab "+tabName);  
     $('#'+tabName).siblings().hide();
 
     // Get all elements with class=tabType and remove the class "active"
