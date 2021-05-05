@@ -228,7 +228,7 @@ sub form_wysihtml {
    		</div>
 	
 		<script>
-   		$( document ).ready(function() {
+   		\$( document ).ready(function() {
 			CKEDITOR.replace( '|.$col.qq|', {
 				width: '100%',
 				height: '|.$ckheight.qq|em',
