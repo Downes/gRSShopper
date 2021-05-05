@@ -401,7 +401,7 @@ tab.active {
 .sidenav {
     height: 100%;
     width: 0;
-    position: fixed;
+     position: fixed; 
     z-index: 1;
     top: 0;
     left: 0;
@@ -417,7 +417,7 @@ tab.active {
 .talknav {
     height: 100%;
     width: 0;
-    position: fixed;
+    position: fixed; 
     z-index: 1;
     top: 0;
     right: 1504;
@@ -429,7 +429,7 @@ tab.active {
 }
 
 .sidenav .closebtn {
-    position: absolute;
+    position: absolute; 
     top: 0;
     right: 25px;
     font-size: 36px;
@@ -437,7 +437,7 @@ tab.active {
 }
 
 .talknav .closebtn {
-    position: absolute;
+    position: absolute; 
     top: 0;
     right: 1504px;
     font-size: 36px;
