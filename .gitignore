@@ -22,4 +22,5 @@ web-data/
 db-data/
 html/author/
 html/post/
+html/files/backup/
 *.bak
