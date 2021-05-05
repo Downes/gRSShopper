@@ -2302,3 +2302,51 @@ cron 4/05 20:00  ERROR: Cannot find next feedid in queue
 
 cron 4/05 20:05  ERROR: Cannot find next feedid in queue
 
+cron 4/05 20:10  ERROR: Cannot find next feedid in queue
+
+cron 4/05 20:15  ERROR: Cannot find next feedid in queue
+
+cron 4/05 20:20  ERROR: Cannot find next feedid in queue
+
+cron 4/05 20:25  ERROR: Cannot find next feedid in queue
+
+cron 4/05 20:30  ERROR: Cannot find next feedid in queue
+
+cron 4/05 20:35  ERROR: Cannot find next feedid in queue
+
+cron 4/05 20:37  Publish Error: Page 10 <br>    Zero linkcount in page OLDaily RSS 2.0(10), page not published.<p>
+cron 4/05 20:37  Autopublished page: 10 OLDaily RSS 2.0
+
+cron 4/05 20:37  Publish Error: Page 11 <br>    Zero linkcount in page OLDaily RSS 0.91(11), page not published.<p>
+cron 4/05 20:37  Autopublished page: 11 OLDaily RSS 0.91
+
+cron 4/05 20:40  ERROR: Cannot find next feedid in queue
+
+cron 4/05 20:45  ERROR: Cannot find next feedid in queue
+
+cron 4/05 20:50  ERROR: Cannot find next feedid in queue
+
+cron 4/05 20:55  ERROR: Cannot find next feedid in queue
+
+cron 4/05 21:00  ERROR: Cannot find next feedid in queue
+
+cron 4/05 21:05  ERROR: Cannot find next feedid in queue
+
+cron 4/05 21:10  ERROR: Cannot find next feedid in queue
+
+cron 4/05 21:15  ERROR: Cannot find next feedid in queue
+
+cron 4/05 21:20  ERROR: Cannot find next feedid in queue
+
+cron 4/05 21:25  ERROR: Cannot find next feedid in queue
+
+cron 4/05 21:30  ERROR: Cannot find next feedid in queue
+
+cron 4/05 21:35  ERROR: Cannot find next feedid in queue
+
+cron 4/05 21:37  Publish Error: Page 10 <br>    Zero linkcount in page OLDaily RSS 2.0(10), page not published.<p>
+cron 4/05 21:37  Autopublished page: 10 OLDaily RSS 2.0
+
+cron 4/05 21:37  Publish Error: Page 11 <br>    Zero linkcount in page OLDaily RSS 0.91(11), page not published.<p>
+cron 4/05 21:37  Autopublished page: 11 OLDaily RSS 0.91
+
