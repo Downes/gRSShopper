@@ -888,7 +888,7 @@ sub Tab_Database {
 			</div>
 		</div>|;
 
-  $content .= "</div></div>";
+  $content .= "</div>";
    return $content;
 
 
