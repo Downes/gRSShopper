@@ -735,26 +735,27 @@ function openColumns(url,db) {
 
 
 function openTab(event, tabName, tabType, tabID) {
-
-    // Declare all variables
-    var i, tabcontent, tablinks;
-    // Get all siblings and hide them
-// alert("opening tab "+tabName);  
-    $('#'+tabName).siblings().hide();
-
-    // Get all elements with class=tabType and remove the class "active"
-    $('.'+tabType).removeClass("active");
-    // Show the current tab, and add an "active" class to the button that opened the tab
-    $('#'+tabName).show();
-    $('#'+tabName).addClass("active");
-    $('#'+tabName+"Button").addClass("active"); 
-    $('#'+tabName+"Button").attr('aria-pressed', 'true');
-    $('#'+tabName+"Button").siblings().removeClass("active");     
-    $('#'+tabName+"Button").siblings().attr('aria-pressed', 'false');
-    if (tabID) { 
-        $('#'+tabID).show(); // Force hidden tab to reveal itself
-        $('#'+tabID).addClass("active"); // and be active
-    }            
+    $(document).ready(function(){
+        // Declare all variables
+        var i, tabcontent, tablinks;
+        // Get all siblings and hide them
+    // alert("opening tab "+tabName);
+        $('#'+tabName).siblings().hide();  
+    
+        // Get all elements with class=tabType and remove the class "active"
+        $('.'+tabType).removeClass("active");
+        // Show the current tab, and add an "active" class to the button that opened the tab
+        $('#'+tabName).show();
+        $('#'+tabName).addClass("active");
+        $('#'+tabName+"Button").addClass("active"); 
+        $('#'+tabName+"Button").attr('aria-pressed', 'true');
+        $('#'+tabName+"Button").siblings().removeClass("active");     
+        $('#'+tabName+"Button").siblings().attr('aria-pressed', 'false');
+        if (tabID) { 
+            $('#'+tabID).show(); // Force hidden tab to reveal itself
+            $('#'+tabID).addClass("active"); // and be active
+        }      
+    });      
 }
 
 
