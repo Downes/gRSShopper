@@ -2350,3 +2350,11 @@ cron 4/05 21:37  Autopublished page: 10 OLDaily RSS 2.0
 cron 4/05 21:37  Publish Error: Page 11 <br>    Zero linkcount in page OLDaily RSS 0.91(11), page not published.<p>
 cron 4/05 21:37  Autopublished page: 11 OLDaily RSS 0.91
 
+cron 4/05 21:40  ERROR: Cannot find next feedid in queue
+
+cron 4/05 21:45  ERROR: Cannot find next feedid in queue
+
+cron 4/05 21:50  ERROR: Cannot find next feedid in queue
+
+cron 4/05 21:55  ERROR: Cannot find next feedid in queue
+
