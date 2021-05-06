@@ -213,7 +213,11 @@
     <div class="tab mainlinks" style="float:right!important;" data-toggle="tab" 
     onclick="openTalkNav(); openTab('', 'Myself', 'sociallinks');"><i class="fa fa-user"></i></div>
 
-  <div class="tab mainlinks" style="float:right!important;" data-toggle="tab" onclick="openTab(event, 'Admin', 'mainlinks','admin-button');openDiv('cgi-bin/api.cgi','Admin','admin','general','general','');"><i class="fa fa-gear"></i></div>
+  <div class="tab mainlinks" style="float:right!important;" data-toggle="tab" onclick="
+     openTab(event, 'Admin', 'mainlinks','admin-button');
+     openDiv('cgi-bin/api.cgi','Admin','admin','general','general','');
+     openTab(event, 'mainWindowGeneral', 'editorlinks');
+     "><i class="fa fa-gear"></i></div>
 
     <div tabindex="0" role="button" class="tab mainlinks" onclick="openNav();"><i class="fa fa-database"></i></div>
     <div tabindex="0" role="button" class="tab mainlinks" onclick="
