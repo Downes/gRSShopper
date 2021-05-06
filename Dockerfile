@@ -93,8 +93,12 @@ COPY html/PLE.html /var/www/html/PLE.html
 COPY html/PLE.html /var/www/html/PLE.htm
 ADD html/assets /var/www/html/assets/
 ADD html/cgi-bin /var/www/html/cgi-bin/
-RUN chmod 705 /var/www/html/cgi-bin/*.cgi
 COPY html/cgi-bin/server_test.cgi /var/www/html/cgi-bin
+COPY run-lamp.sh /usr/sbin/
+COPY cronfile /etc/cron.d/cronfile
+
+USER root
+RUN chmod 705 /var/www/html/cgi-bin/*.cgi
 RUN chmod 705 /var/www/html/cgi-bin/server_test.cgi
 
 # Addressing the chmod problem
@@ -103,11 +107,8 @@ RUN cp /var/www/html/cgi-bin/server_test.cgi /var/www/html/cgi-bin/test/server_t
 RUN chmod 775 /var/www/html/cgi-bin/test/server_test.cgi
 RUN chown www-data /var/www/html/cgi-bin/test/server_test.cgi
 
-
-COPY run-lamp.sh /usr/sbin/
-
 # Set up cron
-COPY cronfile /etc/cron.d/cronfile
+
 RUN chmod 0644 /etc/cron.d/cronfile
 RUN crontab /etc/cron.d/cronfile
 RUN touch /var/log/cron.log
