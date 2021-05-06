@@ -24,7 +24,7 @@ services:
       context: .
       dockerfile: Dockerfile
     volumes:
-      - ./html:/var/www/html
+      - /var/www/html
     ports:
       - "443:443"   
     networks:
