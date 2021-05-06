@@ -1,6 +1,6 @@
 RewriteEngine On
-RewriteCond %{HTTPS} on
-RewriteRule (.*) http://%{HTTP_HOST}%{REQUEST_URI}
-RewriteRule ^(post|presentation|link|module|event|page|media)/([0-9]+)/rd$ http://%{HTTP_HOST}cgi-bin/page.cgi?$1=$2&action=rd
-RewriteRule ^(post|event|presentation|page|feed|author|link)/(.*)$ http://%{HTTP_HOST}/cgi-bin/page.cgi?$1=$2
+RewriteCond %{HTTPS} off
+RewriteRule (.*) https://%{HTTP_HOST}%{REQUEST_URI}
+RewriteRule ^(post|presentation|link|module|event|page|media)/([0-9]+)/rd$ https://%{HTTP_HOST}cgi-bin/page.cgi?$1=$2&action=rd
+RewriteRule ^(post|event|presentation|page|feed|author|link)/(.*)$ https://%{HTTP_HOST}/cgi-bin/page.cgi?$1=$2
 RewriteRule ^feed$ http://%{HTTP_HOST}/news/OLDaily.xml
