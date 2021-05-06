@@ -20,7 +20,7 @@ To run from Docker Image:
 gRSShopper uses two containers, a server container and a database container. Before running docker-compose you need to download the SQL startup file and place it in the init directory; docker-compose will then load it into the generic database container.
  
 ```
-curl https://raw.githubusercontent.com/Downes/gRSShopper/master/docker-compose.yml --output  docker-compose.yml
+curl https://raw.githubusercontent.com/Downes/gRSShopper/master/docker-compose-no-build.yml --output  docker-compose.yml
 mkdir init
 curl https://raw.githubusercontent.com/Downes/gRSShopper/master/init/gRSShopper-ple.sql --output init/gRSShopper-ple.sql
 docker-compose up
@@ -30,7 +30,7 @@ docker-compose up
 OR, run from the GitHub repository:
 ==================================
 
-Process: run docker-compose to create two Docker containers, one for the application and one for the database. If you want to build from GitHub code then you need to use docker-compose-with-build.yml - copy it to docker-compose.yml (replacing or backing up the existing docker-compose.yml) then execute the build with the docker-compose command.
+Process: run docker-compose to create two Docker containers, one for the application and one for the database. Running it from GitHub will clone the files. Then  and build the image and execute the build with the docker-compose command.
 
  
 ```
@@ -43,11 +43,39 @@ git clone  https://github.com/Downes/gRSShopper
 ```
 cd gRSShopper
 
-cp docker-compose-with-build.yml docker-compose.yml
+docker-compose up
+```
+
+To run the MOOC Image:
+=========================
+
+As of today (May 5) I've simply dumped the MOOC SQL into the repo without testing or checking so expect it to break.
+
+That said, it sets up exactly the same as the PLE, except you use the grsshopper-mooc.sql file instead of grsshopper-ple.
+
+So, to run the MOOC from the Docker image, you'd run:
+
+```
+curl https://raw.githubusercontent.com/Downes/gRSShopper/master/docker-compose-no-build.yml --output  docker-compose.yml
+mkdir init
+curl https://raw.githubusercontent.com/Downes/gRSShopper/master/mooc/gRSShopper-mooc.sql --output init/gRSShopper-mooc.sql
+docker-compose up
+```
+To run it from the GitHub repository:
+
+```
+git clone  https://github.com/Downes/gRSShopper
+
+cd gRSShopper
+
+rm init/grsshopper-ple.sql
+
+mv mooc/grsshopper-mooc.sql init/grsshopper-mooc.sql
 
 docker-compose up
 ```
 
+Again, no guarantees with the MOOC database just yet. Also, if anyone has ideas for a more elegarnt way to set this up, I'm all ears.
 
 Testing the server 
 ==================
