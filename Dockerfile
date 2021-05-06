@@ -94,7 +94,8 @@ COPY html/PLE.html /var/www/html/PLE.htm
 ADD html/assets /var/www/html/assets/
 ADD html/cgi-bin /var/www/html/cgi-bin/
 
-COPY html/cgi-bin/server_test.cgi /var/www/html/cgi-bin & RUN chmod 755 /var/www/html/cgi-bin/server_test.cgi
+COPY html/cgi-bin/server_test.cgi /var/www/html/cgi-bin
+RUN chmod 755 /var/www/html/cgi-bin/server_test.cgi
 
 COPY run-lamp.sh /usr/sbin/
 COPY cronfile /etc/cron.d/cronfile
