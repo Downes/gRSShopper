@@ -58,7 +58,7 @@ So, to run the MOOC from the Docker image, you'd run:
 ```
 curl https://raw.githubusercontent.com/Downes/gRSShopper/master/docker-compose-no-build.yml --output  docker-compose.yml
 mkdir init
-curl https://raw.githubusercontent.com/Downes/gRSShopper/master/mooc/gRSShopper-mooc.sql --output init/gRSShopper-mooc.sql
+curl https://raw.githubusercontent.com/Downes/gRSShopper/master/mooc/downesca-mooc.sql --output init/gRSShopper-mooc.sql
 docker-compose up
 ```
 To run it from the GitHub repository:
