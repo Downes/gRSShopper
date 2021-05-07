@@ -365,16 +365,8 @@ sub is_viewable {
 sub is_allowed {
 
 	my ($action,$table,$object,$place,$api) = @_;
-
-
 	return 1 if (&check_status($action,$table,$object));
-
-	# Otherwise...
-	my $req = lc($Site->{$action."_".$table});
-	print qq|<p class="notice">@{[&printlang("Permission Denied",$req,$action,$table,$place)]}<br/>
-		<h3><a href="login.cgi?refer=$Site->{script}">@{[&printlang("Login")]}</a></h3></p>|;
-
-	exit;
+	return 0;
 
 }
 

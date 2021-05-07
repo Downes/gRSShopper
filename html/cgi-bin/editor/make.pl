@@ -1735,4 +1735,167 @@ sub make_lookup {
 	if ($str) { return $str; }
 }
 
+# Make search form templates 
+# for use with api.cgi
+
+sub make_search_forms() {
+
+
+	my $doptions; my $templ="";
+	$doptions->{a}="b";
+	my @tables = &db_tables($dbh);
+	foreach my $table (@tables) {
+		next if ($table eq "class");  # Javascript chokes on this
+		# Get options from optlist
+
+		my $sql = qq|SELECT * from optlist where optlist_table = '$table' OR optlist_title LIKE '$table%';|;
+
+		my $sth = $dbh -> prepare($sql);
+		$sth -> execute() or die $dbh->errstr;
+		while (my $options = $sth -> fetchrow_hashref()) {
+			next unless ($options->{optlist_data});
+
+			# get table and field from optlist data or optlist title
+			my $optlisttable = $options->{optlist_table};
+			my $optlistfield = $options->{optlist_field};
+			unless ($optlisttable && $optlistfield) {
+				# Get table and field from title
+				($optlisttable,$optlistfield) = split /_/,$options->{optlist_title};
+			}
+			next unless ($optlisttable && $optlistfield);
+
+
+			my $option_data = $options->{optlist_data};
+			my @option_list = split /;/,$option_data;
+			
+			foreach my $option (@option_list) {
+				($ofield,$oname) = split /,/,$option;
+				
+				$doptions->{$optlisttable}->{$optlistfield}->{$ofield} = $oname;
+			}
+		}
+
+		# Get options from fields that might not be in optlist
+		my @miscfieldlist = qw(category genre section type class status);
+
+		# Get the list of columns from the database
+		my @columns = ();
+		my $showstmt = "SHOW COLUMNS FROM $table";
+		my $sth = $dbh -> prepare($showstmt);
+		$sth -> execute();
+
+		# For each column...
+		while (my $showref = $sth -> fetchrow_hashref()) {
+			
+			# Normalize the column name
+			my $fullfieldname = $showref->{Field};
+			my $prefix = $table."_"; $showref->{Field} =~ s/$prefix//;
+			next if ($showref->{Field} eq "class");  # Javascript chokes on this
+
+			# See if it's the sort of thing that might be a category
+			foreach my $miscfield (@miscfieldlist) {
+				
+				if ($showref->{Field} =~ /$miscfield/) {  # It's a hit		
+					unless ($doptions->{$table}->{$showref->{Field}}) {  # If it is not in optlist			
+						$doptions->{$table}->{$showref->{Field}}->{something} = "something else";
+
+					}
+
+				}
+			}
+
+		}
+
+		unless ($doptions->{$table}) {
+			$doptions->{$table}->{default} = "No search";
+		}
+
+
+	}
+			
+
+
+
+
+	while (my($table,$ty) = each %$doptions){	# For each table
+
+		# Write the template
+		my $formname = $table."SearchForm";
+		my $panelname = $table."Panel";
+		$templ .= qq|
+	function |.$table.qq|SearchTemplate(request) {	
+		return `<button class="accordion" onClick="togglePanel(this.nextElementSibling);">Filter \${request.table}</button>
+		<div class="panel" id="$panelname">
+
+		<form method="post" action="#" id="$formname">
+		<input type="hidden" name="div" value="\${request.div}">
+		<input type="hidden" name="cmd" value="\${request.cmd}">
+		<input type="hidden" name="table" value="\${request.table}">		
+		|;
+
+		foreach my $column (sort keys %$ty) {
+			$cy = $ty->{$column};
+		#while (my($column,$cy) = each %$ty) {		# For each column
+			$templ .= sprintf(qq|
+				<div class="table-list-search-form">%s <select name="%s" id="%s%s">
+				    <option value="all" selected>All</a>
+			|,ucfirst($column),$column,$column,$table);
+
+			foreach my $fname (sort keys %$cy) {
+				$fval = $cy->{$fname};
+			# while (my($fname,$fval) = each %$cy) {   #For each option
+				$templ .= sprintf(qq|<option value="%s">%s</a>|,$fval,ucfirst($fname));
+			}
+
+			$templ .= qq|
+							</select></div>|;
+
+
+		}
+
+		# Text search by fields
+		$templ .= qq|
+		<div class="table-list-search-form">
+		<select name="qkey">
+		<option value="id"> ID</option>
+		<option value="title"> Title </option>
+		<option value="description"> Description </option>
+		<option value="link"> Link </option>
+		</select>
+		<input type="text" name="qval" placeholder="search term" class="text-input-field"></div>|;
+
+		# Submit Button
+		$templ .= qq|
+		<div class="table-list-search-form">
+		<input type="button" value="Submit" 
+			onClick="
+				\$('.list-result').remove();
+				loadDataFromForm({div:'\${request.div}',cmd:'\${request.cmd}',table:'\${request.table}',formid:'$formname'}); 
+				document.getElementById('$panelname').style.display = 'none';
+				return false;
+			"></div>
+			</div>`;
+	};
+
+	|;
+
+
+
+	}
+#print qq|<textarea>$templ</textarea>|;
+	my $js_assets_dir = $Site->{st_urlf}."assets/js/";
+		my $filename = $js_assets_dir."gRSShopper_dataTemplates.js";
+		open OUT,">$filename" or print "Error opening $filename: $! <br>";
+		
+		print OUT $templ or print "Error printing $filename: $! <br>";
+		close OUT;
+
+		return qq|Templates printed to 
+			<a href="|.$Site->{st_url}.
+		qq|assets/js/gRSShopper_dataTemplates.js">gRSShopper_dataTemplates.js</a>|;
+		
+	return "Forms updated";
+}	 
+
+
 1;

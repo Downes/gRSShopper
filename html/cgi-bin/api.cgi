@@ -26,7 +26,7 @@ use CGI::Carp qw(fatalsToBrowser);
 #
 #-------------------------------------------------------------------------------
 
- # print "Content-type: text/html\n\n";
+  
 
 
 # Forbid bots
@@ -221,6 +221,7 @@ use CGI::Carp qw(fatalsToBrowser);
 
 	# SHOW
   elsif ($vars->{cmd} eq "show") {
+	    print "Content-type: text/html\n\n";
 		print &api_show_record(); exit;
 	}
 
@@ -368,6 +369,7 @@ if ($vars->{cmd} eq "create") {
 }
 
 
+
 # -------------------------------------------------------------------------------------
 #          Editor Functions
 #
@@ -429,8 +431,11 @@ if ($vars->{cmd} eq "update") {
 	&record_sanitize_input($vars);
 
 	# Identify update by type
-
-	if ($vars->{type} eq "text" || $vars->{type} eq "textarea"  || $vars->{type} eq "wysihtml5" || $vars->{type} eq "select") {  &api_textfield_update(); }
+	if ($vars->{type} eq "text" || 
+		$vars->{type} eq "textarea"  || 
+		$vars->{type} eq "wysihtml5" || 
+		$vars->{type} eq "select") { 
+			&api_textfield_update(); }
 
 	elsif ($vars->{type} eq "keylist") { &api_keylist_update();  }
 
@@ -461,18 +466,7 @@ if ($vars->{cmd} eq "update") {
 	elsif ($vars->{type} eq "commit") { &api_commit(); }
 
 	# Simple one-field update, returns JSON
-	elsif ($vars->{field}) {
-
-		$vars->{format} = "json"; 
-		unless ($vars->{table} && $vars->{field} && $vars->{value} && $vars->{id}) {
-			&status_error("Update command requires a table name, ID number, and a value");
-		}
-		my $field = $vars->{field}; my $fieldprefix = $vars->{table}."_";
-		unless ($field =~ /^$fieldprefix/) { $field = $fieldprefix.$field; }
-		
-		&db_update($dbh,$vars->{table},{$field => $vars->{value}},$vars->{id});
-		&status_ok();
-	} 
+	elsif ($vars->{field}) { &api_textfield_update(); } 
 
 	exit;
 }
@@ -1128,21 +1122,22 @@ if ($vars->{table} eq "media") {
 
 sub api_show_record {
 
-	 unless ($vars->{table}) { return "Don't know which table to show."; exit;}
-	 return unless (&is_allowed("view",$vars->{table}));
+	 unless ($vars->{table}) { &status_error("Don't know which table to show.");}
+	 &status_error("Not allowed to show ".$vars->{table}) unless (&is_allowed("view",$vars->{table}));
 
 	 # Set PLE start screen to login if needed
 	 if ($vars->{table} eq "box" && $vars->{id} eq "Start") {
+		 
 		 	our $Person = {}; bless $Person;
  			&get_person($dbh,$query,$Person);
  			my $person_id = $Person->{person_id};
 		 	&admin_only();
 	 }
 
-	 print "Content-type: text/html\n\n";
 
-   unless ($vars->{id}) { return "Don't know which ".$vars->{table}." number to show."; exit;}
-	 $vars->{format} ||= "html";
+   unless ($vars->{id}) { &status_error("Don't know which ".$vars->{table}." number to show."); }
+	 $vars->{format} ||= "html";	 
+
 	 return	&output_record($dbh,$query,$vars->{table},$vars->{id},$vars->{format},"api");
 	 exit;
 }
@@ -1827,31 +1822,54 @@ sub api_keylist_remove {
 
 sub api_textfield_update {
 
-
-	die "Field does not exist" unless (&__check_field($vars->{table_name},$vars->{col_name}));
+	$vars->{format} = "json"; 
+					
+	unless ($vars->{table} && $vars->{field} && $vars->{value} && $vars->{id}) {
+		&status_error("Update command requires a table name, ID number, and a value");
+	}
+	
+	my $field = $vars->{field}; my $fieldprefix = $vars->{table}."_";
+	unless ($field =~ /^$fieldprefix/) { $field = $fieldprefix.$field; }
+		
+	&status_error("Field $field does not exist") unless (&__check_field($vars->{table},$vars->{field}));
+	
 	# Check for duplicates
 	if ($vars->{col_name} =~ /_title|_name|_url|_link/) {
 		if (my $l = &db_locate($dbh,$vars->{table_name},{$vars->{col_name} => $vars->{value}})) {
-			$vars->{msg} .= qq|<p>Duplicate Entry. This $vars->{col_name} will not be saved.<br/>
+			&status_error(qq|<p>Duplicate Entry. This $vars->{col_name} will not be saved.<br/>
 			If you would like to edit the existing $vars->{table_name} then please
-			<span title="Edit" onclick="openDiv('$Site->{st_cgi}api.cgi','main','edit','$vars->{table_name}','$l','Edit');"> <i class="fa fa-edit"> Click Here</i></span></p>|;
-			print $vars->{msg};
-			exit;
+			<span title="Edit" onclick="openDiv('$Site->{st_cgi}api.cgi','main','edit','$vars->{table_name}','$l','Edit');"> <i class="fa fa-edit"> Click Here</i></span></p>|);
 		}
 
 	}
-	my $id_number = &db_update($dbh,$vars->{table_name}, {$vars->{col_name} => $vars->{value}}, $vars->{table_id});
-	# Update the cached version of the record
+
+	# Submit the data
+	my $id_number = &db_update($dbh,$vars->{table}, {$vars->{field} => $vars->{value}}, $vars->{id});
+
+	# If successful
 	if ($id_number) {
- 		&output_record($dbh,$query,$vars->{table_name},$vars->{table_id},"viewer");
-		my $published = &db_get_single_value($dbh,$vars->{table_name},$vars->{table_name}."_social_media",$vars->{table_id});
+
+$vars->{message} .= "Suvvessfully updated $id_number";
+
+		# If table is optlist, update search forms
+		if ($vars->{table} eq "optlist") {
+$vars->{message} .= " Updating search form";			
+			$vars->{message} .= &make_search_forms();    # Located in make.pl
+		}
+
+		# Update the cached version of the record
+ 		# &output_record($dbh,$query,$vars->{table},$vars->{id},"viewer");
+		 
+		my $published = &db_get_single_value($dbh,$vars->{table},$vars->{table}."_social_media",$vars->{id});
 
 		# Update if already published to web
 		# Autopublishing author, feed
-		if ($published =~ /web/ || $vars->{table_name} eq "author" || $vars->{table_name} eq "feed") { 
-			&print_record($vars->{table_name},$vars->{table_id});
-		 }   
-		&api_ok();
+		if ($published =~ /web/ || $vars->{table} =~ /author|feed|post/) { 
+			&print_record($vars->{table},$vars->{id});
+		}   
+		
+		&status_ok();
+
   } else { &api_error(); }
 	die "api failed to update $vars->{table_name}  $vars->{table_id}" unless ($id_number);
 
@@ -2361,6 +2379,15 @@ sub api_data_update {
   #		&db_update($dbh,$vars->{table_name}, {form_commit => 0}, $vars->{table_id});
 	}
 
+	# Rebuild search forms in case the table is 'optlist'
+	# We'll just call the function with a request to admin.cgi
+	if ($vars->{table_name} eq "optlist") {
+		my $findurl = $Site->{st_cgi}."admin.cgii?action=make_search_forms";
+		my $content = get $findurl;
+		&status_error("Couldn't get $findurl") unless defined $content;
+		$vars->{message} .= $content;
+	}
+
     if ($id_number) { &api_ok();   } else { &api_error(); }
 
 
@@ -2578,7 +2605,6 @@ sub save_file {
 
 sub __check_field {
 	my ($table,$field) = @_;
-
 	my @columns = &db_columns($dbh,$table);
 	return 1 if (&index_of($field,\@columns)>-1);
 	return 0;
