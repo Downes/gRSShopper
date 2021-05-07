@@ -24,7 +24,7 @@ services:
     ports:
       - "443:443"
     volumes:
-      - ./html:/var/www/html   
+      - /var/www/html   
     networks:
       - grss
 
