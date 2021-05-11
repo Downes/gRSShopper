@@ -91,6 +91,7 @@ COPY html/index.html /var/www/html/index.html
 COPY html/index.html /var/www/html/index.htm
 COPY html/PLE.html /var/www/html/PLE.html
 COPY html/PLE.html /var/www/html/PLE.htm
+COPY html/.htaccess /var/www/html/.htaccess
 ADD html/assets /var/www/html/assets/
 ADD html/cgi-bin /var/www/html/cgi-bin/
 
