@@ -492,7 +492,7 @@ sub list_records {
 						$feeds_data->{$feed} = $feeditem;
 					}
 					$feeditem = $feeds_data->{$feed}; # get from cache
-					foreach my $field (qw(title name url link id category genre status)) {
+					foreach my $field (qw(title name url link id category genre status section)) {
 						$itemdata->{"feed_".$field} = $feeditem->{"feed_".$field};
 					}
 				}

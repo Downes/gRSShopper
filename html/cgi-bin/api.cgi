@@ -3,6 +3,7 @@ use CGI;
 use CGI::Carp qw(fatalsToBrowser);
 # Print OK for blank api request
 
+
 #    gRSShopper 0.7  API 0.01  -- gRSShopper api module
 #    30 December 2017 - Stephen Downes
 
@@ -101,6 +102,7 @@ use CGI::Carp qw(fatalsToBrowser);
 
 	# Show
 	if ($vars->{cmd} eq "show" && ($vars->{table} eq "link" || $vars->{table} eq "feed")) {
+
 		print "Content-type: text/json\n\n";
    		$vars->{format} = "json";
 		my ($metadata,$data) = &list_records($vars->{table},{cmd=>"show",$vars->{table}."_id"=>$vars->{id}});
@@ -313,7 +315,9 @@ use CGI::Carp qw(fatalsToBrowser);
 
 # Load User
 	#my ($session,$username) = &check_user();
-	my ($session,$username) = &check_user("application/json");
+	my $mimetype = "application/json";
+	if ($vars->{cmd} =~ /edit|autopost/) { $mimetype = "text/html"; }
+	my ($session,$username) = &check_user($mimetype);
 	our $Person = {}; bless $Person;
 	&get_person($Person,$username);
 	my $person_id = $Person->{person_id};
@@ -385,17 +389,18 @@ if ($vars->{cmd} eq "edit") {
 
 	unless ($vars->{table} ) { print "Table to $vars->{cmd} has not been specified."; exit; }
 	my $tabs = [];
+
+	if ($vars->{autopost} > 0) { &api_autopost($vars->{autopost}); }
 	if ($vars->{table} eq "person" && $vars->{id} eq "me") { 
 		$vars->{id} = $Person->{person_id}};		# Edit myself
 	if ($vars->{id} eq "new") {
 		$vars->{id} = &make_new_record($vars->{table});
 	}	
-	my $starting_tab = $vars->{starting_tab} || "Edit";
+	my $starting_tab = $vars->{starting_tab} || "Edit";	
 	print &main_window($tabs,$starting_tab,$vars->{table},"$vars->{id}",$vars);
 	exit;
 
 }
-
 
 
 
@@ -773,11 +778,7 @@ if ($vars->{table} eq "media") {
 
 
 
-	# AUTOPOST
-  elsif ($vars->{cmd} eq "autopost") {
-		print &api_autopost();
-		exit;
-	}
+
 
 	# GRSSHOPPER UPDATE
 	elsif ($vars->{cmd} eq "gRSShopper_update") {
@@ -2624,13 +2625,15 @@ sub __check_field {
 
 sub api_autopost {
 
-   $vars->{table} = "link";
-	 my $url = $Site->{st_cgi}."api.cgi";
-   unless ($vars->{id}) { return "Don't know which ".$vars->{table}." number to clone."; exit; }
-	 my $post_id = &auto_post($dbh,$query,$vars->{id});
-	 if ($post_id > 0) { return qq|<a onclick="openDiv('$url','main','edit','post','$post_id');alert('Autopost Submitted');openDiv('$url','Reader','show','link','$vars->{id}');$('#Edit').tab('show');">Edit Post</a>|; }
-   else { return $post_id; } # which will be an error message
-	 exit;
+	my ($linkid) = @_;
+	unless ($linkid) { &status_error("Don't know which ".$vars->{table}." number to clone."); }
+	my $post_id = &auto_post($linkid);    # &auto_post() is in grsshopper.pl
+	 if ($post_id > 0) { 
+		my $tabs = []; 
+		my $starting_tab = $vars->{starting_tab} || "Edit";	
+		print &main_window($tabs,$starting_tab,"post",$post_id,$vars);
+		exit;
+	 } else { &status_error($post_id); } # which will be an error message
 }
 
 

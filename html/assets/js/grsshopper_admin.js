@@ -294,6 +294,7 @@ function appendData(request,data) {
     var mainContainer = document.getElementById(request.div);
     removeElementsByClass('list-result');  // clear previous list data
     if (data) {
+        
         for (var i = 0; i < data.length; i++) {
             var div = document.createElement("div");
             var templ = selectTemplate(request,data,i);
@@ -395,6 +396,10 @@ function feedListTemplate(data,i) {
 function linkListTemplate(data,i) {
     if (!data[i].genre) { data[i].genre = "none"; }
     return `<div class="table-list-element list-result">
+    [<a href="#" onClick="
+        openDiv(url,'editor','edit','link','${data[i].id}','Edit');
+        openTab(event, 'editor', 'mainlinks');
+        ">E</a>]
     <a href="#" onClick="
         loadData({div:'Reader',cmd:'show',table:'link',id:'${data[i].id}'});
         openTab(event, 'Reader', 'mainlinks');
@@ -452,21 +457,26 @@ function linkShowTemplate(request,data,i) {
     return `<div class="tabPanel">`+
             firstTemplate(request,data,i)+
             prevTemplate(request,data,i)+
+            autopostTemplate(request,data,i)+
            lastTemplate(request,data,i)+
            nextTemplate(request,data,i)+
             `</div>
-            Title: ${data[i].title} <br>
+            <div style="padding:10px;">
+            <h2> ${data[i].title} </h2><br>
             Link: ${data[i].link} <br>
             ID: ${data[i].id} <br>
             Feed: <a href="${data[i].feed_link}">${data[i].feed_title}</a><br>
-            Category: ${data[i].feed_category}    Genre:  ${data[i].feed_genre}
+            Category: ${data[i].feed_category} <br>
+            Genre:  ${data[i].feed_genre}<br>
+            Section:  ${data[i].feed_section}<br>
             Description: ${data[i].description}<br>
-            View original: <a href="${data[i].link}" target="new">Click here</a>`;
+            View original: <a href="${data[i].link}" target="new">Click here</a>
+            </div>`;
 }
 
 function nextTemplate(request,data,i) {
 
-    return `<div class="tab mainlinks" role="button" tabindex="0" style="float:right;"
+    return `<div class="tab mainlinks" role="button" tabindex="3" style="float:right;"
        onClick="loadData({div:'${request.div}',cmd:'show',table:'${request.table}',id:'${data[i].next}'});"><i class="fa fa-angle-right"></i>
        </div>`;
 
@@ -474,7 +484,7 @@ function nextTemplate(request,data,i) {
 
 function lastTemplate(request,data,i) {
 
-    return `<div class="tab mainlinks" role="button" tabindex="0" style="float:right;"
+    return `<div class="tab mainlinks" role="button" tabindex="2" style="float:right;"
        onClick="loadData({div:'${request.div}',cmd:'show',table:'${request.table}',id:'${data[i].last}'});"><i class="fa fa-angle-double-right"></i>
        </div>`;
 
@@ -493,6 +503,17 @@ function firstTemplate(request,data,i) {
 
     return `<div class="tab mainlinks" role="button" tabindex="0"
        onClick="loadData({div:'${request.div}',cmd:'show',table:'${request.table}',id:'${data[i].first}'});"><i class="fa fa-angle-double-left"></i>
+       </div>`;
+
+}
+
+function autopostTemplate(request,data,i) {
+
+    return `<div class="tab mainlinks" role="button" tabindex="4" style="align:center;"
+       onClick="
+            openDiv(url,'editor','edit','post','autopost','','Edit',${data[i].id});
+            openTab(event,'editor','mainlinks');
+        ">Autopost</i>
        </div>`;
 
 }

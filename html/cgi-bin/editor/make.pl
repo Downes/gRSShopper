@@ -1776,7 +1776,7 @@ sub make_search_forms() {
 		}
 
 		# Get options from fields that might not be in optlist
-		my @miscfieldlist = qw(category genre section type class status);
+		my @miscfieldlist = qw(category genre section type topic class status);
 
 		# Get the list of columns from the database
 		my @columns = ();

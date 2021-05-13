@@ -12,6 +12,7 @@
 sub main_window {
 
 	my ($tabs,$starting_tab,$table,$id,$data) = @_;
+
   	my $db = gRSShopper::Database->new({dbh=>$dbh});
 
 	my $window = gRSShopper::Window->new({
@@ -26,7 +27,7 @@ sub main_window {
 		load=>1,						# Load record data
 	});
 
-
+	
 	if ($window->{tab_list}) { 
 		$tabs ||= $window->{tabs}; 
 		$starting_tab ||= $window->{show_active}; 

@@ -407,7 +407,7 @@ sub anonymous {
 
 sub auto_post() {
 
-	my ($dbh,$query,$linkid) = @_;
+	my ($linkid) = @_;
 
 	my $link = &db_get_record($dbh,"link",{link_id=>$linkid});
 	unless ($link->{link_id}) { return &printlang("Link error",$linkid); }
@@ -419,7 +419,7 @@ sub auto_post() {
 	    ($l = &db_locate($dbh,"post",{post_link => $link->{link_link}}))  ||
 	    ($l = &db_locate($dbh,"post",{post_title => $link->{link_title},post_feedid => $link->{link_feedid}}))
 	    ) {
-	    	print "Not unique <br>";
+	    	$vars->{message} = "Not unique"; 
 	    	return $l;
 	}
 
@@ -441,14 +441,22 @@ sub auto_post() {
 
 	}
 
+									# Fill with feed data
+	my $feed = &db_get_record($dbh,"feed",{feed_id=>$link->{link_feedid}});
+	while (my($lx,$ly) = each %$feed) {
+		my $px=$lx; $px =~ s/feed_/post_/i;
+		# $post->{$px} ||= $ly;   # Creates an error for post_updated
+	}
 
 	my $now = time;
-  $post->{post_crdate} = $now;	# Over-writes link crdate
+  	$post->{post_crdate} = $now;	# Over-writes link crdate
 
 	$post->{post_id} = &db_insert($dbh,$query,"post",$post);	# save post record
-	$vars->{post_twitter}="yes";
-	$vars->{post_facebook}="yes";
-	$vars->{msg} .= &publish_post($dbh,"post",$post->{post_id});	# Publish to Social Media
+
+	# We don't want to auto-post to social media
+	#$vars->{post_twitter}="yes";
+	#$vars->{post_facebook}="yes";
+	# $vars->{msg} .= &publish_post($dbh,"post",$post->{post_id});	# Publish to Social Media
 
 									# Create post graph
 
@@ -1815,8 +1823,10 @@ package gRSShopper::Person;
 			&load($self) if ($self->{load});
 
 			# If autopost is called...
-			if ($self->{data}->{autopost} && $self->{data}->{autopost} ne "" && $self->{data}->{autopost} ne "undefined") {
 
+			#NOTE: this is disabled, it's in 
+			if (0 && $self->{data}->{autopost} && $self->{data}->{autopost} ne "" && $self->{data}->{autopost} ne "undefined") {
+#print "Main window  trying to do autopost on ".$self->{data}->{autopost}." <p>";
 				my ($autocommand,$autotable,$autoid) = split '-',$self->{data}->{autopost};
 
 				# Get the link being autoposted
@@ -1845,7 +1855,7 @@ package gRSShopper::Person;
 					&clone_graph($self,$self->{db},$self->{dbh},$self->{person},$autoid,$self->{$self->{table}."_id"});
 				}
 
-      }
+      		}
 
 	 		return $self;
 	  }
