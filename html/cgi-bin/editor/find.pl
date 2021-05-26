@@ -396,15 +396,22 @@ sub list_records {
 
 
 	if ($parms) {
+
 		my @columns = &db_columns($dbh,$table);
 		my @wherelist;
-		while (my ($px,$py) = each %$parms) {
+	
+	
+		while (my ($px,$py) = each %$parms) { 
+
+			my $tablelead = $table."_";					# Normalize field name
+			unless ($px =~ /$tablelead/) { $px = $tablelead.$px; }
+
+
 			next if ($py eq "" || $py eq "all");		# Don't filter by nothing or everything
 			next unless (grep( /^$px$/, @columns));		# Don't search in non-existent columns
 		
-			my $tablelead = $table."_";
-			
-			unless ($px =~ /$tablelead/) { $px = $tablelead.$px; }
+
+
 			if ($px =~ /_category|_genre|_status|_section|_class|_type|_id/) {  	# Parameters for filter
 				push @wherelist,qq|($px = '$py')|; 
 			} else {													# Text search, uses 'LIKE'
@@ -456,11 +463,10 @@ sub list_records {
 
 			# Basic list data, always sent
 			foreach my $field (qw(title name mimetype url link id section genre category status)) {
-				$itemdata->{$field} = $list_record->{$table."_".$field};
+				 $itemdata->{$field} = $list_record->{$table."_".$field}; 
 			}
 
-
-			
+						
 			# Large list data, sent if 'cmd' == 'show'
 			if ($parms->{cmd} eq "show") {
 
@@ -499,6 +505,7 @@ sub list_records {
 			}
 			push @$listarray,$itemdata;
 		}
+
 		return ($parms,$listarray);
 	#}
 
