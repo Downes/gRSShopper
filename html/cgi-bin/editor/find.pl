@@ -148,7 +148,7 @@ sub search {
 
 						# Set Sort, Start, Number values
 
-	my ($sort,$start,$number,$limit) = &sort_start_number($query,$page->{table});
+	my ($sort,$start,$number,$limit) = &sort_start_number($vars,$page->{table});
 	$page->{page_content} .= qq|<p id="listing">Listing $start to |.($start+$number)." of $count ".$page->{table}."s found</p>";
 
 
@@ -218,13 +218,12 @@ sub search {
 	#
 sub sort_start_number {
 
-	my ($query,$table) = @_;
-	my $vars = ();
-	if (ref $query eq "CGI") { $vars = $query->Vars; }
+	my ($vars,$table) = @_;
+
 
 						# Number
 
-	my $number = $vars->{number} || $Site->{st_list} || 200;
+	my $number = $vars->{number} || $Site->{st_list} || 40;
  #	print "Number: $number <br>";
 
 						# Sort
@@ -354,7 +353,8 @@ sub list_records {
 	my $vars = $query->Vars;
 	my $output = "";
 	my $onclickurl = $Site->{st_cgi}."api.cgi";
-
+#print "Content-type: text/html\n\n";	
+#while (my ($px,$py) = each %$parms) { print "$px = $py \n";}
 	$vars->{where} =~ s/[^\w\s]//ig;	# chars only, no SQL injection for you
 	my $format = $vars->{format};		# Output Format
 
@@ -363,8 +363,11 @@ sub list_records {
 	}
 
 
-	# Set Sort, Start, Number values
-	my ($sort,$start,$number,$limit) = &sort_start_number($query,$table);
+	# Set Sort, Start, Number values`
+	my ($sort,$start,$number,$limit) = &sort_start_number($parms,$table);
+	$parms->{sort} = $sort;
+	$parms->{start} = $start+1;
+	$parms->{number} = $number;
 
 
 	# Set Conditions Related to Permissions
@@ -430,7 +433,9 @@ sub list_records {
 	my $count;
 #print "My table is $table <p>";
   	if ($where) { $count = &db_count($dbh,$table,$where); } else { $count = &db_count($dbh,$table); }
-
+	$parms->{count} = $count;
+	if ($start+$number > $start+$count) { $parms->{end} = $start+$count;} 
+	else {$parms->{end} = $start+$number;}
 
 	# Execute SQL search
 	my $stmt = qq|SELECT * FROM $table $where $sort $limit|;
@@ -507,6 +512,7 @@ sub list_records {
 			push @$listarray,$itemdata;
 		}
 
+		$parms->{newtest} = "New Test";
 		return ($parms,$listarray);
 	#}
 

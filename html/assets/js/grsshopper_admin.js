@@ -299,7 +299,7 @@ function appendData(request,data) {
     if (data.data) {       
 
         var listHeader = document.createElement("div");
-        listHeader.innerHTML = listHeaderTemplate(request,data.data,i);
+        listHeader.innerHTML = listHeaderTemplate(request,data.metadata);
         mainContainer.appendChild(listHeader);
 
         for (var i = 0; i < data.data.length; i++) {
@@ -308,10 +308,15 @@ function appendData(request,data) {
             div.innerHTML = templ;
             mainContainer.appendChild(div);
         }
-
-        var listFooter = document.createElement("div");
-        listFooter.innerHTML = listFooterTemplate(request,data.data,i);
-        mainContainer.appendChild(listFooter);
+        if (data.metadata.end < data.metadata.count) {
+            data.metadata.newstart = parseInt(data.metadata.end)+parseInt(data.metadata.number);
+            if (parseInt(data.metadata.newstart) > parseInt(data.metadata.count)){ 
+                data.metadata.number = parseInt(data.metadata.count) - parseInt(data.metadata.end);
+            }
+            var listFooter = document.createElement("div");
+            listFooter.innerHTML = listFooterTemplate(request,data.metadata);
+            mainContainer.appendChild(listFooter);
+        }
 
     } else {
         var div = document.createElement("div");
@@ -382,15 +387,18 @@ function selectTemplate(request,data,i) {
 //  templates
 //
 
-function listHeaderTemplate(request,data,i) {
+function listHeaderTemplate(request,metadata) {
     return `<div class="table-list-element list-result">
-    Listing ${request.table} Header
+    Listing ${metadata.start} to ${metadata.end} of ${metadata.count} ${request.table}s
     </div>`;
 }
 
-function listFooterTemplate(request,data,i) {
-    return `<div class="table-list-element list-result">
-    Footer
+function listFooterTemplate(request,metadata) {
+    return `<div class="table-list-element list-result"
+    onClick="loadList({div:'${request.div}',cmd:'list',
+        table:'${request.table}',number:'${metadata.number}',
+        start:'${metadata.end}'});">
+    ${metadata.number} More starting at ${metadata.end}
     </div>`;
 }
 

@@ -124,8 +124,9 @@ use CGI::Carp qw(fatalsToBrowser);
 		# Set up input parameters
 		
 		while (my($vx,$vy) = each %$vars) {
-			if ($vx =~ /category|genre|status|section|class|type/) {  	# Parameters for filter
-				$listsearch->{$vx} = $vy; }
+		#	if ($vx =~ /category|genre|status|section|class|type/) {  	# Parameters for filter
+				$listsearch->{$vx} = $vy; 
+		#	}
 		}
 		if ($vars->{qkey} && $vars->{qval}) {						  	# Text search input
 			$listsearch->{$vars->{qkey}} = $vars->{qval};
@@ -134,6 +135,7 @@ use CGI::Carp qw(fatalsToBrowser);
 		# for now...
 		print "Content-type: text/json\n\n";
    		$vars->{format} = "json";
+
 $listsearch->{$vars->{qkey}} = $vars->{qval};
 																		# get search result
    		my ($metadata,$data) = &list_records($vars->{table},$listsearch);
