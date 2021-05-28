@@ -403,11 +403,11 @@ sub list_records {
 	
 		while (my ($px,$py) = each %$parms) { 
 
+			next if ($py eq "" || $py eq "all");		# Don't filter by nothing or everything
+
 			my $tablelead = $table."_";					# Normalize field name
 			unless ($px =~ /$tablelead/) { $px = $tablelead.$px; }
 
-
-			next if ($py eq "" || $py eq "all");		# Don't filter by nothing or everything
 			next unless (grep( /^$px$/, @columns));		# Don't search in non-existent columns
 		
 
@@ -428,6 +428,7 @@ sub list_records {
 
 	# Count Total Number of Items
 	my $count;
+#print "My table is $table <p>";
   	if ($where) { $count = &db_count($dbh,$table,$where); } else { $count = &db_count($dbh,$table); }
 
 

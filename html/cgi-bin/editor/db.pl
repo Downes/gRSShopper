@@ -1073,6 +1073,7 @@ sub db_count {
 	my ($dbh,$table,$where) = @_;
 
 	my $stmtc = "SELECT COUNT(*) AS items FROM $table $where";
+
 	my $sthc = $dbh -> prepare($stmtc);
 	$sthc -> execute()  || die "Error: " . $dbh->errstr . " -- ".$stmtc;
 	my $refc = $sthc -> fetchrow_hashref();

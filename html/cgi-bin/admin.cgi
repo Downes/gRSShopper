@@ -179,7 +179,7 @@ unless ($Site->{context} eq "cron") {
 	if ($action) {
 
 		for ($action) {
-		#	print "Action: $action <p>";												# Main admin menu nav
+			#print "Action: $action <p>";												# Main admin menu nav
 
 			/start/ && do { &admin_start($dbh,$query); last;			};	# 	- Start Menu
 			/general/ && do { &admin_general($dbh,$query); last;			};	# 	- General Menu
@@ -255,8 +255,8 @@ unless ($Site->{context} eq "cron") {
 			/fixmesubs/ && do { &fixmesubs($dbh,$query,$table); last;		};
 
 	                       # API Functions
-
-	    /access_api/ && do { &access_api($dbh,$query); last; };
+			/admin_api/ && do { &admin_api($dbh,$query); last; };	
+	    	/access_api/ && do { &access_api($dbh,$query); last; };
 
 			/export_users/ && do { &export_user_list($dbh,$query); last;			};
 			/import/ && do { &import($dbh,$query,$table); last;		};
@@ -327,45 +327,8 @@ unless ($Site->{context} eq "cron") {
 
 
 
-	# -----------------------------------   Admin: General   -----------------------------------------------
-	#
-	#   Initialization and editing of general site configuration data
-	#   Expects and requires access to a 'config' table in the database
-	#   The config table in turn is used by init_site() in grsshopper.pl
-	#
-	# ------------------------------------------------------------------------------------------------------
-
-	sub admin_general {
-
-		my ($dbh,$query) = @_;
-print "Admin General";
-	        my $content = &printlang("General Information");
-
-		$content .= &admin_update_grsshopper($dbh,$query);
-
-		$content .= &admin_cron($dbh,$query);
-
-		$content .= &admin_configtable($dbh,$query,"Site Information",
-			("Site Name:st_name","Site Tag:st_tag","Email:st_email","Description:st_desc","Publisher:st_pub","Creator:st_crea","License:st_license","Time Zone:st_timezone","Reset Key:reset_key"));
 
 
-		$content .= &admin_api($dbh,$query);
-
-		$content .= &admin_configtable($dbh,$query,"Base URLs and Directories",
-			("Base URL:st_url","Base Directory:st_urlf","CGI URL:st_cgi","CGI Directory:st_cgif","Login URL:st_login"));
-
-		$content .= &admin_configtable($dbh,$query,"Media Directories",
-			("Images:st_img","Photos:st_photo","Files:st_file","Icons:st_icon"));
-
-		$content .= &admin_configtable($dbh,$query,"Upload Directories",
-			("Uploads:st_upload","Images:up_image","Documents:up_docs","Slides:up_slides","Audio:up_audio","Videos:up_video"));
-
-		&admin_frame($dbh,$query,"Admin General",$content);					# Print Output
-		exit;
-
-
-
-	}
 
 
 
@@ -454,8 +417,6 @@ print "Admin General";
 		$content .= &admin_configtable($dbh,$query,"Site Information",
 			("Site Name:st_name","Site Tag:st_tag","Email:st_email","Description:st_desc","Publisher:st_pub","Creator:st_crea","License:st_license","Time Zone:st_timezone","Reset Key:reset_key"));
 
-		$content .= &admin_api($dbh,$query);
-
 		$content .= &admin_configtable($dbh,$query,"Base URLs and Directories",
 			("Base URL:st_url","Base Directory:st_urlf","CGI URL:st_cgi","CGI Directory:st_cgif","Login URL:st_login"));
 
@@ -480,28 +441,49 @@ print "Admin General";
 
 
 
-		my $content = qq|<h3>Access API</h3><p>
-		 <ul><table cellspacing="0" cellpadding="2" border="0"><tr><td>
-	   <form method="post" action="$Site->{st_cgi}admin.cgi">
+		my $content = qq|<h1>Access API</h1>
+		<div style="float:left;width:25%">
+		<form method="post" action="">
 		 <input type="hidden" name="action" value="access_api">
-		 Method: <select name="method"><option value="get"> GET </option> <option value="post" selected> POST </option></select><br>
-		 URL: <input type="text" name="url" size="40" value="http://www.mooc.ca/cgi-bin/api.cgi">
-		 JSON: <textarea rows=10 cols="40" name="postdata">
+		 URL: <input type="text" name="url" id="apiurl" style="width:95%;" value="$Site->{st_cgi}api.cgi"><br>
+		 JSON:<br> <textarea style="width:95%;height:340px;" id="postdata" name="postdata">
 	{
-	 "action": "search",
-	 "table": "course",
-	 "query": "agriculture",
-	 "language": "en",
-	 "sort": "course_title"
+	 "cmd": "list",
+	 "table": "page"
 	}
 		 </textarea>
-		 <input type="submit">
-		 </form>
-	   </table></ul>
+		 <input type="submit" onClick="
+		 	alert(document.getElementById('postdata').value);
+			fetch(document.getElementById('apiurl').value,{
+        		method: 'POST', // or 'PUT'
+        		headers: {
+          			'Content-Type': 'application/json',
+        		},
+        		body: document.getElementById('postdata').value,
+      		})
+	        .then(response => response.json())
+    	    .then(function (data) {
+				var myJSON = JSON.stringify(data);
+				document.getElementById('api_result').innerHTML = myJSON;
+				// alert(data.metadata.testing);
+            	// appendData(request,data);
+        	})
+        	.catch((error) => {
+				document.getElementById('api_result').innerHTML = error;
+            	//console.error('Error:', error);
+				}
+      		);
 
-		|;
 
-	   return $content;
+		 	
+			return false;
+		 ">
+		 </form></p>
+		 </div>
+		 <div id="api_result" style="width:70%;border:solid black 1px;float:left;">Result</div>
+	   |;
+
+	   print $content;
 
 		exit;
 

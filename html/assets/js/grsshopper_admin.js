@@ -291,16 +291,28 @@ function uploadFile(event,request) {
 
 function appendData(request,data) {
 
+
     var mainContainer = document.getElementById(request.div);
     removeElementsByClass('list-result');  // clear previous list data
-    if (data) {
-        
-        for (var i = 0; i < data.length; i++) {
+
+
+    if (data.data) {       
+
+        var listHeader = document.createElement("div");
+        listHeader.innerHTML = listHeaderTemplate(request,data.data,i);
+        mainContainer.appendChild(listHeader);
+
+        for (var i = 0; i < data.data.length; i++) {
             var div = document.createElement("div");
-            var templ = selectTemplate(request,data,i);
+            var templ = selectTemplate(request,data.data,i);
             div.innerHTML = templ;
             mainContainer.appendChild(div);
         }
+
+        var listFooter = document.createElement("div");
+        listFooter.innerHTML = listFooterTemplate(request,data.data,i);
+        mainContainer.appendChild(listFooter);
+
     } else {
         var div = document.createElement("div");
         div.innerHTML = "<p>No Records</p>";
@@ -369,6 +381,18 @@ function selectTemplate(request,data,i) {
 //
 //  templates
 //
+
+function listHeaderTemplate(request,data,i) {
+    return `<div class="table-list-element list-result">
+    Listing ${request.table} Header
+    </div>`;
+}
+
+function listFooterTemplate(request,data,i) {
+    return `<div class="table-list-element list-result">
+    Footer
+    </div>`;
+}
 
 function authorListTemplate(data,i) {
     return `<div class="table-list-element list-result">

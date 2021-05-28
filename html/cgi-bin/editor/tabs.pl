@@ -526,6 +526,20 @@ sub Tab_General {
 
 }
   # TABS ----------------------------------------------------------
+  # ------- API  --------------------------------------------
+  #
+  # Access API Functions
+  #
+  # -------------------------------------------------------------------------
+sub Tab_API {
+
+   #return "Permission Denied" unless (&is_viewable("admin","database"));
+   my $adminlink = $Site->{st_cgi}."admin.cgi";
+   my $output = qq|<iframe class="admin-iframe"  src="$adminlink?action=admin_api"></iframe>|;
+   return $output;
+
+}
+  # TABS ----------------------------------------------------------
   # ------- Subscribers  --------------------------------------------
   #
   # General Subscriber Functions

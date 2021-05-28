@@ -64,11 +64,18 @@ use CGI::Carp qw(fatalsToBrowser);
 	#my $postdata = $query->param('POSTDATA');
 	if ($postdata) {
 		#print "Content-type:application/json\n\n";
+		#print $postdata; exit;
 			$request_type = "post";
 			# Parse the JSON Data
 			use JSON;
 			use JSON::Parse 'parse_json';
-			$vars = parse_json($postdata);
+			$vars = eval { parse_json($postdata) };
+			if ($@)
+			{
+				print "Content-type:application/json\n\n";
+    			&status_error("parse_json failed, invalid json. error:$@\n");
+			}
+			#$vars = parse_json($postdata);
 			$request_data = $vars;
 
 			#exit;
@@ -127,12 +134,24 @@ use CGI::Carp qw(fatalsToBrowser);
 		# for now...
 		print "Content-type: text/json\n\n";
    		$vars->{format} = "json";
-
+$listsearch->{$vars->{qkey}} = $vars->{qval};
 																		# get search result
    		my ($metadata,$data) = &list_records($vars->{table},$listsearch);
 
-#die "Testing: ".$metadata->{testing}."\n";																		# Encode into JSON and print	
-   		my $json = encode_json $data;
+#die "Testing: ".$metadata->{testing}."\n";	
+$metadata->{$vars->{qkey}} = $vars->{qval};
+$metadata->{testing} = "test";
+#my $json = encode_json $metadata;
+	   	#	print $json;exit;	
+		#$metadata->{test} = "test";   
+		my $response = {
+			metadata => $metadata,
+			data => $data
+		};
+		#my $datastring = join ",",@$data;
+			
+		#   $datastring = qq|{metadata:"$metadata",results:"$datastring"}|;															# Encode into JSON and print	
+   		my $json = encode_json $response;
    		print $json;exit;
 
 	}
@@ -610,7 +629,7 @@ if ($vars->{cmd} eq "admin") {
 #print qq|{"cmd":"|.$vars->{cmd}.qq|","app":"|.$vars->{app}.qq|","db":"|.$vars->{db}.qq|"}|;
 
 		my $starting_tab = $vars->{db} || "Database";
-		print &main_window(['Database','Harvester','Newsletters','Users','Permissions','Logs','General'],$starting_tab);
+		print &main_window(['Database','API','Harvester','Newsletters','Users','Permissions','Logs','General'],$starting_tab);
 	 	exit;
 	}
 

@@ -657,9 +657,14 @@ sub isint{						# Is it an integer?
 sub status_error {
 
 	my ($message) = @_;
-	my $json = encode_json $message;
-	unless ($Person->{person_id}) { print "Content-type: text/json\n\n"; } 
-	print sprintf(qq|{"status":"Error","message":$json,"response":"Error"}|);
+	my $errorResponse = {
+		status => "Error",
+		response => "Error",
+		message => $message
+	};
+	my $json = encode_json $errorResponse;
+	#unless ($Person->{person_id}) { print "Content-type: text/json\n\n"; } 
+	print $json;
 	exit;
 
 }

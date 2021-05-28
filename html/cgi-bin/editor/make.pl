@@ -1836,10 +1836,11 @@ sub make_search_forms() {
 		foreach my $column (sort keys %$ty) {
 			$cy = $ty->{$column};
 		#while (my($column,$cy) = each %$ty) {		# For each column
+			my $fieldname = $table."_".$column;
 			$templ .= sprintf(qq|
 				<div class="table-list-search-form">%s <select name="%s" id="%s%s">
 				    <option value="all" selected>All</a>
-			|,ucfirst($column),$column,$column,$table);
+			|,ucfirst($column),$fieldname,$column,$table);
 
 			foreach my $fname (sort keys %$cy) {
 				$fval = $cy->{$fname};
