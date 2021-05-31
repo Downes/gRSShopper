@@ -531,6 +531,7 @@ if ($vars->{cmd} eq "delete") {
 #
 # -------------------------------------------------------------------------------------
 
+
 if ($vars->{cmd} eq "publish") {
 
 	# Publish Page
@@ -543,8 +544,9 @@ if ($vars->{cmd} eq "publish") {
 
 
 	&api_publish();
+	exit;
 	
-	&status_error("Publishing account not found");
+	#&status_error("Publishing account not found");
 }
 
 # -------------------------------------------------------------------------------------
@@ -791,11 +793,7 @@ if ($vars->{table} eq "media") {
 		exit;
 	}
 
-	# PUBLISH
-  elsif ($vars->{cmd} eq "publish") {
-	 	print &api_page_publish();
-	 	exit;
-  }
+
 
 
 
@@ -1955,8 +1953,10 @@ sub api_publish {
 
 
 	my $result;
-	if ($published =~ /$vars->{value}/) {	# Already Published
+	# Don't publish if already published, except locally
+	if ($published =~ /$vars->{value}/ && $vars->{value} !~ /web|rss|atom|json/i) {	
 		$vars->{message} .= "Was already published";
+
 	#	exit;
 	} else {				# Not yet published, so publish it
 
@@ -1984,63 +1984,63 @@ sub api_publish {
 
 		}
 
-	elsif ($vars->{value} =~ /badgr/i) {
+		elsif ($vars->{value} =~ /badgr/i) {
 
-		# Find the task(s) associated with this badge
-    my @keylist = &find_graph_of("badge",$id,"task");
-    unless ($Site->{badgr_issuerid}) { print "You need to set up your Badgr account first"; exit;}
-    unless (@keylist) { print "You need to associate at least one task with this badge before you can publish it"; exit;}
-    foreach my $t (@keylist) {
-			my $keyname = &get_key_name("task",$t);
-			print "$t $keyname<p>";
-		}
+			# Find the task(s) associated with this badge
+		my @keylist = &find_graph_of("badge",$id,"task");
+		unless ($Site->{badgr_issuerid}) { print "You need to set up your Badgr account first"; exit;}
+		unless (@keylist) { print "You need to associate at least one task with this badge before you can publish it"; exit;}
+		foreach my $t (@keylist) {
+				my $keyname = &get_key_name("task",$t);
+				print "$t $keyname<p>";
+			}
 
-    my $badge = &db_get_record($dbh,"badge",{badge_id=>$id});
-		print "Sending to Badgr<br>";
+		my $badge = &db_get_record($dbh,"badge",{badge_id=>$id});
+			print "Sending to Badgr<br>";
 
-		# Initialize Badgr
-		our $Badgr = gRSShopper::Badgr->new({
-			badgr_url   => $Site->{badgr_url},
-			badgr_account		=>	$Site->{badgr_account},
-			badgr_password => $Site->{badgr_password},
-			badgr_issuerid => $Site->{badgr_issuerid},
-			secure => 1,							# Turns on SSH
+			# Initialize Badgr
+			our $Badgr = gRSShopper::Badgr->new({
+				badgr_url   => $Site->{badgr_url},
+				badgr_account		=>	$Site->{badgr_account},
+				badgr_password => $Site->{badgr_password},
+				badgr_issuerid => $Site->{badgr_issuerid},
+				secure => 1,							# Turns on SSH
+			});
+
+		# Format the badge image
+			my $filerecord = &item_images("badge",$id,"smallest");
+			my $imagestr;
+
+		return "Module File::Slurp not loaded" unless (&new_module_load($query,"File::Slurp"));
+		return "Module MIME::Base64 not loaded" unless (&new_module_load($query,"MIME::Base64"));
+
+			if ($filerecord->{file_mime} eq "image/png") {
+				my $imgfilename =  $Site->{st_urlf}.$filerecord->{file_dirname};
+			#use File::Slurp;
+			#use MIME::Base64 qw|encode_base64|;
+			$imagestr = MIME::Base64::encode_base64( read_file( $imgfilename ) );
+			$imagestr =~ s/\n//g;$imagestr =~ s/\n//g;						# because they get inserted somehow and Badgr chokes on them
+			$imagestr = "data:image/png;base64,".$imagestr;
+			} else {
+				print "Badgr requires that image files be PNG format.";
+			}
+
+
+		# Create the Badge
+			my $saved_badge = $Badgr->create_badge({
+				criteriaUrl => $Site->{st_url}."badge/".$id,
+		badge_title => $badge->{badge_title},
+		badge_description => $badge->{badge_description},
+				image => $imagestr,
 		});
 
-    # Format the badge image
-		my $filerecord = &item_images("badge",$id,"smallest");
-		my $imagestr;
+		print "Saved badge ID: ",$saved_badge->{entityId},"<p>";
+		&db_update($dbh,"badge",{badge_badgrid=>$saved_badge->{entityId},
+				badge_openbadgeid=>$saved_badge->{openBadgeId}},$id);   #Saves entityId to badge record
 
-	return "Module File::Slurp not loaded" unless (&new_module_load($query,"File::Slurp"));
-	return "Module MIME::Base64 not loaded" unless (&new_module_load($query,"MIME::Base64"));
+			exit;
 
-		if ($filerecord->{file_mime} eq "image/png") {
-			my $imgfilename =  $Site->{st_urlf}.$filerecord->{file_dirname};
-    	#use File::Slurp;
-    	#use MIME::Base64 qw|encode_base64|;
-    	$imagestr = MIME::Base64::encode_base64( read_file( $imgfilename ) );
-    	$imagestr =~ s/\n//g;$imagestr =~ s/\n//g;						# because they get inserted somehow and Badgr chokes on them
-    	$imagestr = "data:image/png;base64,".$imagestr;
-		} else {
-			print "Badgr requires that image files be PNG format.";
 		}
-
-
-	  # Create the Badge
-		my $saved_badge = $Badgr->create_badge({
-			criteriaUrl => $Site->{st_url}."badge/".$id,
-      badge_title => $badge->{badge_title},
-      badge_description => $badge->{badge_description},
-			image => $imagestr,
-    });
-
-    print "Saved badge ID: ",$saved_badge->{entityId},"<p>";
-    &db_update($dbh,"badge",{badge_badgrid=>$saved_badge->{entityId},
-			badge_openbadgeid=>$saved_badge->{openBadgeId}},$id);   #Saves entityId to badge record
-
-		exit;
-
-	}
 
 		elsif ($vars->{value} =~ /web/i) {
 
@@ -2130,7 +2130,7 @@ sub api_publish {
 			exit;
 		}
 
-
+		&status_error("Couldn't figure out where to publish this.");
 
 	}
 

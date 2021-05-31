@@ -107,6 +107,7 @@ function loadListHeaders(request) {
         case 'media': templatetext = mediaSearchTemplate(request,panel); break;
         case 'optlist': templatetext = optlistSearchTemplate(request,panel); break;
         case 'page': templatetext = pageSearchTemplate(request,panel); break;
+        case 'post': templatetext = postSearchTemplate(request,panel); break;
         case 'presentation': templatetext = presentationSearchTemplate(request,panel); break;
         case 'project': templatetext = projectSearchTemplate(request,panel); break;
         case 'publication': templatetext = publicationSearchTemplate(request,panel); break;
