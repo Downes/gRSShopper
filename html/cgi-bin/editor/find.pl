@@ -411,6 +411,7 @@ sub list_records {
 			my $tablelead = $table."_";					# Normalize field name
 			unless ($px =~ /$tablelead/) { $px = $tablelead.$px; }
 
+			next if ($px =~ /_table/);
 			next unless (grep( /^$px$/, @columns));		# Don't search in non-existent columns
 		
 
@@ -444,7 +445,7 @@ sub list_records {
 	$sthl->execute();
 	if ($sthl->errstr) { print "Content-type: text/html\n\n";print "DB LIST ERROR: ".$sthl->errstr." <p>"; exit; }
 
-#print "Results: \n";
+#print "Results:  from $stmt\n";
 
 	#if ($table eq "media" || $table eq "link" || $table eq "feed") {
 	#if ($table eq "media" || $table eq "link" || $table eq "feed") {

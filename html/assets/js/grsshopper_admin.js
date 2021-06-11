@@ -145,7 +145,9 @@ var panel = this.nextElementSibling;
 
 function submitData(request) {
     spin_on();
-    fetch('cgi-bin/api.cgi',{
+    var host = 'cgi-bin/api.cgi';
+    if (request.host) { host = request.host; }
+    fetch(host,{
         method: 'POST', // or 'PUT'
         headers: {
           'Content-Type': 'application/json',
@@ -170,11 +172,11 @@ function submitData(request) {
 //  Finds and processes selected values before submit
 //
 
-function submitDataFromSelect(col,table,id) {
+function submitDataFromSelect(col,table,id,host) {
     var colresult = col+"_result";
 	var newval = $('#'+col).val();
 	var subval = newval.toString();
-    submitData({div:colresult,cmd:'update',table:table,field:col,id:id,value:subval});
+    submitData({host:host,div:colresult,cmd:'update',table:table,field:col,id:id,value:subval});
 }
 //
 //  loadHTML

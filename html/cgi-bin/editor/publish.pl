@@ -706,6 +706,142 @@ sub footer {
 
 }
 
+#
+#          Publish Graph
+#
+#          Prints Site Data Graph
+#          List of tables to show is defined in config table, item sh_tables
+#          List of fields to show is defined in config table, iten sh_fields
+#          After records from each table are listed, the graph is listed
+#
+
+sub publish_graph {
+
+	my @wholegraph = &get_graph();
+	my $graphed;
+	my @outputgraph;
+	my @outputdata;
+	my $graphcount = 1;
+	foreach my $gr (@wholegraph) {
+		if ($Site->{sh_tables} =~ $gr->{graph_tableone} && $Site->{sh_tables} =~ $gr->{graph_tabletwo} ) {
+			my $source = "qm0".sha256_base64($Site->{st_url}.$gr->{graph_tableone} ."/". $gr->{graph_idone});
+			#$gr->{graph_tableone} ."/". $gr->{graph_idone};
+			my $target = "qm0".sha256_base64($Site->{st_url}.$gr->{graph_tabletwo} ."/". $gr->{graph_idtwo});
+			#$gr->{graph_tabletwo} ."/". $gr->{graph_idtwo};
+			my $crgraph = {
+				source => $source,
+				target => $target,
+				type => $gr->{graph_type},
+				value => $gr->{graph_tabletwo},
+				id => $graphcount
+			};
+			$graphcount++;
+			push @outputgraph,$crgraph;
+			$graphed->{$gr->{graph_tableone}}->{$gr->{graph_idone}} = 1;
+			$graphed->{$gr->{graph_tabletwo}}->{$gr->{graph_idtwo}} = 1;
+			# if ($graphed->{link}->{1}) { print "yes";}
+	#	print "$gr->{graph_id}\t$gr->{graph_tableone}\t$gr->{graph_idone}\t$gr->{graph_tabletwo}\t$gr->{graph_idtwo}\t$gr->{graph_type}<br>";
+		}
+	}
+use Data::Dumper;
+	foreach my $og (@outputgraph) {
+#print $og."\n";
+#print Dumper $og;
+
+	}
+#print Dumper @outputgraph;
+
+use Digest::SHA qw(sha256_hex sha256_base64);
+use Encode;
+
+my $x = 0;
+my $y = 0;
+
+	my @tables = split /,/,$Site->{sh_tables};
+	foreach my $table (@tables) {
+		$x=$x+10; $y=0;
+		# Normalize field names for select
+		my @fieldlist = split /,/,$Site->{sh_fields}; my @fieldselect;
+		foreach my $field (@fieldlist) { push @fieldselect,$table."_".$field; }
+		my $fields = join ',',@fieldselect;
+#print "SELECT $fields from $table";
+		# Retrieve data
+		my $sth = $dbh->prepare("SELECT * from $table") or &status_error("Error preparing SQL $!");
+   		$sth->execute();
+		while (my $hash_ref = $sth->fetchrow_hashref) {
+			$y++;
+			my $record = {};
+			my $id = $hash_ref->{$table."_id"};	
+			if ($graphed->{$table}->{$id}) { 
+				
+				$record->{'@type'} = $table;
+				$record->{url} = $Site->{st_url}.$table."/".$id;
+				$record->{'id'} = "qm0".sha256_base64($Site->{st_url}.$table."/".$id);
+
+				while (my($hx,$hy) = each %$hash_ref) {
+					my ($t,$f) = split /_/,$hx;
+next if ($f =~ /description/);					
+					if ($Site->{sh_fields} =~ /$f/i) {
+						$hy = decode('UTF-8', $hy);			# For UTF characters in JSON
+						$record->{$f} = $hy;
+					}				
+				}
+
+				$record->{x} = $x;		# Positioning for sigma.js
+				$record->{y} = $y;
+				$record->{size} = 1;
+				$record->{label} = $record->{title} || $record->{name};
+
+				$record->{'@type'} = $table;
+				$record->{url} = $Site->{st_url}.$table."/".$id;
+				$record->{'id'} = "qm0".sha256_base64($Site->{st_url}.$table."/".$id);
+
+				push @outputdata,$record;
+			} 
+		}
+	}
+
+# 		tables => $outputtables,
+	my $outputdata = {
+		nodes => [@outputdata],
+		edges => [@outputgraph]		
+	};
+use JSON::MaybeXS qw(encode_json decode_json);
+my $updated = iso_date(time,"min",$Site->{st_timezone});
+my $output_data = {
+    name => "$Site->{st_name}",
+	creator => "$Site->{st_crea}",
+	updated => "$updated",
+    email => "$Site->{st_email}",
+	website => "$Site->{st_url}",
+	base => "$Site->{st_url}",
+	data => [@outputdata],
+	graph => [@outputgraph],
+    address => {
+        city => 'Fooville',
+        planet => 'Earth',
+    },
+};
+
+$json = new JSON::XS;
+$json = $json->pretty ([$enable]);
+$json_text = $json->encode ($outputdata);
+print $json_text;
+
+#use utf8;                             # Source encoded using UTF-8.
+#use open ':std', ':encoding(UTF-8)';  # Terminal expects UTF-8.
+ 
+# my $output_json = encode_json $outputdata;
+# print $output_json;
+
+ #  my $json = encode_json $outputdata;
+ #  print $json;
+   exit;
+	#use Data::Dumper;
+	#print Dumper $output;
+	#print "Publishing graph";
+
+}
 
 
 1;

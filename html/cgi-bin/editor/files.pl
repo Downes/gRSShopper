@@ -524,4 +524,86 @@ sub write_text_file {
 }
 
 
+
+sub arrayAdd {
+
+	my ($term_input,$list) = @_;
+	my ($term,$filename,@lines) = &arrayManage($term_input,$list,"arrayAdd");
+
+	my $matchstring = $term."\n";	# Add line feed
+	push @lines,$matchstring unless (grep(/^$matchstring$/i, @lines));
+
+	write_file($filename, @lines);
+
+}
+
+sub arrayRemove {
+
+	my ($term_input,$list) = @_;
+	my ($term,$filename,@lines) = &arrayManage($term_input,$list,"arrayRemove");
+
+	my $matchstring = $term."\n"; my@nlines;
+	foreach my $l (@lines) { push @nlines,$l unless ($l eq $matchstring); }
+	write_file($filename, @nlines);
+
+}
+
+sub arrayCheck {
+
+	my ($term_input,$list) = @_;
+	my ($term,$filename,@lines) = &arrayManage($term_input,$list,"arrayCheck");
+
+	open(FILE,$filename);
+
+	# Looking for an exact match in a line
+	if (grep{/^$term\n/} <FILE>){
+		#print qq|<b>The word "$word" was found $filename.</b><br>|;
+		close FILE; return 1;
+	}
+
+	#print qq|The word "$word" was not found in $filename.<br>|;
+	close FILE; return 0;
+
+}
+
+sub arrayReturn {
+	my ($list) = @_; my $term_input = "return";
+	my ($term,$filename,@lines) = &arrayManage($term_input,$list,"arrayReturn");
+	return @lines;
+}
+
+
+sub arrayClear {
+	my ($list) = @_; my $term_input = "clear";
+	my ($term,$filename,@lines) = &arrayManage($term_input,$list,"arrayClear");
+	if (-e $filename) { unlink($filename) or &status_error("Can't unlink $file: $!"); }
+	return;
+}
+
+# used by all the array functions, restricts content for security
+sub arrayManage {
+
+	my ($term,$list,$source) = @_;
+	&status_error("Module File::Slurp not loaded") unless (&new_module_load($query,"File::Slurp"));
+	&status_error("Must specify both 'list' and 'term' to add to array")
+		unless($term && $list);
+	&status_error("List name '$list' can only be alphanumeric characters") 
+		unless ($list =~ /^[\p{Alnum}\s-_]{0,30}\z/ig);
+	&status_error("Term name '$term' can only be alphanumeric characters ($source)") 
+		unless ($term =~ /^[\p{Alnum}\s-_:]{0,60}\z/ig) ;	# Restrict to Alpha-Numerics
+													# To keep things secure
+
+													# Get the file contents
+	my $filedir = $Site->{st_cgif}."data/lists/";
+	mkdir ($filedir) unless (-e $filedir) || &status_error("Could not make $filedir in arrayAdd(): $!)");
+	my $filename = $filedir.$list;
+	my @lines;
+	@lines = read_file($filename) if (-e $filename);
+	foreach $line (@lines) { $line =~ s/\n//g;$line =~ s/\r//g; }		# Remove line feeds
+
+
+	return ($term,$filename,@lines);
+}
+
+
 1;

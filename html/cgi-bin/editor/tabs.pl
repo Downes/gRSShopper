@@ -16,11 +16,43 @@ sub Tab_Edit {
 
   	if ($id_number eq "me") { $id_number = $Person->{person_id}; }
 	foreach my $field (@{$window->{tab_list}->{Edit}}) {
+		#$output .= "Field: $field<br>";
 		$output .= &process_field_types($window,$table,$id_number,$field,$record,$data,$defined);
 	}
 
 	$output .= &form_pushbutton($table,$id_number,"tab","delete","none","Delete Record","confirm");
 	$output .= &form_showrecorddata($table,$id_number);
+
+	$output .= "</div>";
+
+	return  $output;
+
+}
+	# TABS ----------------------------------------------------------
+	# ------- Analyze --------------------------------------------
+	#
+	# Specific Edit Functions for Analyzer
+	#
+	# Uses the _summary view but I'll fix this later
+	#
+	# -------------------------------------------------------------------------
+sub Tab_Analyzer {
+
+	my ($window,$table,$id_number,$record,$data,$defined) = @_;
+
+	my $output = qq|<div>|;
+	#print "Content-type: text/html\n\n";
+
+  	if ($id_number eq "me") { $id_number = $Person->{person_id}; }
+	my @fields;
+	if ($table =~ /author|person/) {
+		@fields = qw(name,varchar,256 url,varchar,256 category,optlist,5+ genre,optlist,5+ type,optlist,5+);
+	} else {
+		@fields = qw(title,varchar,256 url,varchar,256 category,optlist,5+ genre,optlist,5+ type,optlist,5+);
+	}
+	foreach my $field (@fields) {
+		$output .= &process_field_types($window,$table,$id_number,$field,$record,$data,$defined);
+	}
 
 	$output .= "</div>";
 
@@ -494,6 +526,20 @@ sub Tab_Permissions {
    my $adminlink = $Site->{st_cgi}."admin.cgi";
    my $output = qq|<iframe class="admin-iframe"  src="$adminlink?action=permissions"></iframe>|;
    return $output;
+
+}
+	# TABS ----------------------------------------------------------
+	# ------- Profile  --------------------------------------------
+	#
+	# Shared Graph
+	#
+	# -------------------------------------------------------------------------
+sub Tab_Sharing {
+
+	#12return "Permission Denied" unless (&is_viewable("admin","database"));
+	my $adminlink = $Site->{st_cgi}."admin.cgi";
+	my $output = qq|<iframe class="admin-iframe" src="$adminlink?action=sharing"></iframe>|;
+	return $output;
 
 }
 # TABS ----------------------------------------------------------

@@ -928,7 +928,6 @@ sub form_optlist {
 
 	my ($window,$table,$id,$col,$selected_value,$fieldsize,$advice,$fieldlable,$defined,$ajax) = @_;
 
-
 	# Find eligible options
 	my $opts = &db_get_record($dbh,"optlist",{optlist_title=>$col});
 
@@ -943,6 +942,8 @@ sub form_optlist {
 	my @opts = split ";",$opts->{optlist_data};
 	my $lablecounter=1;
 
+	# Enable additional selection to be submitted as an optlist option
+	$fieldsize.="+";
 
 	foreach my $opt (@opts) {
 		my ($oname,$ovalue) = split ",",$opt;
@@ -956,8 +957,8 @@ sub form_optlist {
 
 		my $lableid = $col.$lablecounter; $lablecounter++;
 		$option_lables .= qq|
-            <span class="form__answer"> <input type="radio" id="$lableid" name="$col" value="$ovalue" style="display:none;">
-        	<label for="$col">$fieldlable</label></span>|;
+            <span class="form__answer"> <input type="radio" id="$lableid" name="$col" value="$ovalue" style="display:none;"> Add
+        	<label for="$col">$fieldlable $oname</label></span>|;
 	}
 
 
@@ -980,10 +981,33 @@ sub form_select {
 	my ($window,$table,$id,$col,$selected_value,$fieldsize,$advice,$options,$fieldlable,$defined) = @_;
 	unless ($window->{form_defined}) { $fieldsize=1;}
 
-  	my $url = $Site->{st_cgi}."api.cgi";
+  	my $host = $Site->{st_cgi}."api.cgi";
 	unless ($fieldlable) { $fieldlable = $col;}
-	$fieldlable =~ s/_/ /;
-	$fieldlable = ucfirst($fieldlable);
+	$fieldlable =~ s/$table_//;
+	$fieldlable = ucfirst $fieldlable;
+
+	# Check $fieldsize to see if there's a + which indicates we want to allow new terms
+	my $newOptionText;
+#	if ($fieldsize =~ m/\+/) {
+		$fieldsize =~ s/\+//;
+		$newOptionText = qq|
+			<input type="text" size=15 id="$col-newOption" placeholder="Add $fieldlable?">
+			<input type="button" value="Create new $fieldlable" onClick="
+				var oval = document.getElementById('$col-newOption').value;
+				submitData(
+					{   div:'$col-newOptionResult',
+						cmd:'newOption',
+						col: '$col',
+						value: document.getElementById('$col-newOption').value,
+						table:'$table',
+						id:'$id',
+						host:'$host',
+					});
+
+				return false;
+			">
+			<div id="$col-newOptionResult"></div>|;
+#	}
 
 	my $multiple; if ($window->{form_defined} && $fieldsize>1) { $multiple = " multiple size=$fieldsize";}
   if ($defined) { $defined = "defined";} else { $defined = "undefined"; }  #Was this field defined in a form table for the current table
@@ -1003,7 +1027,7 @@ sub form_select {
 		$uhcasync = qq|
 			// Haven't been able to make async work properly, alert is a hack
 			function updateFeedStatus() {
-				submitDataFromSelect('$col','$table',$id);
+				submitDataFromSelect('$col','$table',$id,'$host');;
 				alert('Status Changed. Confirm.');
 				loadHTML({'cmd':'harvester-commands','id':'$id','div':'harvester-commands'});
 			}
@@ -1011,7 +1035,7 @@ sub form_select {
 
 	# This is what we do otherwise, which is 99% of the time	
 	} else {
-		$uhc = qq|submitDataFromSelect('$col','$table',$id);|;
+		$uhc = qq|submitDataFromSelect('$col','$table',$id,'$host');|;
 	}
 
 	return qq|
@@ -1019,7 +1043,8 @@ sub form_select {
 	  		<label for="$col">$fieldlable</label>
 			<div class="optlist-input-form">
 	      		<div class="row form-group" style="margin-left:5px;"> 		
-		  			<select id="$col" $multiple onChange="$uhc">$options</select>
+		  			<select id="$col" $multiple onChange="$uhc">$options</select> 
+					$newOptionText
 				</div>
 				<div id="|.$col.qq|_result"></div>
 			</div>

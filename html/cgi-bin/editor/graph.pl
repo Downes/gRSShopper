@@ -337,5 +337,47 @@ sub clone_graph {
   }
 }
 
+# Load the entire graph into memory
+# Don't do this unless you're publishing the entire graph
 
+sub get_graph {
+
+	my @graph;
+	my $sth = $dbh->prepare("SELECT * from graph");
+   	$sth->execute();
+	while (my $hash_ref = $sth->fetchrow_hashref) {
+		push @graph,$hash_ref;
+	}
+	$sth->finish();   
+	return @graph;
+}
+
+sub share_graph {
+
+print "<h2>Sharing graph</h2>";
+print qq|<div style="width:400px;"><h3>Select Tables</h3>
+    <p>Share your graph. Selecting tables from the list below will include them in the 
+	list of records shared. Individual records will be shared only if they are in the graph 
+	(ie., no singletons). Other people will be able to view your list of records plus the
+	graph showing how they are associated with each other.</p><div style="margin-left:3em;">
+	 |;
+
+print qq|<form method="post" action="admin.cgi">|;
+my @tables = &db_tables($dbh);
+my $sharecount=1;
+foreach my $table (@tables) {
+	next if ($table =~ /^(box|config|optlist|person|graph|view)$/i);   # Not part of the graph
+	my $checked = "";
+	if ($Site->{sh_tables} =~ /$table/i) { $checked = "checked"; }
+	print qq|
+	<div>
+    <input style="display:inline" type="checkbox" id="share$sharecount" name="interest" value="table" $checked><label class="label-inline" for="share$sharecount">|.ucfirst($table).qq|</label>
+    </div>|;
+	$sharecount++;
+#	print qq|<input type="checkbox" name="share" value="$table"> |.ucfirst($table).qq| <br>|;
+}
+print qq|</form></div></div>|;
+exit;
+
+}
 1;

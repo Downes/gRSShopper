@@ -441,6 +441,34 @@ if ($vars->{cmd} eq "edit") {
 # Returns revised graph list of key for table id
 if ($vars->{cmd} eq "remove") { &api_keylist_remove(); }
 
+# cmd: newOption
+# Adds a new option to the end of optlkist for table $table and column $col
+# Then inserts that option as a value for record $table $id
+if ($vars->{cmd} eq "newOption") { 
+
+	unless ($vars->{table} && $vars->{id} && $vars->{col}) { &status_error("Missing table, id or column"); }
+	unless ($vars->{value}) { &status_error("Please create text for the new option");}
+	&status_error("Option name ".$vars->{value}." can only contain up to 30 alphanumeric characters") 
+		unless ($vars->{value} =~ /^[\p{Alnum}\s-_]{0,30}\z/ig);
+
+	# Check for dumplicate and rewrite optlist list
+	my $opts = &db_get_record($dbh,"optlist",{optlist_title=>$vars->{col}});
+	my @opts = split ";",$opts->{optlist_data}; 
+	foreach my $opt (@opts) {
+		my ($oname,$ovalue) = split ",",$opt;
+		&status_error("This is a duplicate. Just click on the $ovalue button.") 
+			if ($ovalue =~ /^$vars->{value}$/i);
+	}
+	push @opts,$vars->{value}.",".$vars->{value};	# We'll just name the option name the option
+	$opts->{optlist_data} = join ';',@opts;
+	&db_update($dbh,"optlist",{optlist_data=>$opts->{optlist_data}},$opts->{optlist_id});
+
+	# Opdate the value for the record
+	&db_update($dbh,$vars->{table},{$vars->{col}=>$vars->{value}},$vars->{id});
+	$vars->{message} = "Added ".$vars->{value}." for ".$vars->{table}.$vars->{id};
+	&status_ok();
+}
+
 
 if ($vars->{cmd} eq "update") {
 
@@ -541,6 +569,14 @@ if ($vars->{cmd} eq "publish") {
 		exit;
 	}
 
+	# Publish Graph
+
+	if ($vars->{table} eq "graph") {
+		&publish_graph($dbh,$query,$vars->{id},"");  # Information stored in $vars->{message}
+		&status_ok();								# and returned as {... ,"message":$vars->{message}}
+		exit;
+
+	}
 
 
 	&api_publish();
@@ -548,6 +584,19 @@ if ($vars->{cmd} eq "publish") {
 	
 	#&status_error("Publishing account not found");
 }
+
+# -------------------------------------------------------------------------------------
+#          List Functions
+#
+#     Add or remove elements from stored lists, useful for multi-step operations
+#     
+#     Commands always begin with 'array'
+#
+# -------------------------------------------------------------------------------------
+
+if ($vars->{cmd} eq "arrayAdd") { &arrayAdd($vars->{term},$vars->{list}); &status_ok(); }
+if ($vars->{cmd} eq "arrayRemove") { &arrayRemove($vars->{term},$vars->{list}); &status_ok(); }
+
 
 # -------------------------------------------------------------------------------------
 #          Backup Functions
@@ -644,7 +693,7 @@ if ($vars->{cmd} eq "social") {
 
 
 		my $starting_tab = $vars->{db} || "Accounts";
-		print &main_window(['Subscribers','Newsletters','Accounts','Meetings'],$starting_tab);
+		print &main_window(['Sharing','Subscribers','Newsletters','Accounts','Meetings'],$starting_tab);
 		exit;
 	}
 
@@ -2404,7 +2453,7 @@ sub api_data_update {
 	# Rebuild search forms in case the table is 'optlist'
 	# We'll just call the function with a request to admin.cgi
 	if ($vars->{table_name} eq "optlist") {
-		my $findurl = $Site->{st_cgi}."admin.cgii?action=make_search_forms";
+		my $findurl = $Site->{st_cgi}."admin.cgi?action=make_search_forms";
 		my $content = get $findurl;
 		&status_error("Couldn't get $findurl") unless defined $content;
 		$vars->{message} .= $content;

@@ -62,7 +62,7 @@ use CGI::Carp qw(fatalsToBrowser);
 	
 	our ($Site,$dbh) = &get_site("admin");	
 
-		
+	
 # Load User
 	if ($vars->{action} eq "add_rcomment") { $Site->{context} = "rcomment"; }
 	my ($session,$username) = &check_user();
@@ -71,7 +71,7 @@ use CGI::Carp qw(fatalsToBrowser);
 
 	my $person_id = $Person->{person_id};
 	&show_login($session);
-	
+
 # Set vars
 	my $vars = $query->Vars;
 	my $page_dir = "../";
@@ -152,20 +152,8 @@ use CGI::Carp qw(fatalsToBrowser);
 
 
 # Print HTML Page header
+	print &admin_header();
 
-unless ($Site->{context} eq "cron") {
-
-	print qq|
-		<html>
-		<head>
-		<title>Admin $vars->{action} </title>
-		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/mini.css/3.0.1/mini-default.min.css">
-		<link rel="stylesheet" href="|.$Site->{st_url}.qq|assets/css/grsshopper_admin.css">
-		</head>
-		<body>
-
-	|;
-}
 
 
 # Actions ------------------------------------------------------------------------------
@@ -236,7 +224,7 @@ unless ($Site->{context} eq "cron") {
 			/autosub/ && do { &autosubscribe_all($dbh,$query); last;   };			#	- Auto-subscribe all users to newsletter
 			/autounsub/ && do { &autounsubscribe_all($dbh,$query); last; };			#	- Auto-unsubscribe all users from newsletter
 			/send_nl/ && do { &send_nl($dbh,$query); last;	};				#	- Send newsletter to email subscribers
-
+			/sharing/ && do { &share_graph($dbh,$query); last;	};				#	- Send newsletter to email subscribers
 
 															# Cron Tasks (FIXME make a separate file? )
 
@@ -272,11 +260,11 @@ unless ($Site->{context} eq "cron") {
 
 												 # Analyze
 			/analyze_text/ && do {
-				&analyze_text($dbh,$query,$table,$id); last; };
+				&analyze_text($table,$id); last; };
 			/extract_nouns/ && do {
-				&extract_nouns($dbh,$query,$table,$id); last; };
+				&extract_nouns($table,$id); last; };
 			/show_graph/ && do {
-				&show_graph($dbh,$query,$table,$id); last; };
+				&show_graph($table,$id); last; };
 
 			/make_icon/ && do { &auto_make_icon($table,$id);
 					&edit_record($dbh,$query,$table,$id); last;};
@@ -770,6 +758,9 @@ unless ($Site->{context} eq "cron") {
 
 		$content .= &admin_configtable($dbh,$query,"Anonymous User",
 			("Anonymous User Name:st_anon","Anonymous IUser ID:st_anon_id"));
+
+		$content .= &admin_configtable($dbh,$query,"Sharing",
+			("Share Tables:sh_tables","Share Fields:sh_fields"));
 
 		$content .= qq|
 			<h3>Find User</h3>
@@ -3890,13 +3881,46 @@ $Site->{st_stale_expire} = (72 * 60 * 60);
 
 	}
 
+	sub admin_header {
+		return if ($Site->{context} eq "cron");
+		my $assets = $Site->{st_url}."assets";
+		return qq|
+			<html>
+			<head>
+				<title>Admin $vars->{action} </title>
+				<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/mini.css/3.0.1/mini-default.min.css">
+				<link rel="stylesheet" href="$assets/css/grsshopper_admin.css">
+				<!-- Scripts -->
+				<!-- JQuery -->
+				<script src="$assets/js/jquery.min.js"></script>
+				<!-- JQuery UI -->
+				<script src="$assets/js/jquery-ui.min.js"></script>
+				<!-- JQuery ToggleButton -->
+				<script src="$assets/js/select-togglebutton.js"></script>
+				<!-- CK Editor -->
+				<script src="//cdn.ckeditor.com/4.7.0/standard/ckeditor.js"></script>
+				<script src="//cdn.ckeditor.com/4.7.0/basic/adapters/jquery.js"></script>
+				<!-- File Upload -->
+				<script src="https://hayageek.github.io/jQuery-Upload-File/4.0.11/jquery.uploadfile.min.js" defer></script>
+				<!-- DateTime Picker -->
+				<script src="$assets/js/jquery.datetimepicker.full.min.js"></script>
+				<!-- Font-Awesome -->
+				<script src="https://kit.fontawesome.com/bf62bb2348.js"crossorigin="anonymous"></script>
+				<script src="$assets/js/grsshopper_admin.js"></script>
+			</head>
+			<body>
+			<div id="spinner-donut" class="spinner-donut"></div>
+		|;
 
+
+	}
 
 
 	#
 	# Don't Delete these
 	# They're actually used by gRSShopper.pl
 	#
+
 
 	# -------   Header ------------------------------------------------------------
 

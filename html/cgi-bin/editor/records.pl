@@ -675,6 +675,8 @@ sub make_new_record {
 			}
 		}
 
+		&record_sanitize_input($record);
+		
 		# Initialize values for NEW record, overwriting seed data as needed
 			
 			# Undefined forms are throwing an error here - may be a db error for event

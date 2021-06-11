@@ -29,11 +29,8 @@ sub check_user {
 
 #print "Back from init_login()";
 #print " Going to print my cookie for the session ".$session->id."<p>";
-
-
-
-
     my $cookie = CGI::Cookie->new(CGISESSID => $session->id);
+
 
     #my $cookie = $cgi->cookie(-name=>fCGISESSID,
 #	    -value=>$session->id,
@@ -104,12 +101,15 @@ sub show_login {
 sub init_login {
     my ($session) = @_; 
     my $cgi = $query;
-#print "In init_login() <p>";
+
 
     if ( $session->param("~logged-in") ) {
-#print "Currently logged in <p>";    
+    
         return 1;  # if logged in, don't bother going further
     }
+
+#print "Content-type: text/html\n\n";	
+#print "In init_login() <p>";	
 #print "Not logged in <p>"; 
 #print "Login name (from form): ".$cgi->param("lg_name")."<p>";
 
