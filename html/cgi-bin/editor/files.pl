@@ -530,10 +530,12 @@ sub arrayAdd {
 	my ($term_input,$list) = @_;
 	my ($term,$filename,@lines) = &arrayManage($term_input,$list,"arrayAdd");
 
-	my $matchstring = $term."\n";	# Add line feed
-	push @lines,$matchstring unless (grep(/^$matchstring$/i, @lines));
-
-	write_file($filename, @lines);
+	push @lines,$term unless (grep(/^$term$/i, @lines));
+	open FILE,">$filename";
+	foreach $line (@lines) { 
+		print FILE $line."\n" or &status_error("Unable to save $term_input to $list");
+	}
+	close FILE; return 1;
 
 }
 
