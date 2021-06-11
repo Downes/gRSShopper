@@ -280,67 +280,69 @@ sub evaluate_nouns {
 
 	# Define the list of tables we're including in our graph
 	my @categories = &assoc_categories();
-	my @found_associates;	
+	my @found_associates = ();
+	my @new_associates = ();	
 	# Loop through the @associates
 	# print "Content-type: text/html\n\n";
-	foreach my $associate (@associates) {
+	foreach my $test_associate (@associates) {
 
 		# Test to see whether we've already saved the $associate 
 		# as a $category in the database
 		my $found = 0;
 		foreach my $category (@categories) {
-			if (my $rid = &test_word_in_db($associate,$category)) {
-				$found=1;
-				push @found_associates,$category.":".$associate;
-				&arrayAdd($category.":".$associate,"associates");  # Save for use next cycle by 
-				last; 											   # assoc_present_save_options()
-			}
+			if (my $rid = &test_word_in_db($test_associate,$category)) {
+				$found = 1;
+				push @found_associates,$category.":".$test_associate;
+				&arrayAdd($category.":".$test_associate,"associates");  # Save for use next cycle by 
+				last; 											   		# assoc_present_save_options()	
+			} 
 		}
+		unless ($found) { push @new_associates,$test_associate; }
+	}
 
-		unless ($found) {
+	foreach my $associate (@new_associates) {
 
-			# We did not find the $associate in the db...
-			# Our associate is not recorded. It's new!
-			# Present categorization options, which when selected will give us our 'save data' screen
+		# We did not find the $associate in the db...
+		# Our associate is not recorded. It's new!
+		# Present categorization options, which when selected will give us our 'save data' screen
 
-			print $vars->{msg},"<p>";
-			$str =~ s/$associate/<span style="color:red;">$associate<\/span>/g;
-			print $str;
+		print $vars->{msg},"<p>";
+		$str =~ s/$associate/<span style="color:red;">$associate<\/span>/g;
+		print $str;
 
-			# This is for handling really long files, where I don't want to show everything
-			# my $prstr = &select_incontext_display($associate,$str);
-			# print $prstr;print "<p>";
+		# This is for handling really long files, where I don't want to show everything
+		# my $prstr = &select_incontext_display($associate,$str);
+		# print $prstr;print "<p>";
 
-			print qq|
-				We found a new term: $associate
-				<form method="post" action="admin.cgi"> 
-				<input type="hidden" name="action" value="analyze_text">
-				<input type="hidden" name="term" value="$associate">
-				<input type="hidden" name="table" value="$table">
-				<input type="hidden" name="id" value="$id">
-				<input type="submit" name="skip" value="Skip this term for now"><br>
-				<input type="submit" name="common" value="Never show this term again"><br>
-				</form>
+		print qq|
+			We found a new term: $associate
+			<form method="post" action="admin.cgi"> 
+			<input type="hidden" name="action" value="analyze_text">
+			<input type="hidden" name="term" value="$associate">
+			<input type="hidden" name="table" value="$table">
+			<input type="hidden" name="id" value="$id">
+			<input type="submit" name="skip" value="Skip this term for now"><br>
+			<input type="submit" name="common" value="Never show this term again"><br>
+			</form>
 
-				<form method="post" action="admin.cgi">
-				<input type="hidden" name="action" value="analyze_text">
-				<input type="hidden" name="table" value="$table">
-				<input type="hidden" name="id" value="$id">
-				<input type="hidden" name="word" value="$associate">
-												
-				Pick a category for this term. Or, optionally, suggest a different term
-				and pick a category for it.<br>
-				<input type="text" name="new_associates" placeholder="Optional: new term" size="40"><br><br>|;
+			<form method="post" action="admin.cgi">
+			<input type="hidden" name="action" value="analyze_text">
+			<input type="hidden" name="table" value="$table">
+			<input type="hidden" name="id" value="$id">
+			<input type="hidden" name="word" value="$associate">
+											
+			Pick a category for this term. Or, optionally, suggest a different term
+			and pick a category for it.<br>
+			<input type="text" name="new_associates" placeholder="Optional: new term" size="40"><br><br>|;
 
-			foreach my $category (@categories) {
-				print qq|<input type="submit" name="category" value="$category"> |;
-			}
-			print qq|
-				</form>
-			|;
-			print &previous_next_analysis($table,$id);
-			exit;
+		foreach my $category (@categories) {
+			print qq|<input type="submit" name="category" value="$category"> |;
 		}
+		print qq|
+			</form>
+		|;
+		print &previous_next_analysis($table,$id);
+		exit;
 	}
 
 	# Oh? We're here?
@@ -418,8 +420,8 @@ sub previous_next_analysis {
 
 sub assoc_save_data {
 
-	print "Content-type: text/html\n\n";
-	print "Saving data - assoc_save_data<p>";
+	#print "Content-type: text/html\n\n";
+	# print "Saving data - assoc_save_data<p>";
 
 	my @associates = split ",",$vars->{associates};
 	foreach my $associate (@associates) {
@@ -551,8 +553,8 @@ sub assoc_present_save_options {
 
 	sub test_word_in_db {
 
-	my ($word,$category) = @_;
-
+		my ($word,$category) = @_;
+		
 	#print "Content-type: text/html\n\n";
 	#print qq|Testing "$word" in database table "$category" <br>|;
 
