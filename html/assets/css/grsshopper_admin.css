@@ -81,6 +81,12 @@ label {
   color:green;
 }
 
+.label-inline{
+  color:green;
+  display: inline;
+}
+
+
 .head h1 {
   margin-top:0%; 
 }
