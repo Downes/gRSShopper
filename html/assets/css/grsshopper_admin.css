@@ -17,6 +17,9 @@
   --pre-color:#1565c0;
   --border-color:#aaa;
   --secondary-border-color:#ddd;
+  --form-back-color: #f8f8f8;
+  --form-fore-color: #111;
+  --form-border-color: #f8f8f8;
   --heading-ratio:1.19;
   --universal-margin:0;
   --universal-padding:0;
@@ -55,6 +58,24 @@ a {color:#a85038; }
   padding-left:1%;
   padding-right:2%; 
 }
+
+form {    /* To override mini-css  */
+
+    background: var(--form-back-color);
+    color: var(--form-fore-color);
+    border: .0625rem solid var(--form-border-color);
+    border-radius: var(--universal-border-radius);
+    /*
+    margin: var(--universal-margin);
+    padding: var(--universal-padding); */
+    margin: 10px;
+    padding: 0;
+    font-size: 1rem;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Ubuntu, "Helvetica Neue", Helvetica, sans-serif;
+    line-height: 1.3;
+    -webkit-text-size-adjust: 100%;
+}
+
 
 #page_frame { 
   background-color: var(--back-color);
