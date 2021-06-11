@@ -48,7 +48,7 @@ sub Tab_Analyzer {
 	if ($table =~ /author|person/) {
 		@fields = qw(name,varchar,256 url,varchar,256 category,optlist,5+ genre,optlist,5+ type,optlist,5+);
 	} else {
-		@fields = qw(title,varchar,256 url,varchar,256 category,optlist,5+ genre,optlist,5+ type,optlist,5+);
+		@fields = qw(title,varchar,256 acronym,varchar,10 url,varchar,256 category,optlist,5+ genre,optlist,5+ type,optlist,5+);
 	}
 	foreach my $field (@fields) {
 		$output .= &process_field_types($window,$table,$id_number,$field,$record,$data,$defined);
