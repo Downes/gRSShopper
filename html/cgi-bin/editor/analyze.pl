@@ -201,9 +201,9 @@ sub get_analysis_text {
 			print qq|Title: "|.$title.qq|" <br>URL: $url <br>Descr: <br>$descr<hr>|;
 			exit;
 
-	} elsif ($table eq "link") {
+	} elsif ($table eq "link" || $table eq "post") {
 
-		 $str = "title: ". $record->{$table."_title"} ." - description: ". $record->{$table."_description"};
+		 $str = "title ". $record->{$table."_title"} ." - description ". $record->{$table."_description"};
 		 $str =~ s/http/ http/g;
 
 	} else {
