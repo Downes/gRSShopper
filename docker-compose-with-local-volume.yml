@@ -1,0 +1,47 @@
+version: "3"
+
+services: 
+  db:
+    image: mysql:latest
+    command: --default-authentication-plugin=mysql_native_password
+    restart: always
+    environment: 
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: grsshopper
+      MYSQL_USER: grsshopper_user
+      MYSQL_PASSWORD: user_password
+    volumes: 
+      - ./init:/docker-entrypoint-initdb.d
+      - /var/lib/mysql
+    expose:
+      - '3306'
+    ports:
+      - '3306:3306'
+    networks:
+      - grss  
+  grsshopper:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./html:/var/www/html
+    ports:
+      - "443:443"
+      - "80:80"   
+    networks:
+      - grss          
+  adminer:
+    image: adminer
+    restart: always
+    ports: 
+      - 8080:8080
+    networks:
+      - grss 
+volumes:
+  db-data: {}
+
+networks:
+  grss:
+
+
+
