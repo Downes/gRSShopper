@@ -22,12 +22,14 @@ db-data/
 web-data/
 
 html/*
-!html/.htaccess
 !html/assets/
 !html/cgi-bin/
 !html/archive/index.html
 !html/files/backup/index.html
+!html/.htaccess
 !html/PLE.html
+!html/index.html
+
 
 html/cgi-bin/data/*
 !html/cgi-bin/data/multisite.txt
