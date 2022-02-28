@@ -29,22 +29,36 @@ use CGI::Carp qw(fatalsToBrowser);
 use CGI::Session;
 our $query = new CGI;
 our $vars = $query->Vars;
+our $status = $vars->{status};
+
+
+# Check Environment
+my $newline = &check_environment(); 
+
+
+unless ($status =~ /perl OK/) {  &check_perl(); &db_access_form(); exit; }
+unless ($status =~ /db OK/ ) {  &test_database(); exit; }
+unless ($status =~ /site OK/ ) {  check_directories(); exit; }
+
+print "Server test successful.<p>";
+exit;
 
 # Change Database?
 if ($vars->{action} eq "change_database") { &change_database(); }      
 
-# Check Environment
-my $newline = &check_environment();    
+   
 
 # Check Perl modules
 &check_perl();
 
 # Update database info if requested
+if ($vars->{action} eq "Test Database") { &test_database($vars); }  # creates brand new db
 if ($vars->{action} eq "Create Database") { &create_database($vars); }  # creates brand new db
 if ($vars->{action} eq "Access Database") { &access_database($vars); }  # rewrites multisite.txt
 
 
 # Test Database Access
+
 &test_db_access();
 our $Site = &open_site();                                               # opens db using multisite.txt
 
@@ -58,11 +72,9 @@ print "Got $Site->{st_url} <p>";
 
 exit;
    
+
+# First, Check the environment
     
-
-
-
-	
 sub check_environment {
   # ---------------------------------
   # Let's see what our environment is
@@ -75,6 +87,8 @@ sub check_environment {
   print $h1."gRSShopper web server environment test.".$h1f.$newline.$newline;
   return $newline;
 }
+
+# Second, check Perl
 
 sub check_perl {
   # --------------------------------------
@@ -148,15 +162,112 @@ sub check_perl {
   } else {
       print "Local libraries: <span style='color:green;'>OK</span>; ";
   }
+
+  $status .= "perl OK";
+
+}
+
+# Third, as for database information
+
+sub db_access_form {
+
+  my $home = $ENV{'HTTP_HOST'} || "localhost";
+  my $name = "grsshopper";
+  my $loc = "db";
+  my $usr = "grsshopper_user";
+  my $pwd = "user_password";
+
+  print "Content-type: text/html\n\n";
+  print qq|
+    <form method="post" action="server_test.cgi">
+    <p>Please enter your gRSShopper database information<br>
+    <input type="text" name="home" value="$home"> Your website home URL<br>
+    <input type="text" name="name" value="$name"> Database name<br>
+    <input type="text" name="loc" value="$loc">  Database host location (url or IP)<br>
+    <input type="text" name="usr" value="$usr">  Database user name<br>
+    <input type="text" name="pwd" value="$pwd">  Database user password<br>
+    <input type="hidden" name="status" value="$status">    
+    <input type="submit" name="action" value="Test Database Access"><br>
+    </form>
+    </p>
+  |;
+  exit;
+}
+
+# Fourth, test that information
+
+sub test_database {
+
+  my $home = $vars->{home};
+  my $name = $vars->{name};
+  my $loc = $vars->{loc};
+  my $usr = $vars->{usr};
+  my $pwd = $vars->{pwd};
+
+  use DBI;
+  my $testdbh = DBI->connect("DBI:mysql:database=$name;host=$loc;port=3306",$usr,$pwd);
+
+  if ($testdbh) { 
+    print "Database connection successful. ";
+    $status .= "db OK";
+    print qq|
+      <form method="post" action="server_test.cgi">
+      <input type="hidden" name="home" value="$home">
+      <input type="hidden" name="loc" value="$loc">
+      <input type="hidden" name="usr" value="$usr">
+      <input type="hidden" name="name" value="$name">
+      <input type="hidden" name="pwd" value="$pwd">
+      <input type="hidden" name="status" value="$status">
+      <input type="submit" value="Next">|;
+    exit;
+  }
+  else { 
+    print "<b>Database connection was unsuccessful. Please update values and try again.</b></p>".$DBI::errstr;
+    db_access_form();
+    exit;
+  }
+
+}
+
+# Fifth, check for file directories
+
+sub check_directories {
+
+  my $home = $vars->{home};
+  my $name = $vars->{name};
+  my $loc = $vars->{loc};
+  my $usr = $vars->{usr};
+  my $pwd = $vars->{pwd};
+
+  my $urlf; my $cgif;
+
+  if (-d "/var/www/$home/") { 
+    $urlf = "/var/www/$home/html/"; 
+    $cgif = $urlf."cgi-bin/";
+  } else {
+    $urlf = "/var/www/html/"; 
+    $cgif = $urlf."cgi-bin/";
+  }
+
+open OUT,">".$urlf."test.htm" or print "Can't open $urlf $!";
+print OUT "Test";
+close OUT;
+  unless (-d $urlf) { print "Home directory $urlf wasn't found. Site has not been properly installed."; exit; }
+  unless (-d $cgif) { print "Home directory $cgif wasn't found. Site has not been properly installed."; exit; }
+
+  $status .= "site OK"; 
+  print "All cool<p>";
+  &test_sessions("//".$vars->{home}."/");
+
 }
 
 
 
-sub test_db_access {
 
   #
   # Test DB Access
   #
+sub test_db_site {
   my ($home,$name,$loc,$usr,$pwd,$lan,$urlf,$cgif) = &read_multisite_file($vars->{site});
   unless ($vars->{site}) { $vars->{site} = $home; }
 
@@ -576,5 +687,16 @@ sub error {
     print "<p>$errorstring</p>"; 
     print "<p>$supplemental</p>";
     die "$errorstring"; 
+}
+
+sub get_status_file {
+	my ($file) = @_;
+	my $content;
+	open FIN,"$file" or return &printlang("Not found",$file);
+	while (<FIN>) {
+		$content .= $_;
+	}
+	close FIN;
+	return $content;
 }
 1;
