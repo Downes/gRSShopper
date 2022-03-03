@@ -31,7 +31,7 @@ our $query = new CGI;
 our $vars = $query->Vars;
 our $status = $vars->{status};
 my $home = $vars->{home};
-our $first = &get_status_file("first.txt");   # Contains the name of the first host
+our $first = &get_status_file("/var/www/html/cgi-bin/first.txt");   # Contains the name of the first host
                                               # ie., the host using the default html configuration
 
 
@@ -194,7 +194,7 @@ sub check_directories {
 sub find_directories {
 
   my ($home) = @_;
-  my $first = &get_status_file("first.txt");     # Is this the first domain name being used?
+  my $first = &get_status_file("/var/www/html/cgi-bin/first.txt");     # Is this the first domain name being used?
   if ($first && $first ne $home) {               # No
     $urlf = "/var/www/$home/html/"; 
     $cgif = $urlf."cgi-bin/";
@@ -202,7 +202,7 @@ sub find_directories {
     $urlf = "/var/www/html/"; 
     $cgif = $urlf."cgi-bin/";
     unless ($first) { 
-      &print_status_file("first.txt",$home);     # Make sure we remember that
+      &print_status_file("/var/www/html/cgi-bin/first.txt",$home);     # Make sure we remember that
     }
   }
   return ($urlf,$cgif);
@@ -242,7 +242,7 @@ sub test_database {
 sub test_default_db {
  
   my $home = shift;
-  my $first = &get_status_file("first.txt");      # Is this the first domain name being used?
+  my $first = &get_status_file("/var/www/html/cgi-bin/first.txt");      # Is this the first domain name being used?
   return 0 unless ($home eq $first);              # If not, we don't use the default database
 
   $name ||= "grsshopper";                         # Default values are for a pre-installed db
