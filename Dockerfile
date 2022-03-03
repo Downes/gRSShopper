@@ -111,6 +111,7 @@ COPY cronfile /etc/cron.d/cronfile
 
 
 RUN chmod 705 /var/www/html/cgi-bin/*.cgi
+RUN chmod 705 /var/www/html/cgi-bin/update/*.sh
 
 
 # Addressing the chmod problem

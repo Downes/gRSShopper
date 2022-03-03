@@ -182,7 +182,7 @@ sub check_directories {
 
   # Test for the home directory
   # If it doesn't exist, create the directory structure and required files
-  unless (-d $urlf) { create_file_structure($home,$urlf); }
+  unless (-d $urlf) { &create_file_structure($home,$urlf); }
   
   $status .= "site OK"; 
   print qq|Directories <span style="color:green;">OK</span><p>|;
@@ -215,6 +215,7 @@ sub create_file_structure {
   print "$urlf doesn't exist <br>";
   print `mkdir -p $urlf` or die("Can't create the directory \"$urlf\": $!\n");
   my $rr = `/var/www/html/cgi-bin/update/create.sh $home`;
+  unless ($rr) { die "Failed to create file structure for $home"; }
   print $rr;
   print "<br>Directory structure for $home created<br>";
 
