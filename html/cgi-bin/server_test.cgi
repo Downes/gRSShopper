@@ -183,7 +183,7 @@ sub check_directories {
   # Test for the home directory
   # If it doesn't exist, create the directory structure and required files
   unless (-d $urlf) { &create_file_structure($home,$urlf); }
-  
+  unless (-d $cgif) { print "Directory structure for $home not successfully created."; exit; }
   $status .= "site OK"; 
   print qq|Directories <span style="color:green;">OK</span><p>|;
 
@@ -701,10 +701,9 @@ print $query->header;
   }
 
   $newhome = &check_directories($home);                         # make sure directories exist
-  die "Error creating diretcories" unless ($newhome eq $home);  # Just in case something weird happens
+  die "Error creating directories" unless ($newhome eq $home);  # Just in case something weird happens
   &access_website($home);
   
-
 
 }
 
