@@ -103,6 +103,8 @@ ADD html/cgi-bin /var/www/html/cgi-bin/
 
 COPY html/cgi-bin/server_test.cgi /var/www/html/cgi-bin
 RUN chmod 755 /var/www/html/cgi-bin/server_test.cgi
+RUN chown www-data /var/www
+RUN chgrp www-data /var/www
 
 COPY run-lamp.sh /usr/sbin/
 COPY cronfile /etc/cron.d/cronfile

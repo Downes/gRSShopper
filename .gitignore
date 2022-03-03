@@ -35,5 +35,6 @@ html/cgi-bin/data/*
 !html/cgi-bin/data/multisite.txt
 html/cgi-bin/update/repofolder/
 html/cgi-bin/version.txt
+html/cgi-bin/first.txt
 
 *.bak
