@@ -934,23 +934,16 @@ package gRSShopper::Site;
   	$self->{process} = time;
 
 
-	  # Define Site home URL from $ENV data
+	# Define Site home URL from $ENV data
   	# (Used to find database info in multisite.txt)
     $self->__home();
+	$self->__dbinfo();			    # Find db info from multisite.txt
 
-	$self->__dbinfo();
 
-
-    # Find db info from multisite.txt
   	unless ($self->{no_db}) {
-  		
 	  	$self->__db_connect();
   		unless ($self->{dbh}) { die "Cannot connect to site database"; }
   	}
-
-
-
-
 
    	# Load language translation packages
    	$self->__load_languages();
@@ -970,51 +963,30 @@ package gRSShopper::Site;
   	my $http;
   	if ($self->{st_secure} || $self->{secure}) { $http = "https://" } else { $http = "http://"; }
 
-	# Determine site URL from HTTP or Cron
-  	my $numArgs = $#ARGV + 1;
+	# Assumes directory structure is /var/www/$host/html/cgi-dir/data/multisite.txt
 
+  	# Determine site host for HTTP or Cron
+	my $numArgs = $#ARGV + 1;  
+  	if ($ENV{'HTTP_HOST'}) { $self->{st_host} = $ENV{'HTTP_HOST'}; }     				 # HTTP
+  	elsif ($numArgs > 1) { $self->{context} = "cron";$self->{st_host} = $ARGV[0]; }		 # Cron
+	else { die "Cannot find website host from HTTP or Cron input."; }
 
-  	# Determine site host for HTTP
-  	if ($ENV{'HTTP_HOST'}) {
-  		$self->{st_host} = $ENV{'HTTP_HOST'};
-   		$self->{script} = $ENV{'SCRIPT_URI'};
-		unless ($self->{script}) {  $self->{script} = $http . $ENV{'SERVER_NAME'}.$ENV{'SCRIPT_NAME'}; }
-  	}
-
-
-  	# Determine site host for cron
-		# Assumes directory structure is /htdocs/cgi-dir/data/multisite.txt
-  	elsif ($numArgs > 1) {
-
-		$self->{context} = "cron";
-		$self->{st_host} = $ARGV[0];			# Define Host
-		$self->{data_dir} = $ARGV[1];		  # For cron, define data dir relative to multisite.txt
-		$self->{data_dir} =~ s/multisite\.txt//;	
-		$self->{st_cgif} = $self->{data_dir}; # For cron, define cgif dir relative to data dir
-		$self->{st_cgif} =~ s/data\///i;  # For cron, define page dir relative to cgi-dir
-		$self->{st_urlf} = $self->{st_cgif};
-		$self->{st_urlf} =~ s/cgi-bin\///i;
-		$self->{script} = "http://" . $ARGV[0] . "/cgi-bin/admin.cgi";
-  	}
-
-  	# Or die
-  	else { die "Cannot find website host from HTTP or Cron input." }
-
-
+	# Set Up Site Variables
+	my $host = $self->{st_host};
+	$self->{script} = $0; 
+	$self->{data_dir} = "/var/www/$host/html/cgi-bin/data/";
+	$self->{st_urlf} = "/var/www/$host/html/";
+	$self->{st_cgif} = "/var/www/$host/html/cgi-bin/";		
 
   	# Set derived URLs based on st_host
    	$self->{st_url} = $http . $self->{st_host} . "/";
 	$self->{st_cgi} = $self->{st_url} . "cgi-bin/";
 
-
   	# Set cookie host
- 	  $self->{co_host} = $self->{st_host};
+ 	$self->{co_host} = $self->{st_host};
 
-   	# Set Default Directories
-	  # Assign or override defaults
-	  $self->{site_language}  ||= 'en';
-	  $self->{st_urlf} ||= '../';
-	  $self->{st_cgif} ||= './';
+   	# Set Default Language
+	$self->{site_language}  ||= 'en';
 
   }
 
@@ -1036,9 +1008,7 @@ package gRSShopper::Site;
 	# Initialize if file can't be found or opened
 
   	my $data_file = $self->{st_cgif}."data/multisite.txt";
-	unless (-e $data_file) { $data_file = $ARGV[2]; }    # try a backup option (neded for cron)
-
-	open IN,"$data_file" or die qq|Cannot find multisite.txt or website information in crom task.|; 
+	open IN,"$data_file" or die qq|Cannot find $data_file|; 
 	
 #	    $data_file to define website parameters. $?
 #		  Args: 0 $ARGV[0] 1 $ARGV[1] 2 $ARGV[2] 3 $ARGV[3]|;
@@ -1052,25 +1022,26 @@ package gRSShopper::Site;
 	my $url_located = 0; my $count=0;
   	while (<IN>) {
 		my $line = $_; $line =~ s/(\s|\r|\n)$//g;
-		if ($line && $count==0) { # Assign defualts with first line
-			( $self->{st_home},
-			$self->{database}->{name},
-			$self->{database}->{loc},
-			$self->{database}->{usr},
-			$self->{database}->{pwd},
-			$self->{site_language},
-			$self->{urlf},
-			$self->{cgif} ) = split "\t",$line;   
-		}
+
+# No longer using first line as default; if it doesn't match the domain, it isn't used
+
+#		if ($line && $count==0) { # Assign defualts with first line
+#			( $self->{st_home},
+#			$self->{database}->{name},
+#			$self->{database}->{loc},
+#			$self->{database}->{usr},
+#			$self->{database}->{pwd},
+#			$self->{site_language},
+#			$self->{urlf},
+#			$self->{cgif} ) = split "\t",$line;   
+#		}
 		if ($line =~ /^$self->{st_host}/) {
 			( $self->{st_home},
 			  $self->{database}->{name},
 			  $self->{database}->{loc},
 			  $self->{database}->{usr},
 			  $self->{database}->{pwd},
-			  $self->{site_language},
-			  $self->{urlf},
-		  	  $self->{cgif} ) = split "\t",$line;
+			  $self->{site_language} ) = split "\t",$line;
 			$url_located = 1;
 			last;
 		}
@@ -1078,30 +1049,10 @@ package gRSShopper::Site;
 	}
 	close IN;
 
-	# If the line defines html and cgi directories, set those names
-	if ($self->{urlf} && $self->{urlf} ne "") { $self->{st_urlf} = $self->{urlf}; }
-	if ($self->{cgif} && $self->{cgif} ne "") { $self->{st_cgif} = $self->{cgif}; }
-
-	# For cron, set site URLs based on multisite.txt (otherwise cron defaults to localhost)
-	unless ($ENV{'HTTP_HOST'}) {
-		  	# Check whether URLs are https or http
-  			my $http;
-  			if ($self->{st_secure} || $self->{secure}) { $http = "https://" } else { $http = "http://"; }
-		   	$self->{st_url} = $http . $self->{st_home} . "/";
-			$self->{st_cgi} = $self->{st_url} . "cgi-bin/";
-	}
-
 	# Initialize if line beginning with site URL can't be found
 	unless ($self->{database}->{name}) { 
-		die "Cannot determine the name of the database to use"; 
-		# $self->__initialize("url"); 
-	} # -------------------------------------------------------------> Initialize url
-
-
-	# Assign or override defaults
-	$self->{site_language}  ||= 'en';
-	$self->{st_urlf}  ||= '../';
-	$self->{st_cgif}  ||= './';
+		die "Cannot determine the name of the database to use. Please initialize site at ".$self->{st_cgi}."server_test.cgi"; 
+	} 
 	
 	return;
   }
@@ -1126,31 +1077,10 @@ package gRSShopper::Site;
 
 	# Catch connection error
 	if( ! $self->{dbh} ) {
-
-
-		# Catch initialization error
-		if ($args->{initialize} eq "new") { print "Database initialization failed. Use 'Back' key, check variables, and try again.<br>"; }
-
-		# Or Generic runtime error
-		else { 		print "Content-type: text/html\n\n";
-				print "Database connection error for db '$dbname' on '$dbhost'. Please contact the site administrator.<br>";   }
-
-		# Print error report and exit
-		print "Error String Reported: $DBI::errstr <br>";
-		exit;
-
-	# I'll put more error-checking here
-	} else {
-		eval {
-		#$self->{dbh}->do( whatever );
-		#$self->{dbh}->do( something else );
-		};
-
-		if( $@ ) {
-			print "Ugg, problem: $@\n";
-		}
+		die qq|Database connection error for db '$dbname' on '$dbhost'. 
+			Please contact the site administrator.\n
+			Error String Reported: $DBI::errstr \n|; 
 	}
-
 
   }
 
@@ -1197,29 +1127,6 @@ package gRSShopper::Site;
   }
 
 
-
-  sub __initialize {
-
-  	my ($self,$cmd) = @_;
-
-	#unless ($ENV{'SCRIPT_NAME'} =~ /(admin|initialize)/) { $self->__site_maintenance($self->{st_home}); }
-	if ($cmd) {
-		print "Content-type: text/html\n";
-		print "Location:initialize.cgi?action=".$cmd."\n\n";
-		exit;
-	}
-	die "Unexplained failure to initialize.";
-
-  }
-
-
-
-sub __site_maintenance {
-
-
-   return;
-
-}
 
 	#----------------------------------------------------------------------------------------------------------
 	#
