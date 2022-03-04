@@ -50,7 +50,7 @@ require $dirname . "/services/mailgun.pl";
 # API
 require $dirname . "/api/subscribe.pl";
 
-our $gRSShopper_version = &read_text_file("version.txt");
+our $gRSShopper_version = &read_text_file($dirname."/version.txt");
 our $diag = 0;
 
 
@@ -968,15 +968,15 @@ package gRSShopper::Site;
   	# Determine site host for HTTP or Cron
 	my $numArgs = $#ARGV + 1;  
   	if ($ENV{'HTTP_HOST'}) { $self->{st_host} = $ENV{'HTTP_HOST'}; }     				 # HTTP
-  	elsif ($numArgs > 1) { $self->{context} = "cron";$self->{st_host} = $ARGV[0]; }		 # Cron
+  	elsif ($numArgs > 1) { $self->{context} = "cron"; $self->{st_host} = $ARGV[0]; }		 # Cron
 	else { die "Cannot find website host from HTTP or Cron input."; }
 
 	# Set Up Site Variables
 	my $host = $self->{st_host}; my $hostdir;
 
 	our $first = &get_file("/var/www/html/cgi-bin/first.txt");   # Contains the name of the first host
-	if ($self eq $first) { $hostdir = "/var/www/html/"; }		 # First host uses plain html/ directory
-	else {  $hostdir = "/var/www/$hostdir/html/";	}			 # Subsequent hosts get their own directories
+	if ($host eq $first) { $hostdir = "/var/www/html/"; }		 # First host uses plain html/ directory
+	else {  $hostdir = "/var/www/$host/html/";	}			 # Subsequent hosts get their own directories
 	$self->{script} = $0; 
 	$self->{data_dir} = $hostdir."cgi-bin/data/";
 	$self->{st_urlf} = $hostdir;
