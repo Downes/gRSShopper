@@ -979,8 +979,8 @@ package gRSShopper::Site;
 	else {  $hostdir = "/var/www/$hostdir/html/";	}			 # Subsequent hosts get their own directories
 	$self->{script} = $0; 
 	$self->{data_dir} = $hostdir."cgi-bin/data/";
-	$self->{st_urlf} = $hostdir.";
-	$self->{st_cgif} = $hostdir.", "cgi-bin/";		
+	$self->{st_urlf} = $hostdir;
+	$self->{st_cgif} = $hostdir."cgi-bin/";		
 
   	# Set derived URLs based on st_host
    	$self->{st_url} = $http . $self->{st_host} . "/";
