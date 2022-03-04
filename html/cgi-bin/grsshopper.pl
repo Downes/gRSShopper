@@ -1014,8 +1014,7 @@ package gRSShopper::Site;
 
   	my $data_file = $self->{st_cgif}."data/multisite.txt";
 	open IN,"$data_file" or die qq|Cannot find $data_file|; 
-print "Content-type: text/html\n\n";
-print "Looking for db data in  $data_file <br>";
+
 	
 #	    $data_file to define website parameters. $?
 #		  Args: 0 $ARGV[0] 1 $ARGV[1] 2 $ARGV[2] 3 $ARGV[3]|;

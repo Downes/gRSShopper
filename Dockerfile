@@ -108,11 +108,12 @@ RUN chgrp www-data /var/www
 
 COPY run-lamp.sh /usr/sbin/
 COPY cronfile /etc/cron.d/cronfile
-
-
 RUN chmod 705 /var/www/html/cgi-bin/*.cgi
 RUN chmod 705 /var/www/html/cgi-bin/update/*.sh
 
+COPY version /var/www/html/cgi-bin/version.txt
+RUN chown www-data /var/www/html/cgi-bin/version.txt
+RUN chgrp www-data /var/www/html/cgi-bin/version.txt
 
 # Addressing the chmod problem
 RUN mkdir /var/www/html/cgi-bin/test
