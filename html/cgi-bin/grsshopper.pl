@@ -972,11 +972,15 @@ package gRSShopper::Site;
 	else { die "Cannot find website host from HTTP or Cron input."; }
 
 	# Set Up Site Variables
-	my $host = $self->{st_host};
+	my $host = $self->{st_host}; my $hostdir;
+
+	our $first = &get_file("/var/www/html/cgi-bin/first.txt");   # Contains the name of the first host
+	if ($self eq $first) { $hostdir = "/var/www/html/"; }		 # First host uses plain html/ directory
+	else {  $hostdir = "/var/www/$hostdir/html/";	}			 # Subsequent hosts get their own directories
 	$self->{script} = $0; 
-	$self->{data_dir} = "/var/www/$host/html/cgi-bin/data/";
-	$self->{st_urlf} = "/var/www/$host/html/";
-	$self->{st_cgif} = "/var/www/$host/html/cgi-bin/";		
+	$self->{data_dir} = $hostdir."cgi-bin/data/";
+	$self->{st_urlf} = $hostdir.";
+	$self->{st_cgif} = $hostdir.", "cgi-bin/";		
 
   	# Set derived URLs based on st_host
    	$self->{st_url} = $http . $self->{st_host} . "/";
