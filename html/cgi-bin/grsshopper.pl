@@ -1130,6 +1130,22 @@ package gRSShopper::Site;
 
   }
 
+  # -------   Get File ---------------------------------------------------
+
+  # Internal function to get files
+
+  sub get_file {
+
+	my ($file) = @_;
+	my $content;
+	open FIN,"$file" or return "$file not found";
+	while (<FIN>) {
+		$content .= $_;
+	}
+	close FIN;
+	return $content;
+
+  }
 
 
 	#----------------------------------------------------------------------------------------------------------
