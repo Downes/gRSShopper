@@ -5,28 +5,30 @@
 
 :root {--fore-color:#111;
   --secondary-fore-color:#444;
-  --third-fore-color:#444;
+  --third-fore-color:rgb(123, 123, 123);
+  --form-fore-color: #f8f8f8;
+  --button-fore-color:#fafafa;
   --icon-color: green;
   --icon-size: 1.2rem;
   --success-color: #ACE1AF;
   --error-color: #FFC0CB;
   --back-color:#f8f8f8;
-  --secondary-back-color:#fafafa;
-  --third-back-color:#f8f8f8;
+  --secondary-back-color:#a9a9a9d7;
+  --third-back-color:#6d6d6de9;
+  --button-back-color: #666;
+  --form-back-color: #f8f8f8;
   --shadow-color: #8f8f8f;
   --blockquote-color:#f57c00;
   --pre-color:#1565c0;
-  --border-color:#aaa;
+  --border-color:rgb(123,123,123,0.15);
   --secondary-border-color:#ddd;
-  --form-back-color: #f8f8f8;
-  --form-fore-color: #111;
   --form-border-color: #f8f8f8;
   --heading-ratio:1.19;
   --universal-margin:0;
   --universal-padding:0;
   --tab-padding:.5rem;
   --button-padding:.2rem;
-  --universal-border-width:0.5px;
+  --universal-border-width:1px;
   --universal-border-radius:.2rem;
   --universal-menubox-radius:.8rem;
   --universal-leading:0.5rem;
@@ -64,17 +66,19 @@ h1,h2,h3 {
   color: var(--secondary-fore-color);
 }
 
+/* Button */
 
-.button,button {
+
+.button,button,.btn,input[type=button] {
   position: relative;
-  background-color: white;
-  color: var(--secondary-fore-color);
-  border: var(--universal-border-width) solid var(--secondary-fore-color);
+  background-color: var(--back-color);
+  color: var(--fore-color);
+  border: var(--universal-border-width) solid var(--border-color);
+  border: var(--universal-border-width) solid var(--border-color);
   border-radius: var(--universal-border-radius);
-  box-shadow: 1px 2px var(--shadow-color);
+ 
 
   font-size: 1em;
-  color: var(--secondary-fore-color);
   padding: var(--button-padding);
   text-align: center;
   transition-duration: 0.4s;
@@ -83,12 +87,12 @@ h1,h2,h3 {
   cursor: pointer;
 }
 
-.button:hover,button:hover {
-
-  box-shadow: 1px 2px var(--shadow-color);
+.button:hover,button:hover,.btn:hover,input[type=button]:hover {
+  background-color: var(--secondary-back-color);
+  color: var(--icon-color);
 }
 
-.button:after,button:after {
+.button:after,button:after,.btn:after,input[type=button]:after {
   content: "";
   background: #f1f1f1;
   display: block;
@@ -101,8 +105,9 @@ h1,h2,h3 {
   transition: all 0.8s
 }
 
-.button.active {
-  background: #acc598;
+.button.active,button.active,.btn.active,input[type=button].active {
+  background-color: var(--third-back-color);
+  color:var(--back-color);
 }
 
 .button:active:after,button:active:after {
@@ -125,10 +130,22 @@ h1,h2,h3 {
   border: 0px solid white;
 
 }
+
+.btn-inline {
+  /* Used to create options in, eg., error messages */
+  margin:0;
+  padding:calc(0.0 * var(--tab-padding)) calc(0.75 * var(--tab-padding));
+  background-color: var(--button-fore-color);
+  box-shadow: 1px; 2px var(--shadow-color);
+  color: var(--button-back-color);
+}
+
+
+
 .page { 
   margin:1%;
   border-collapse:collapse;
-  border: 1px solid #aaa; 
+  border: var(--universal-border-width) solid var(--border-color); 
   color:#455a64; 
   padding-top:1%; 
   background-color: var(--back-color);
@@ -164,7 +181,7 @@ form {    /* To override mini-css  */
   background-color: var(--back-color);
   margin-bottom:1%;
   padding:1%;
-  border: 1px solid #f0f0f0
+  border: var(--universal-border-width) solid #f0f0f0
 }
 
 .byline { 
@@ -198,13 +215,13 @@ label {
   background:var(--back-color);
   margin-bottom:1%;
   padding:1%;
-  border: 1px solid #f0f0f0
+  border: var(--universal-border-width) solid #f0f0f0
 }
 
-.email_page { margin:1%;border-collapse:collapse;border: 1px solid #f0f0f0; color:#455a64; 
+.email_page { margin:1%;border-collapse:collapse;border: var(--universal-border-width) solid #f0f0f0; color:#455a64; 
   padding-top:3%; 
   background:var(--secondary-back-color);padding-bottom:1%;padding-left:2%;padding-right:2%; }
-.email_head {background:#ffffff;margin-bottom:1%;padding:2%;border: 1px solid #f0f0f0}
+.email_head {background:#ffffff;margin-bottom:1%;padding:2%;border: var(--universal-border-width) solid #f0f0f0}
 .email_byline { font: 400 12pt/16pt Verdana,Arial, sans-serif;color:#000040;line-height:120%;}
 
 
@@ -219,7 +236,7 @@ label {
 
 .navlink {
 
-  border: 1px solid white;
+  border:var(--universal-border-width) solid white;
   background-color: var(--back-color);
   padding: 2px;
 
@@ -227,9 +244,9 @@ label {
 /* Success and Error Warnings */
 
 .success {
-    border: 1px solid var(--success-color); 
+    border: var(--universal-border-width) solid var(--success-color); 
     background-color:  var(--back-color);
-    margin: 0.1rem;
+    margin: 1rem;
     padding: calc(0.3 * var(--tab-padding)) calc(0.75 * var(--tab-padding));
     box-sizing: border-box;
     -moz-box-sizing: border-box;
@@ -239,9 +256,9 @@ label {
 }
 
 .error {
-    border: 1px solid var(--error-color); 
+    border: var(--universal-border-width) solid var(--error-color); 
     background-color: var(--back-color);
-    margin: 0.1rem;
+    margin: 1rem;
     padding: calc(0.3 * var(--tab-padding)) calc(0.75 * var(--tab-padding));
     box-sizing: border-box;
     -moz-box-sizing: border-box;
@@ -358,20 +375,13 @@ table th, table td {
 .tabPanel {
     overflow: hidden;
     max-width:100%;
-    border: 1px solid #ccc;
-    background-color: var(--secondary-back-color);
+    border: var(--universal-border-width) solid var(--border-color);
+    background-color: var(--back-color);
 }
 
 
 /* Style the buttons that are used to open the tab content */
 /*     background-color: inherit; */
-
-.tab {
-  margin:0;
-  padding:calc(0.3 * var(--tab-padding)) calc(0.75 * var(--tab-padding));
-  transition: 0.3s;
-  background-color: var(--secondary-back-color); 
-}
 
 [aria-pressed="true"] {
   background-color: var(--third-back-color);
@@ -381,62 +391,81 @@ table th, table td {
 .tabs {
   color: var(--primary-color);
   overflow: hidden;
-  border: 1px solid #ccc;
+  border-bottom: var(--universal-border-width) solid var(--border-color);
   background-color: var(--back-color);
 
 }
 
+.tab {
+  margin:0;
+  padding:calc(0.3 * var(--tab-padding)) calc(0.75 * var(--tab-padding));
+  transition: 0.3s;
+  border: var(--universal-border-width) solid var(--border-color);
+  background-color: var(--back-color);
+  color: var(--fore-color);
+}
+
 .tab:hover {
-  background-color: var(--third-back-color);
+  background-color: var(--secondary-back-color);
+  color: var(--icon-color);
 }
 
 tab.active {
   background-color: var(--third-back-color);
+  color:var(--back-color);
 }
 
 .mainlinks {
-  background-color: var(--primary-back-color);
+  background-color: var(--back-color);
+  color: var(--fore-color);
+  border: var(--universal-border-width) solid var(--border-color);
 }
 
 .mainlinks:hover {
-  background-color: var(--third-back-color);
+  background-color: var(--secondary-back-color);
+  color: var(--icon-color);
 }
 
 .mainlinks.active {
   background-color: var(--third-back-color);
+  color:var(--back-color);
 }
 .tablinks {
-  background-color: var(--primary-back-color);
-   
+  background-color: var(--back-color);
+  color: var(--fore-color);
+  border: var(--universal-border-width) solid var(--border-color);
 }
 
 /* Change background color of buttons on hover */
 .tablinks:hover {
-  background-color: var(--third-back-color);
-
+  background-color: var(--secondary-back-color);
+  color: var(--icon-color);
 }
 
 /* Create an active/current tablink class */
 .tablinks.active {
   background-color: var(--third-back-color);
+  color:var(--back-color);
 }
 
 /* Style the buttons that are used to open the tab content */
 /*     background-color: inherit; */
 .editorlinks {
-  background-color: var(--primary-back-color);
-  
+  background-color: var(--back-color);
+  color: var(--fore-color);
+  border: var(--universal-border-width) solid var(--border-color);
 }
 
 /* Change background color of buttons on hover */
 .editorlinks:hover {
-  background-color: var(--third-back-color);
-
+  background-color: var(--secondary-back-color);
+  color: var(--icon-color);
 }
 
 /* Create an active/current tablink class */
 .editorlinks.active {
   background-color: var(--third-back-color);
+  color:var(--back-color);
 }
 
 
@@ -448,14 +477,14 @@ tab.active {
 /* Style the left side tab content */
 .tabcontent {
   display: none;
-  border: 1px solid #ccc;
+  border: var(--universal-border-width) solid #ccc;
   border-top: none;
 }
 
 /* Style the right side tab content */
 .talktabcontent {
     display: none;
-    border: 1px solid #ccc;
+    border: var(--universal-border-width) solid #ccc;
     border-top: none;
 }
 
@@ -464,25 +493,35 @@ tab.active {
 .table-list {
     list-style-type: none;
     padding: 0;
-    border: 1px solid #ddd;
+    border: var(--universal-border-width) solid #ddd;
 }
 
 .table-list-heading {
     padding: 8px 16px;
-    background-color: var(--third-back-color);
-    border-bottom: 1px solid #ddd;
+    background-color: var(--secondary-back-color);
+    border-bottom: var(--universal-border-width) solid #ddd;
 }
 
 .table-list-element {
     padding: 8px 16px;
-    background-color: var(--third-back-color);
-    border-bottom: 1px solid #ddd;
+    background-color: var(--back-color);
+    border-bottom: var(--universal-border-width) solid #ddd;
+    color: var(--fore-color);
+}
+
+.table-list-element a {
+  color: var(--fore-color);
 }
 
 .table-list-element:hover {
-    background-color: var(--back-color);
-
+    background-color: var(--third-back-color);
+    color: var(--back-color);
 }
+
+.table-list-element:hover a {
+  color: var(--back-color);
+}
+
 
 .table-list li:last-child {
     border-bottom: none
@@ -579,7 +618,7 @@ tab.active {
 }
 
 .menubox {
-  border: 0.5px solid lightslategray;
+  border: var(--universal-border-width) solid var(--border-color);
   border-radius: var(--universal-menubox-radius);
   padding: 10px;
   margin-bottom: 15px;
@@ -588,7 +627,7 @@ tab.active {
 }
 
 .menubox h3 {
-  color: green;
+  color: var(--icon-color);
   margin-top: 10px;
   margin-bottom: 5px;
 
@@ -614,7 +653,7 @@ tab.active {
 
 #show_columns td, #show_columns th  {
   font-size:1em;
-  border:1px solid #98bf21;
+  border:1px solid var(--border-color);
   padding:3px 7px 2px 7px;
 }
 
@@ -696,20 +735,7 @@ tab.active {
   margin-left: -1.4em;
 }
 
-/* Button */
 
-.btn {
-  margin:0.1rem;
-  padding:calc(0.3 * var(--tab-padding)) calc(0.75 * var(--tab-padding));
-}
-
-.btn-inline {
-  /* Used to create options in, eg., error messages */
-  margin:0;
-  padding:calc(0.0 * var(--tab-padding)) calc(0.75 * var(--tab-padding));
-  background-color: var(--button-back-color);
-  color: var(--button-fore-color);
-}
 /* Results Box, generic */
 
 .results {
@@ -833,29 +859,23 @@ p.info {
 .row button {
   margin:0;
   margin-right:3px;
-  padding:0;
-  padding-left:5px;padding-right:5px;
-  height: 1.6em;
-  line-height: 1.6em;
+  padding: calc(0.3 * var(--tab-padding)) calc(0.75 * var(--tab-padding));
+
 }
 
 .editor-selected {
-  height: 1.6em;
-  line-height: 1.6em;
+
   margin:0;
   margin-right:5px;
-  padding:0;
-  padding-left:5px;padding-right:5px;
+  padding: calc(0.3 * var(--tab-padding)) calc(0.75 * var(--tab-padding));
   color:red;
 }
 
 .editor-unselected {
-  height: 1.6em;
-  line-height: 1.6em;
+
   margin:0;
   margin-right:5px;
-  padding:0;
-  padding-left:5px;padding-right:5px;
+  padding: calc(0.3 * var(--tab-padding)) calc(0.75 * var(--tab-padding));
   color:blue;
 }
 
@@ -927,7 +947,7 @@ padding: 1em;
 position: relative;
 background-color: #fff;
 box-shadow: 0 1px 2px hsla(0, 0%, 0%, 0.06);
-border-bottom: 1px solid #e8e8e8;
+border-bottom: var(--universal-border-width) solid #e8e8e8;
 }
 
 .modal-close {

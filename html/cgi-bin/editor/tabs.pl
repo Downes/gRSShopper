@@ -520,8 +520,7 @@ sub Tab_Page {
 		$output .= &process_field_types($window,$table,$id_number,$field,$record,$data,$defined);
 	}
 
-
-	$output .= &form_pushbutton($table,$id_number,"tab","publish");
+	$output .= &form_publish_page($table,$id_number,"html txt latex");
 
 	$output .= &form_pushbutton($table,$id_number,"tab","clone");
 

@@ -258,27 +258,30 @@ sub output_record {
 
 
 	# -------  Publish Page --------------------------------------------------------
+	#
+	#          $page_id can be the id of a specific page, 'all' for all pages
+	#          or 'auto' to publish autopublied pages (used by cron)
+	#          $opt can be set to 'silent' to suppress printing of results 
+	#          $export can be used to convert HTML into different formats
+	#
+	# ------------------------------------------------------------------------------
 sub publish_page {
 
-	my ($dbh,$query,$page_id,$opt) = @_;
+	my ($dbh,$query,$page_id,$opt,$export) = @_;
 	my $options = $query->{options};
-print "Publishing page<p>";
-	$Site->{pubstatus} = "publish";
-	my ($pgcontent,$pgtitle,$pgformat,$archive_url); 		# Vars for send_newsletter
-	my $LF = ""; if ($Site->{cron} ) { $LF = "\n"; } 
-	my $keyword_count;
-	if ($vars->{mode} eq "silent") { $opt = "silent"; }
-	$vars->{force} = "yes";				# Always rebuild when publishing
-								# instead of using caches
 
-	if ($opt eq "verbose") {			# Print header for verbose
-		print "Content-type: text/html; charset=utf-8\n\n";
-		$Site->{header} =~ s/\Q<page_title>\E/Publish!/g;
-		$Site->{header} =~ s/\Q[*page_title*]\E/Publish!/g;
-		print $Site->{header};
-		print "<p>";
-	}
-print "Setting up request for page $page_id<p>";
+	$Site->{pubstatus} = "publish";
+
+							# Set up vars for send_newsletter
+	my ($pgcontent,$pgtitle,$pgformat,$archive_url); 		
+
+							# Set up formatting for text or html output of results
+	my $LF = " "; if ($Site->{cron} ) { $LF = "\n"; } 
+	if ($vars->{mode} eq "silent") { $opt = "silent"; }
+
+							# Always rebuild when publishing; don't publish from cache
+	$vars->{force} = "yes";				
+
 							# Set Up Request
 	my $stmt;my $sth;
 	if ($page_id eq "all" || $page_id eq "auto") {
@@ -290,40 +293,27 @@ print "Setting up request for page $page_id<p>";
 		$sth -> execute($page_id);
 	}
 
-
-
-							# Get Page Data
+							# Get Page Data, and for Each Page...
 	my $count=0;my $wp;
 	while ($wp = $sth -> fetchrow_hashref()) {
 		$count++;
 
-		$wp->{page_content} = $wp->{page_code};
-
-		# Format page content (ef. fill in [*page_whatever*])
-
-
+								# Publish the page only if allowed
 		next unless (&is_allowed("publish","page",$wp));
-		unless ($opt eq "silent" || $opt eq "initialize") { 
-			$vars->{message} .= "Publishing Page: ".$wp->{page_title}.$LF; 
-		}
-
-
+		$vars->{message} .= "Publishing Page: ".$wp->{page_title}.". ".$LF; 
 
 								# Skip non-auto in autopublish mode
 		if ($page_id eq "auto") {
 			next unless ($wp->{page_autopub} eq "yes");
 		}
 
-
-
-
+		
 								# Make Sure We Have Content
+		$wp->{page_content} = $wp->{page_code};						
 		unless ($wp->{page_content}) {
-			&publish_error($page_id,qq|Whoa, this page |.$wp->{page_title}.qq| ($page_id) has no content $LF $LF|);
+			$vars->{message} .= qq|Whoa, this page |.$wp->{page_title}.qq| ($page_id) has no content $LF $LF|;
 			next;
 		}
-
-
 
 								# Add Headers and Footers
 
@@ -336,43 +326,40 @@ print "Setting up request for page $page_id<p>";
 		&db_update($dbh,"page",{page_update=>$wp->{page_update}},$wp->{page_id});
 
 
-
-
-		# Format Page Content
+								# Format Page Content
 		&format_content($dbh,$query,$options,$wp);
 
-
-
-
-		$wp->{page_content} =~ s/\Q<page_id>\E/$page_id/g;
-		$wp->{page_content} =~ s/\Q[*page_id*]\E/$page_id/g;
+								# Publish only if new content was added, unless empty content allowed
 		unless ($wp->{page_linkcount} || $wp->{page_allow_empty} eq "yes") {
-			&publish_error($page_id,"Zero linkcount in page ".$wp->{page_title}."($page_id), page not published.<p>");
+			$vars->{message} .= "Zero linkcount in page ".$wp->{page_title}."($page_id), page not published.<p>";
 			next;
 		}
-		$keyword_count = $wp->{page_linkcount};
 
-
-
-
-
-
-
+	
+	
 								# Save Formatted Content to DB
-		&db_update($dbh,
-			"page",
-			{page_content=>$wp->{page_content},page_latest=>time},
-			$page_id);
+		#&db_update($dbh,
+			#"page",
+			#{page_content=>$wp->{page_content},page_latest=>time},
+			#$page_id);
 
 
-
-								# Make Sure We Have an Output File
+								# Make Sure We Have an output location
 		unless ($wp->{page_location}) {
-			unless ($opt eq "silent") { &publish_error($page_id,qq|Whoa, no file to print page ".$wp->{page_title}."($page_id) to $LF $LF|); }
+			$vars->{message} .= "Whoa, no file to print page ".$wp->{page_title}."($page_id) to $LF $LF"; 
 			next;
 		}
 
-
+								# make sure there's a directory to print to
+								# by extracting and testing for any subdirectory specified
+								# in page location 
+		my @dirarray = split /\//,$wp->{page_location};
+		my $temp = pop @dirarray;
+		my $pgdir = $Site->{st_urlf} . join /\//,@dirarray;
+		unless (-d $pdgir) {
+			use File::Path qw(make_path);
+			make_path($pgdir);
+		}
 
 
 
@@ -381,36 +368,32 @@ print "Setting up request for page $page_id<p>";
 		my $hdr9 = 'Content-type:text/html';
 		my $hdr0 = 'Content-type:text/html; charset=utf-8';
 		my $hdr1 = 'Content-type: text/html; charset=utf-8';
-		wp->{page_content} =~ s/($hdr0|$hdr1|$hdr9)//sig;
+		$wp->{page_content} =~ s/($hdr0|$hdr1|$hdr9)//sig;
 
 
-    if ($Site->{st_urlf} eq '../') {     # Correct for relative URL, needed for cron print
-	#	   use Cwd 'abs_path';
-	#	   $Site->{st_urlf} = abs_path($0);
-  #     $Site->{st_urlf} =~ s/cgi-bin\/admin.cgi/$1/;
+								# Perform conversions
+		if ($export) {
+			$wp->{page_location} = &convert_page($export,$wp);
 		}
 
-								# make sure there's a directory to print to
-		my @dirarray = split /\//,$wp->{page_location};
-		my $temp = pop @dirarray;
-		my $pgdir = $Site->{st_urlf} . join /\//,@dirarray;
-		unless (-d $pdgir) {
-			use File::Path qw(make_path);
-			make_path($pgdir);
-		}
 								# Print Page
 
 		my $pgfile = $Site->{st_urlf} . $wp->{page_location};
 		my $pgurl = $Site->{st_url} . $wp->{page_location};
 
-
-
-		$vars->{message} .= "Publishing to ".$pgfile.$LF;
+		# $vars->{message} .= "Publishing to ".$pgfile.$LF;
 		&log_cron(1,sprintf("Page published to %s",$pgfile));
 
-		unless (open PSITE, ">$pgfile") { &publish_error($page_id,qq|Cannot $pgdir open ".$wp->{page_title}."($page_id) $pgfile : $! $LF $LF|); exit; }
-		unless (print PSITE $wp->{page_content}) { &publish_error($page_id,qq| Cannot print to ".$wp->{page_title}."($page_id) $pgfile : $!  $LF $LF|); close PSITE; exit; }
-		unless ($opt eq "silent" || $opt eq "initialize") { $vars->{message} .= qq|Saved page to <a href="$pgurl" target="new">$pgurl</a>  $LF|; }
+		unless (open PSITE, ">$pgfile") { 
+			$vars->{message} .= "Cannot open ($page_id) $pgfile : $! $LF $LF"; 
+			next; 
+		}
+		unless (print PSITE $wp->{page_content}) { 
+			$vars->{message} .= "Cannot print to ($page_id) $pgfile : $!  $LF $LF"; 
+			close PSITE; next; 
+		}
+		unless ($opt eq "silent" || $opt eq "initialize") {
+			$vars->{message} .= qq|Saved page to <a href="$pgurl" target="new">$pgurl</a>  $LF|; }
 		close PSITE;
 
 
@@ -424,10 +407,21 @@ print "Setting up request for page $page_id<p>";
 		if ($wp->{page_archive} eq "yes") {
 
 			my ($save_to,$save_url) = &archive_filename($wp->{page_location});
-			unless ($save_to) { &publish_error($page_id,qq|No location to save ".$wp->{page_title}."($page_id) archive file.$LF $LF|); }
-			open POUT,">$save_to" or &publish_error($page_id,qq|Error opening to write ".$wp->{page_title}."($page_id) to $save_to : $! $LF $LF|);
-			print POUT $wp->{page_content} or &publish_error($page_id,qq|Error printing ".$wp->{page_title}."($page_id) to $save_to : $! $LF $LF|);
-			close POUT;
+			unless ($save_to) { 
+				$vars->{message} .= "No location to save ".$wp->{page_title}."($page_id) archive file.$LF $LF";
+				next;
+			}
+			unless (open POUT,">$save_to") {
+				$vars->{message} .= "Error opening to write ".$wp->{page_title}."($page_id) to $save_to : $! $LF $LF";
+				next;
+			}
+
+			unless (print POUT $wp->{page_content}) {
+				$vars->{message} .= "Error printing ".$wp->{page_title}."($page_id) to $save_to : $! $LF $LF";
+				close POUT;
+				next;
+			}
+
 			unless ($vars->{mode} eq "silent" || $opt eq "silent" || $opt eq "initialize") {
 				$vars->{message} .= qq|Archived $wp->{page_title} to <a href="$save_url">$save_url</a> |;
 			}
@@ -437,21 +431,46 @@ print "Setting up request for page $page_id<p>";
 		if ($wp->{page_content}) { $pgcontent = $wp->{page_content}; }
 		if ($wp->{page_title}) { $pgtitle = $wp->{page_title}; }
 		if ($wp->{page_format}) { $pgformat = $wp->{page_format}; }
-		unless ($opt eq "silent" || $opt eq "initialize") { print $LF; }
+
 	}
 
 
 	$sth->finish(  );
 
-	if ($opt eq "verbose") {
-		print "</p>";
-		print $Site->{footer};
-	}
-
-	return ($pgcontent,$pgtitle,$pgformat,$archive_url,$keyword_count,$wp->{page_location},$wp->{page_type});
+	unless ($opt eq "silent" || $opt eq "initialize") { # print $vars->{message};
+	 }
+	return ($pgcontent,$pgtitle,$pgformat,$archive_url,$wp->{page_linkcount},$wp->{page_location},$wp->{page_type});
 
 
 }
+
+sub convert_page { 
+	my ($export,$wp) = @_;
+	return $wp->{page_location} if ($export =~ /htm/);		# Don't convert html to html
+	if ($export eq "txt") {
+		$wp->{page_content} =~ s/<br>|<br\/>|<br \/>/\n/ig;
+		$wp->{page_content} =~ s/<p(.*?)>/\n\n/ig;
+		$wp->{page_content} =~ s/<(.*?)>//ig;
+		return $wp->{page_location}.".".$export;
+	} elsif ($export eq "latex") {
+		
+		use File::Basename qw(dirname);
+		use Cwd  qw(abs_path);
+		use lib dirname(dirname abs_path $0) . '/cgi-bin/modules/Latex/lib';
+		unless (&new_module_load($query,"Latex",@export)) { 
+			&status_error("Error: Publish as Latex required HTML::Latex module, which is not loaded"); }
+ 		my $parser = new Latex();
+
+		my $filehandle = $parser->set_log('report01.log');
+		$parser->set_option({border => 0, debug => 0});
+		$wp->{page_content} = $parser->parse_string($wp->{page_content},1);
+
+
+			return $wp->{page_location}.".".$export;
+		}
+}
+
+
 
 sub publish_error {
 
@@ -523,20 +542,18 @@ sub publish_badge {
 		}
 
 
-                     						# Print Page
+                				# Print Page
+
+		my $pgfile = $Site->{st_urlf} . $wp->{badge_location};
+		my $pgurl = $Site->{st_url} . $wp->{badge_location};
+		my $json = qq|{"name": "$wp->{badge_name}","description": "$wp->{badge_description}","image": "$wp->{badge_image}", "criteria": "$wp->{badge_criteria}","issuer": "$wp->{badge_issuer}"}|;
 
 
-			my $pgfile = $Site->{st_urlf} . $wp->{badge_location};
-  			my $pgurl = $Site->{st_url} . $wp->{badge_location};
-			my $json = qq|{"name": "$wp->{badge_name}","description": "$wp->{badge_description}","image": "$wp->{badge_image}", "criteria": "$wp->{badge_criteria}","issuer": "$wp->{badge_issuer}"}|;
+		open PSITE, ">$pgfile"  or  print qq|Cannot open $pgfile : $! $LF $LF|;
 
+		print PSITE $json or print qq| Cannot print to $pgfile : $!  $LF $LF|;
 
-			open PSITE, ">$pgfile"  or  print qq|Cannot open $pgfile : $! $LF $LF|;
-
-			print PSITE $json or print qq| Cannot print to $pgfile : $!  $LF $LF|;
-
-			unless ($opt eq "silent" || $opt eq "initialize") { $vars->{message} .= qq|Saved page to <a href="$pgurl"  target="new">$pgfile</a>  $LF|; }
-
+		unless ($opt eq "silent" || $opt eq "initialize") { $vars->{message} .= qq|Saved page to <a href="$pgurl"  target="new">$pgfile</a>  $LF|; }
 
 		close PSITE;
 

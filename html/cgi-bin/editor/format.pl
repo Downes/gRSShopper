@@ -249,7 +249,7 @@ sub format_record {
 											# Dates
 	&make_tz($dbh,\$view_text);								# Time zones
 
-	&make_langstring(\$view_text);							# Language Strings
+	#&make_langstring(\$view_text);							# Language Strings
 
 	&make_images(\$view_text,$table,$id_number,$filldata);							# Images
 
@@ -427,11 +427,12 @@ sub clean_up {		# Misc. clean-up for print
 	  $$text_ptr =~ s/&gt;/>/mig;					# Replace amps
   }
 
-	$$text_ptr =~ s/&amp;#(.*?);/&#$1;/mig;				# Fix broken special chars
+  	$$text_ptr =~ s/&amp;#(.*?);/&#$1;/mig;				# Fix broken special chars
 	$$text_ptr =~ s/&#147;/"/mig;
 	$$text_ptr =~ s/&#148;/"/mig;
 	$$text_ptr =~ s/&#233 /&#233; /g;		# For U de M, which drops a ;
 	$$text_ptr =~ s/&amp;#233 /&#233; /g;		# For U de M, which drops a ;
+
 
 
 	$$text_ptr =~ s/\x18\x20/'/g;
@@ -441,9 +442,53 @@ sub clean_up {		# Misc. clean-up for print
 	$$text_ptr =~ s/\x1d\x20/"/g;
 	$$text_ptr =~ s/\x1e\x20/"/g;
 
+	$$text_ptr =~ s/&rsquo;|&lsquo;/'/mig;
+	$$text_ptr =~ s/&rdquo;|&ldquo;/"/mig;
 
 	$$text_ptr =~ s/&apos;/'/mig;					# '
 	$$text_ptr =~ s/&#39;/'/mig;					# '
+
+
+    if ($format =~ /latex/) {
+# \href{http://www.overleaf.com}{Something Linky}
+		my $ltext = $$text_ptr;
+
+		my @links = grep(/<a.*href=.*>/,@content);
+
+		foreach my $c (@links){
+			$c =~ /<a.*href="([\s\S]+?)".*>/;
+			$link = $1;
+			$c =~ /<a.*href.*>([\s\S]+?)<\/a>/;
+			$title = $1;
+			$$text_ptr = s/<a.*href="$link".*>$title<\/a>/\\href{$$link}{$title}/ig;
+		}
+		$$text_ptr =~ s/&amp;/&/g; 
+		$$text_ptr =~ s/&nbsp;/ /g; 		
+		$$text_ptr =~ s/<(.*?)>//ig;
+		foreach my $q ('#','$','%','^','&','_','{','}','~') { 
+		#	$$text_ptr =~ s/$q/\\$q/g; 
+		}
+		$$text_ptr =~ s/#/\\#/g;
+		$$text_ptr =~ s/\$/\\\$/g;
+		$$text_ptr =~ s/%/\\%/g;
+		$$text_ptr =~ s/\^/\\\^/g;
+		$$text_ptr =~ s/&/\\&/g;
+		$$text_ptr =~ s/_/\\_/g;
+		#$$text_ptr =~ s/\{/\\\{/g;
+		#$$text_ptr =~ s/}/\\}/g;
+		$$text_ptr =~ s/~/\\~/g;
+
+		# .^$*+?()[{\|
+
+		#$$text_ptr =~ s|//|////|g; 
+		$$text_ptr =~ s/\s"/ ``/g;
+		$$text_ptr =~ s/'/\\textsc{\\char13}s/g;  #'
+
+	}
+
+
+
+
 
 						# Site Info
 	$$text_ptr =~ s/<st_url>/$Site->{st_url}/g;

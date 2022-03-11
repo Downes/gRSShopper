@@ -49,6 +49,7 @@ RUN apt-get install -y    libtemplate-plugin-gd-perl
 RUN apt-get install -y    libwww-curl-perl
 RUN apt-get install -y    libwww-mechanize-perl
 RUN apt-get install -y    liburi-encode-perl
+RUN apt-get install -y 	   libxml-simple-perl
 
 RUN cpanm Image::Resize
 RUN cpanm Mastodon::Client
@@ -56,6 +57,7 @@ RUN cpanm Net::Twitter::Lite::WithAPIv1_1
 RUN cpanm REST::Client
 RUN cpanm MIME::Lite::TT::HTML
 RUN cpanm WebService::Mailgun
+
 
       
 RUN apt-get install apache2 -y

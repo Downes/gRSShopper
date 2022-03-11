@@ -563,9 +563,6 @@ if ($vars->{cmd} eq "update") {
 	# url upload
 	elsif ($vars->{type} eq "file_url") { &api_url_upload(); }
 
-	# record publish
-	elsif ($vars->{type} eq "publish") { &api_publish(); }
-
 	# column create
 	elsif ($vars->{type} eq "column") { &api_column_create(); }
 
@@ -623,7 +620,9 @@ if ($vars->{cmd} eq "publish") {
 
 	# Publish Page
 	if ($vars->{table} eq "page") {
-		&publish_page($dbh,$query,$vars->{id},"");  # Information stored in $vars->{message}
+
+
+		&publish_page($dbh,$query,$vars->{id},"",$vars->{export});  # Information stored in $vars->{message}
 		&status_ok();								# and returned as {... ,"message":$vars->{message}}
 		exit;
 	}
@@ -636,6 +635,7 @@ if ($vars->{cmd} eq "publish") {
 		exit;
 
 	}
+
 
 
 	&api_publish();

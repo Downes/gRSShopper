@@ -20,28 +20,37 @@ sub fieldlable {				# Creates Lable value used by forms
 }
 sub form_publish_page {
 
-	my ($table,$id,$col) = @_;
-
-	unless ($fieldlable) { $fieldlable = &fieldlable($col,$table); }
-
-	return qq|
+	my ($table,$id,$export) = @_;
+	my $div = $table."_publish";
+	$table ||= "page";
+	my $formtext = qq|
 		<div class="text-input">
-			<label for="$col">Publish</label>
-			<div class="text-input-form">
-				<div tabindex="0" role="button" class="btn" aria-pressed="false" 
-			   		onclick="
+			<label for="$col">Publish Page</label>
+			<div class="text-input-form">|;
+
+	my @export_list = split / /,$export;
+
+	foreach my $epf (@export_list) {
+		$formtext .= qq|
+
+				<div tabindex="0" role="button" class="btn" aria-pressed="false"  style="display:inline;"
+					onclick="
 						submitData(
-							{ div:'publish_result',
+							{ div:'$div',
 								cmd:'publish',
 								table:'$table',
 								id:'$id',
+								export:'$epf',
 							});
-					">Publish
+					">Publish $epf
 				</div>
+		|;
+	}
+	$formtext .= qq|
 			</div>
 		</div>
-		<div id="publish_result"></div>
-	|;
+		<div id="$div" class="result"></div>|;
+	return $formtext;
 }
 
 sub form_pushbutton {
@@ -1410,7 +1419,7 @@ sub form_publish {
 
 										# Future work - get this from the list of accounts
 	# Set up return content
-	my $return_text = qq|
+	my $return_text = qq|hello
 	    <div class="text-input">
 			<label for="$col">Publish!</label>
 		</div>|;
