@@ -118,6 +118,7 @@ use CGI::Carp qw(fatalsToBrowser);
    		print $json;exit;
 	}
 
+
 	# List (is also search)
 	my $listsearch;
 	if ($vars->{cmd} eq "list") {

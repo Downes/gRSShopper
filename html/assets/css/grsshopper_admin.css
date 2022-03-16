@@ -7,15 +7,16 @@
   --secondary-fore-color:#444;
   --third-fore-color:rgb(123, 123, 123);
   --form-fore-color: #f8f8f8;
-  --button-fore-color:#fafafa;
+  --button-fore-color:#f8f8f8;
   --icon-color: green;
   --icon-size: 1.2rem;
   --success-color: #ACE1AF;
   --error-color: #FFC0CB;
   --back-color:#f8f8f8;
+  --button-color:#1f1e1e;
   --secondary-back-color:#a9a9a9d7;
   --third-back-color:#6d6d6de9;
-  --button-back-color: #666;
+  --button-back-color: #fafafa;
   --form-back-color: #f8f8f8;
   --shadow-color: #8f8f8f;
   --blockquote-color:#f57c00;
@@ -69,10 +70,10 @@ h1,h2,h3 {
 /* Button */
 
 
-.button,button,.btn,input[type=button] {
+.button,button,.btn,.keylist-input-button,input[type=button] {
   position: relative;
-  background-color: var(--back-color);
-  color: var(--fore-color);
+  background-color: var(--button-back-color);
+  color: var(--button-color);
   border: var(--universal-border-width) solid var(--border-color);
   border: var(--universal-border-width) solid var(--border-color);
   border-radius: var(--universal-border-radius);
