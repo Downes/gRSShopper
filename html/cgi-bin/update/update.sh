@@ -1,7 +1,8 @@
 #/bin/bash
 repository="https://github.com/Downes/gRSShopper"
-SCRIPT_DIR=$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)
-echo "Script location: ${BASEDIR}"
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+echo "Script location: ${SCRIPT_DIR}"
+cd
 cd ..
 fcgi = pwd
 echo "CGI location: ${fcgi}"
