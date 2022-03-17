@@ -1,8 +1,17 @@
 #/bin/bash
 repository="https://github.com/Downes/gRSShopper"
-base="/var/www/"
-html="${base}html/"
-fcgi="${html}cgi-bin/"
+SCRIPT_DIR=$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)
+echo "Script location: ${BASEDIR}"
+cd ..
+fcgi = pwd
+echo "CGI location: ${fcgi}"
+cd ..
+html = pwd
+echo "HTML location: ${html}"
+cd ..
+base = pwd
+echo "Base directory: ${html}"
+
 js="${html}assets/js/"
 css="${html}assets/css/"
 
