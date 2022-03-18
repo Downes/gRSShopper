@@ -109,7 +109,7 @@ use CGI::Carp qw(fatalsToBrowser);
 
 
 	# Show
-	if ($vars->{cmd} eq "show" && ($vars->{table} eq "linka" || $vars->{table} eq "feed")) {
+	if ($vars->{cmd} eq "show" && ($vars->{table} eq "linka" || $vars->{table} eq "feeda")) {
 
 		print "Content-type: text/json\n\n";
    		$vars->{format} = "json";
