@@ -822,6 +822,7 @@ sub db_locate {
 		"_id from $table WHERE ";
 	my $wherestr = ""; my @whvals;
 	while (my($vx,$vy) = each %$vals) {
+print ":ocating $table : $vx = $vy <br>";		
 		if ($wherestr) { $wherestr .= " AND "; }
 		$wherestr .= "$vx = ?";
 		push @whvals,$vy;
