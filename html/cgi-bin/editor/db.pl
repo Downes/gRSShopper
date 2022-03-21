@@ -908,7 +908,7 @@ print "$sql<p>";
 	if ($sth->errstr) { $vars->{err} = "DB INSERT ERROR: ".$sth->errstr." <p>"; }
 
 	my $insertid = $dbh->{'mysql_insertid'};
-	
+print "Inserted $table $insertid <br>";	
 	$sth->finish(  );
 	return $insertid;
 
