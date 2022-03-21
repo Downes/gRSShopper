@@ -9,7 +9,7 @@
 sub db_add_column {
 	my ($table,$column,$datatype,$size,$default) = @_;
 
-	&error($dbh,"","","Column name error - cannot call a column $column") if (
+	&status_error("Column name error - cannot call a column $column") if (
 		(($col+0) > 0) ||
 		($col =~ /['"`#!$%&@]/)
 		);
@@ -151,7 +151,7 @@ sub removecolumndo {
 	my $vars = $query->Vars;
 	my $col = $vars->{col};
 
-	&error($dbh,"","","Column name error - cannot remove $col") if (
+	&status_error("Column name error - cannot remove $col") if (
 		($col =~ /_id/) || ($col =~ /_name/) || ($col =~ /_title/) || ($col =~ /_description/)
 		);
 	my $tab = $vars->{stable};
@@ -266,7 +266,7 @@ sub db_open {
 sub db_get_record {
 
 	my ($dbh,$table,$value_arr) = @_;
-	&error($dbh,"","","Database not ready") unless ($dbh);
+	&status_error("Database not ready") unless ($dbh);
 
 	my @value_list; my @value_vals;
 	while (my($kx,$ky) = each %$value_arr) { push @value_list,"$kx=?"; push @value_vals,$ky; }
@@ -289,13 +289,13 @@ sub db_get_record {
 sub db_get_record_list {
 
 	my ($dbh,$table,$value_arr,$field) = @_;
-	&error($dbh,"","","Database not ready") unless ($dbh);
+	&status_error("Database not ready") unless ($dbh);
 	if ($diag eq "on") { print "Get Record List ($table $value_arr)<br/>\n"; }
 
 	my @value_list; my @value_vals;
 	while (my($kx,$ky) = each %$value_arr) { push @value_list,"$kx=?"; push @value_vals,$ky; }
 	my $value_str = join " AND ",@value_list;
-	&error($dbh,"","","Error forming request in db_get_record_list()") unless ($value_str);
+	&status_error("Error forming request in db_get_record_list()") unless ($value_str);
 
 	my $idfield = $table ."_id";
 	$field ||= $idfield;
@@ -374,8 +374,8 @@ sub db_get_template {
 
 	my ($dbh,$title,$page_title) = @_;
 
-	if ($title =~ /'/) { &error($dbh,"","","Cannot put apostraphe in template title"); }  # '
-	&error($dbh,"","","Database not initialized in get_single_value") unless ($dbh);
+	if ($title =~ /'/) { &status_error("Cannot put apostraphe in template title"); }  # '
+	&status_error("Database not initialized in get_single_value") unless ($dbh);
 	return unless ($title);							# Just pass by blank template requests
 
 
@@ -464,7 +464,7 @@ sub db_get_description {
 sub db_get_column {
 
 	my ($dbh,$table,$field) = @_;
-	&error($dbh,"","","Database not ready") unless ($dbh);
+	&status_error("Database not ready") unless ($dbh);
 	if ($diag eq "on") { print "Get Column ($table $value_arr)<br/>\n"; }
 	my $stmt = qq|SELECT $field FROM $table|;
 	my $names_ref = $dbh->selectcol_arrayref($stmt);
@@ -654,10 +654,10 @@ sub db_get_single_value {
 
   my ($dbh,$table,$field,$id,$sort,$cmp) = @_;
 
-  &error($dbh,"","","Database not initialized in get_single_value") unless ($dbh);
-  &error($dbh,"","","Table not initialized in get_single_value") unless ($table);
-  unless ($sort) { &error($dbh,"","","Field not initialized in get_single_value") unless ($field); }
-  #&error($dbh,"","","ID number not initialized in get_single_value") unless ($id);
+  &status_error("Database not initialized in get_single_value") unless ($dbh);
+  &status_error("Table not initialized in get_single_value") unless ($table);
+  unless ($sort) { &status_error("Field not initialized in get_single_value") unless ($field); }
+  #&status_error("ID number not initialized in get_single_value") unless ($id);
   return unless ($id || $sort);
 
   my $idfield = $table."_id";								# define id field name
@@ -815,7 +815,7 @@ sub db_locate {
 	my ($dbh,$table,$vals) = @_;
 						# Verify Input Data
 
-	&error($dbh,"","","db_locate(): Cannot locate with no values") unless ($vals);
+	&status_error("db_locate(): Cannot locate with no values") unless ($vals);
 
 						# Prepare SQL Statement
 	my $stmt = "SELECT ".$table.
@@ -847,7 +847,7 @@ sub db_locate_multiple {
 	my ($dbh,$table,$vals) = @_;
 						# Verify Input Data
 
-	&error($dbh,"","","db_locate(): Cannot locate with no values") unless ($vals);
+	&status_error("db_locate(): Cannot locate with no values") unless ($vals);
 
 						# Prepare SQL Statement
 	my $stmt = "SELECT ".$table.
@@ -873,10 +873,10 @@ print "Inserting<p>";
 
 						# Verify Input Data
 
-	my $dbh = shift || &error($dbh,"","","Database handler not initiated");
+	my $dbh = shift || &status_error("Database handler not initiated");
 	my $query = shift;
-	my $table = shift || &error($dbh,"","","Table not specified on insert");
-	my $input = shift || &error($dbh,"","","No data provided on insert");
+	my $table = shift || &status_error("Table not specified on insert");
+	my $input = shift || &status_error("No data provided on insert");
 
 
     	my $vars = ();
@@ -884,7 +884,7 @@ print "Inserting<p>";
 
 
 	my $dtype = ref $input;
-	&error($dbh,"","","Unsupported data type specified to insert (data was $dtype)")
+	&status_error("Unsupported data type specified to insert (data was $dtype)")
 		unless (ref $input eq 'HASH' || ref $input eq 'gRSShopper::Record' || ref $input eq 'gRSShopper::Person' || ref $input eq 'gRSShopper::File');
 	my $data= &db_prepare_input($dbh,$table,$input);
 
@@ -924,10 +924,10 @@ print "Inserted $table $insertid <br>";
 	# Adapted from SQL::Abstract by Nathan Wiger
 sub db_insert_ignore {		# Inserts record into table from hash
 						# Verify Input Data
-	my $dbh = shift || &error($dbh,"","","Database handler not initiated");
+	my $dbh = shift || &status_error("Database handler not initiated");
 	my $query = shift;
-	my $table = shift || &error($dbh,"","","Table not specified on insert");
-	my $input = shift || &error($dbh,"","","No data provided on insert");
+	my $table = shift || &status_error("Table not specified on insert");
+	my $input = shift || &status_error("No data provided on insert");
 
 
     	my $vars = ();
@@ -935,7 +935,7 @@ sub db_insert_ignore {		# Inserts record into table from hash
 
 
 	my $dtype = ref $input;
-	&error($dbh,"","","Unsupported data type specified to insert (data was $dtype)")
+	&status_error("Unsupported data type specified to insert (data was $dtype)")
 		unless (ref $input eq 'HASH' || ref $input eq 'gRSShopper::Record' || ref $input eq 'gRSShopper::Person');
 	my $data= &db_prepare_input($dbh,$table,$input);
 
@@ -1021,10 +1021,10 @@ sub db_increment {
 
 	my ($dbh,$table,$id,$field,$from) = @_;
 
-	&error($dbh,"","","Database not initialized in db_increment") unless ($dbh);				# Check Input
-	&error($dbh,"","","Table not initialized in db_increment") unless ($table);
-	&error($dbh,"","","Field not initialized in db_increment") unless ($field);
-	&error($dbh,"","","ID number not initialized in db_increment - $from") unless ($id);
+	&status_error("Database not initialized in db_increment") unless ($dbh);				# Check Input
+	&status_error("Table not initialized in db_increment") unless ($table);
+	&status_error("Field not initialized in db_increment") unless ($field);
+	&status_error("ID number not initialized in db_increment - $from") unless ($id);
 
 	my $idfield = $table."_id";
 	my $prefix = $table."_";
@@ -1036,8 +1036,8 @@ sub db_increment {
 	my $sql;
 	if ($hits) { $sql = "update $table set $field = $field + 1 where $idfield = $id"; }
 	else { $sql = "update $table set $field = 1 where $idfield = $id"; }
- 	my $sth = $dbh->prepare($sql) or &error($dbh,"","","Can't prepare the SQL in db_increment $table");
-	$sth->execute or &error($dbh,"","","Can't execute the query: ".$sth->errstr);
+ 	my $sth = $dbh->prepare($sql) or &status_error("Can't prepare the SQL in db_increment $table");
+	$sth->execute or &status_error("Can't execute the query: ".$sth->errstr);
 	$hits++;
 	return $hits;
 
