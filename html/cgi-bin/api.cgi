@@ -1735,7 +1735,7 @@ sub api_textfield_update {
 	# Check for duplicates
 	
 	if ($vars->{value} && $vars->{col_name} =~ /_title|_name|_url|_link/) {
-		if (my $l = &db_locate($dbh,$vars->{table_name},{$vars->{col_name} => $vars->{value}})) {
+		if (my $l = &db_locate($dbh,$vars->{table},{$vars->{field} => $vars->{value}})) {
 			&status_error(qq|<p>Duplicate Entry. This $vars->{col_name} will not be saved.<br/>
 			If you would like to edit the existing $vars->{table_name} then please
 			<span title="Edit" onclick="openDiv('$Site->{st_cgi}api.cgi','main','edit','$vars->{table_name}','$l','Edit');"> <i class="fa fa-edit"> Click Here</i></span></p>|);
@@ -1743,7 +1743,7 @@ sub api_textfield_update {
 
 	}
 
-&status_error("Duplicate not found -- ".$vars->{table_name}.",".$vars->{col_name}." => ".$vars->{value});
+&status_error("Duplicate not found -- ".$vars->{table}.",".$vars->{field}." => ".$vars->{value});
 
 	# Submit the data
 	my $id_number = &db_update($dbh,$vars->{table}, {$vars->{field} => $vars->{value}}, $vars->{id});
