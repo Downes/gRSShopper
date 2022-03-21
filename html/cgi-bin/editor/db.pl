@@ -869,7 +869,7 @@ sub db_locate_multiple {
 
 	# Adapted from SQL::Abstract by Nathan Wiger
 sub db_insert {		# Inserts record into table from hash
-print "Inserting<p>";
+
 
 						# Verify Input Data
 
@@ -904,7 +904,7 @@ print "Inserting<p>";
 	}
 	$sql .= '(' . join(', ', @sqlf) .') VALUES ('. join(', ', @sqlq) .')';
 
-print "$sql<p>";
+
 	my $sth = $dbh->prepare($sql) or print "Content-type: text/html\n\n".$sth->errstr;;		# Execute SQL Statement
 
    	$sth->execute(@sqlv) or print "Content-type: text/html\n\n".$sth->errstr;
@@ -912,7 +912,7 @@ print "$sql<p>";
 	if ($sth->errstr) { $vars->{err} = "DB INSERT ERROR: ".$sth->errstr." <p>"; }
 
 	my $insertid = $dbh->{'mysql_insertid'};
-print "Inserted $table $insertid <br>";	
+	
 	$sth->finish(  );
 	return $insertid;
 
