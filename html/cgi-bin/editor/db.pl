@@ -1006,7 +1006,7 @@ sub db_update {
 	my $sth = $dbh->prepare($sql);
 
 	if ($diag eq "on") { print "$sql <br/>\n @sqlv <br/>\n"; }
-    	$sth->execute(@sqlv) or &error($dbh,"","","Update failed: ".$sth->errstr);
+    	$sth->execute(@sqlv) or &error($dbh,"","","Updatde failed: ".$sth->errstr);
 
 	return $where;
 
