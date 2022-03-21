@@ -900,7 +900,7 @@ print "Inserting<p>";
 	}
 	$sql .= '(' . join(', ', @sqlf) .') VALUES ('. join(', ', @sqlq) .')';
 
-
+print "$sql<p>";
 	my $sth = $dbh->prepare($sql) or print "Content-type: text/html\n\n".$sth->errstr;;		# Execute SQL Statement
 
    	$sth->execute(@sqlv) or print "Content-type: text/html\n\n".$sth->errstr;
@@ -1062,7 +1062,7 @@ sub db_prepare_input {	# Filters input hash to contain only columns in given tab
 			# print "Warning: input for aa".$ikeys."aa does not have a corresponding column in aa".$table."aa<p>";
 			next;
 		}
-		 print "$ikeys = $input->{$ikeys} <br>";
+		# print "$ikeys = $input->{$ikeys} <br>";
 		$data->{$ikeys} = $input->{$ikeys};
 	}
 
