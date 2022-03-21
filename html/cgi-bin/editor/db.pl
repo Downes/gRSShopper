@@ -888,6 +888,10 @@ print "Inserting<p>";
 		unless (ref $input eq 'HASH' || ref $input eq 'gRSShopper::Record' || ref $input eq 'gRSShopper::Person' || ref $input eq 'gRSShopper::File');
 	my $data= &db_prepare_input($dbh,$table,$input);
 
+	# Default link URL for link
+	if ($table eq "link") {
+		unless ($data->{link_link}) { $data->{link_link} = time; } # So we can create links manually
+	}
 
 	my $sql   = "INSERT INTO $table ";	# Prepare SQL Statement
 
