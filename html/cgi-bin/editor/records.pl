@@ -656,8 +656,10 @@ print "Content-type: text/html\n\n";
 	# so we'll try to look up the ID
 	my $input_data_type = ref($data) || "string";
 	if ($data && $input_data_type eq "string" && $id ne "new") {	 
-		$id = &db_locate($dbh,"form",{$table."_title"=>$data}); }
-print "Found existing record<p>";
+		$id = &db_locate($dbh,"form",{$table."_title"=>$data}); 
+		print "Found existing record<p>";
+		}
+
 	# Otherwise, yes, we're creating a new record
 	else {
 		my $record; # I will eventually replace this with gRSShopper::record->new()
