@@ -821,14 +821,15 @@ sub db_locate {
 	my $stmt = "SELECT ".$table.
 		"_id from $table WHERE ";
 	my $wherestr = ""; my @whvals;
+my $ll;	
 	while (my($vx,$vy) = each %$vals) {
-print ":ocating $table : $vx = $vy <br>";		
+$ll.= "locating $table : $vx = $vy ;";		
 		if ($wherestr) { $wherestr .= " AND "; }
 		$wherestr .= "$vx = ?";
 		push @whvals,$vy;
 	}
 	$stmt .= $wherestr . " LIMIT 1";
-
+&status_error("$ll");
 	my $sth = $dbh->prepare($stmt);		# Execute SQL Statement
 
 	$sth->execute(@whvals) or return 0;
