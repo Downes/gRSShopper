@@ -1733,7 +1733,7 @@ sub api_textfield_update {
 	&status_error("Field $field does not exist") unless (&__check_field($vars->{table},$vars->{field}));
 	
 	# Check for duplicates
-&status_error("checking for duplicates");	
+	
 	if ($vars->{value} && $vars->{col_name} =~ /_title|_name|_url|_link/) {
 		if (my $l = &db_locate($dbh,$vars->{table_name},{$vars->{col_name} => $vars->{value}})) {
 			&status_error(qq|<p>Duplicate Entry. This $vars->{col_name} will not be saved.<br/>
@@ -1742,6 +1742,8 @@ sub api_textfield_update {
 		}
 
 	}
+
+&status_error("Duplicate not found");
 
 	# Submit the data
 	my $id_number = &db_update($dbh,$vars->{table}, {$vars->{field} => $vars->{value}}, $vars->{id});
