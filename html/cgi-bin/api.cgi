@@ -1743,7 +1743,7 @@ sub api_textfield_update {
 
 	}
 
-&status_error("Duplicate not found -- ".$vars->{table_name}.",".{$vars->{col_name}." => ".$vars->{value});
+&status_error("Duplicate not found -- ".$vars->{table_name}.",".$vars->{col_name}." => ".$vars->{value});
 
 	# Submit the data
 	my $id_number = &db_update($dbh,$vars->{table}, {$vars->{field} => $vars->{value}}, $vars->{id});
