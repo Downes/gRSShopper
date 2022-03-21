@@ -650,7 +650,8 @@ sub make_new_record {
 	my ($table,$data) = @_;
 	my $id;
 
-
+print "Content-type: text/html\n\n";
+print "Making new record";
 	# Record might be a database table where we know the title but not the id
 	# so we'll try to look up the ID
 	my $input_data_type = ref($data) || "string";
