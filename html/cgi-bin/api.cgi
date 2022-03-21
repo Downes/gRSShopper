@@ -1734,7 +1734,7 @@ sub api_textfield_update {
 	
 	# Check for duplicates
 	
-	if ($vars->{value} && $vars->{col_name} =~ /_title|_name|_url|_link/) {
+	if ($vars->{value} && $vars->{field} =~ /_title|_name|_url|_link/) {
 		if (my $l = &db_locate($dbh,$vars->{table},{$vars->{field} => $vars->{value}})) {
 			&status_error(qq|<p>Duplicate Entry. This $vars->{col_name} will not be saved.<br/>
 			If you would like to edit the existing $vars->{table_name} then please
