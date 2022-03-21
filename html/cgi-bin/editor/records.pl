@@ -650,7 +650,6 @@ sub make_new_record {
 	my ($table,$data) = @_;
 	my $id;
 
-print "Content-type: text/html\n\n";
 
 	# Record might be a database table where we know the title but not the id
 	# so we'll try to look up the ID
@@ -663,7 +662,7 @@ print "Content-type: text/html\n\n";
 	# Otherwise, yes, we're creating a new record
 	else {
 		my $record; # I will eventually replace this with gRSShopper::record->new()
-print "Making new record";
+
 		# If $data is a string, it's our new title
 		if ($input_data_type eq "string") { 
 			$record->{$table."_name"} = $data; 
@@ -689,7 +688,7 @@ print "Making new record";
 
 			$record->{$table."_crdate"} = time;
 			$record->{$table."_pub_date"} = &tz_date(time,"day","");
-print "Inserting data";
+
 		# Save the values and obtain new record id
 		$id = &db_insert($dbh,$query,$table,$record);
 	}
