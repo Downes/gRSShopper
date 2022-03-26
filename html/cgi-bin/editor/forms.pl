@@ -710,7 +710,7 @@ sub form_graph_list {
 			#$removelink = qq| [<a href="$Site->{st_cgi}admin.cgi?table=$table&id=$id&remove=$key/$keyid&action=remove_key">Remove</a>]|;
 		}
 		$output .= qq|<li class="graph-list-element"><a href="|.
-			$Site->{st_cgi}.qq|page,cgi?$key=$keyid" target="new">$keyname</a> $editlink $removelink</li>|;
+			$Site->{st_cgi}.qq|page.cgi?$key=$keyid" target="new">$keyname</a> $editlink $removelink</li>|;
 		#$output .= $keyid." ".$keyname."<p>";
 	}
 
