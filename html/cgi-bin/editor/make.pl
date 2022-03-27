@@ -688,7 +688,7 @@ sub make_keylist {
 		}
 
 		our $ddbbhh = $dbh;
-
+$replace .= sprintf("Find graph of %s %s %s <br>",$script->{db},$script->{id},$script->{keytable});
  		my @connections = &find_graph_of($script->{db},$script->{id},$script->{keytable});
 $replace .= "Linking...";
 		my $results_count=0;
