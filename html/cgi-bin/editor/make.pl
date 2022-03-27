@@ -656,16 +656,15 @@ sub make_keylist {
    	my $vars = ();
        	if (ref $query eq "CGI") { $vars = $query->Vars; }
 
-my $none;
+
 	unless ($$text_ptr =~ /<keylist (.*?)>/i) {
-#		if ($diag>9) { print "/Make Keylist - No content found, returning<p> </ul>"; }
-$none = "None foun d";
+		if ($diag>9) { print "/Make Keylist - No content found, returning<p> </ul>"; }
 		return 1;
 	}
 
 	while ($$text_ptr =~ /<keylist (.*?)>/ig) {
 
-		my $autocontent = $1; my $replace = "$none";
+		my $autocontent = $1; my $replace = "$autocontent";
 
 
 
