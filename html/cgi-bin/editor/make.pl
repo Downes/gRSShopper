@@ -690,9 +690,10 @@ sub make_keylist {
 		our $ddbbhh = $dbh;
 
  		my @connections = &find_graph_of($script->{db},$script->{id},$script->{keytable});
-
+$replace .= "Linking...";
 		my $results_count=0;
 		foreach my $connection (@connections) {
+$replace .= "+";
 			next unless ($connection);			# escape in case of zero results counts
 
 									# Get item data
