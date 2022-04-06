@@ -21,7 +21,7 @@ sub mailgun_subscribe_confirm {
 
     # add member
     my $res = $mailgun->add_list_member($ml => {
-        address => 'user@example.com', # member address
+        address => $email, # member address
         subscribed => 'yes',           # yes(default) or no
         upsert     => 'no',            # no (default). if yes, update existing member
     });
