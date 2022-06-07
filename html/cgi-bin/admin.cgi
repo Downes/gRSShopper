@@ -1005,7 +1005,7 @@ use CGI::Carp qw(fatalsToBrowser);
 		# Create options for recipients
 		my $npagerecipientlist = qq|
 			<select name="send_list">
-			<option value="on">Select recipients</option>
+			<option value="on">Select an action</option>
 			<option value="admin">To Yourself Only</option>
 			<option value="subscribers">To All Subscribers</option>
 			</select>
@@ -3277,7 +3277,7 @@ sub admin_update_grsshopper{
 		if ($mday < 10) { $mday = "0".$mday; }
 		if ($loglevel > 1) { $log .= "Hour: $hour, Minute = $min\n"; }
 		elsif ($loglevel > 0) { $log .= "$hour:$min - "; }
-print "Cron for $hour : $min \n";
+
         # Republish  - Runs a batch every cron cycle (so as not to overload the whole system publishing 30K+ posts)
 		my $republish = 1;
 		foreach my $rtable ("feed","author","post","presentation") {
@@ -3543,17 +3543,12 @@ $Site->{st_stale_expire} = (72 * 60 * 60);
 			if ($send_list =~ /admin/i) { $send_list = $Site->{mailchimp_test}; }
 			else { $send_list = $record->{page_subsend}; }
 			my $result = &send_mailchimp_email($pgcontent,$pgtitle,$send_list);
-			exit;
 		}
 		elsif ($record->{page_type} eq "mailgun")	{	# send to mailgun list
 			my $listid;
 			if ($send_list =~ /admin/i) { $listid = $Person->{person_email} || $Site->{st_email}; }  # Test
 			else { $listid = $record->{page_listid} || $record->{page_title}; }                      # Send
 			my $result = &send_mailgun_email($pgcontent,$pgtitle,$listid);
-			exit;
-
-		
-
 		} else {						# send to email subscription list
 
 
@@ -3562,6 +3557,7 @@ $Site->{st_stale_expire} = (72 * 60 * 60);
 		print qq|
 			  <h2>Send Newsletter</h2>
 				<p>Page $page_id:  $pgtitle <br>
+				<br>Service: |.$record->{page_type}.qq|<br>
 			  Today is $today, $date.</p>
 		| if ($verbose);
 
