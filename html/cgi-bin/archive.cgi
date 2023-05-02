@@ -69,7 +69,7 @@ my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime(time);
 $year = $year - 100 + 2000;   # Y2K fix
 
 my $start_year = $year;
-my $end_year = $vars->{from} || 2021;
+my $end_year = 2000;
 my $start_month = 0;
 my $start_mday = 1;
 my $base_dir = $Site->{st_urlf}."archive";

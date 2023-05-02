@@ -44,11 +44,13 @@ sub make_pagedata {
 	my ($query,$input,$title) = @_;
 
 	return unless (defined $input);
+
 	my $vars = (); if (ref $query eq "CGI") { $vars = $query->Vars; }
 	return unless (defined $vars->{pagedata});
 	my @insertdata = split ",",$vars->{pagedata};
 
 	my $count;
+	$$input =~ s/&#60;pagedata (.*?)&#62;/<pagedata $1>/g;  # Restore formatting command	
 	while ($$input =~ /<pagedata (.*?)>/mig) {
 
 		my $autotext = $1;
@@ -134,7 +136,7 @@ sub make_site_hits_info {
 
 	my ($text_ptr) = @_;
 	return unless (defined $text_ptr);
-
+	$$text_ptr =~ s/&#60;site_hitsa (.*?)&#62;/<site_hits $1>/g;  # Restore formatting command	
 	while ($$text_ptr =~ /<site_hits>/sig) {
 
 						# Site Page Hit Totals
@@ -160,33 +162,6 @@ sub make_site_hits_info {
 
 }
 
-	# -------  Make Langstring -------------------------------------------------------------
-	#
-	#  takes <langstring text> and produces text in the appropriate language, as 
-	#  defined by the current $Site language. see sub printlang()
-	#
-sub make_langstring {
-
-	my ($text_ptr,$table,$id,$filldata) = @_;
-
-	my $count=0;
-	while ($$text_ptr =~ /<langstring(.*?)>/sig) {
-		my $parse = $1;	my $autotext = "<langstring".$parse.">";
-		$parse =~ s/^\s*//;  # Remove leading spaces
-		$count++; last if ($count > 100);			# Prevent infinite loop
-
-		# Generate the replace text
-		my $replace  = &printlang($parse);
-		$$text_ptr =~ s/$autotext/$replace/;
-	}
-
-
-
-
-}
-
-
-
 	# -------  Make Hits -------------------------------------------------------------
 	#
 	#  Fill values for today and total number of hits recorded by the hit counter
@@ -199,7 +174,7 @@ sub make_hits {
 	return unless (defined $text_ptr);
 
 	my $count=0;
-
+	$$text_ptr =~ s/&#60;hits&#62;/<hits>/g;  # Restore formatting command	
 	while ($$text_ptr =~ /<hits>/sig) {
 
 		my $autotext = $1;
@@ -226,6 +201,7 @@ sub make_grid {
 
 	
 	my $count=0;
+	$$input =~ s/&#60;grid (.*?)&#62;/<grid $1>/g;  # Restore formatting command	
 	while ($$input =~ /<grid(.*?)>/sig) {
 	
 		my $autotext = "<grid".$1.">";
@@ -265,7 +241,7 @@ sub make_status_buttons {
 			read => [ 'far fa-eye-slash', 'fa fa-eye', ],
   		star => [ 'far fa-star', 'fas fa-star'],
 	};
-
+	$$text_ptr =~ s/&#60;statusbutton (.*?)&#62;/<statusbutton $1>/g;  # Restore formatting command	
 	while ($$text_ptr =~ /<statusbutton (.*?)>/sig) {
 		my $autotext = $1;
 
@@ -307,6 +283,7 @@ sub make_badges {
 
 	#&admin_only();
 #print "Content-type: text/html\n\n";
+	$$text_ptr =~ s/&#60;badges&#62;/<badges>/g;  # Restore formatting command	
 	while ($$text_ptr =~ /<badges>/sig) {
 		my $autotext = $1;
 
@@ -475,7 +452,13 @@ sub make_next {
 	unless (defined $input) { if ($diag>9) { print "/Make Next - input not defined<br>"; } return;	}
 
 	my @directions = qw(next previous first last);
+	$$input =~ s/&#60;next(.*?)&#62;/<next$1>/g;  # Restore formatting command	
+	$$input =~ s/&#60;previous(.*?)&#62;/<previous$1>/g;  # Restore formatting command	
+	$$input =~ s/&#60;first(.*?)&#62;/<first$1>/g;  # Restore formatting command	
+	$$input =~ s/&#60;last(.*?)&#62;/<last$1>/g;  # Restore formatting command	
+
 	foreach my $direction (@directions) {
+
 
 		my $count=0;
 		while ($$input =~ /<$direction(.*?)>/sig) {
@@ -506,6 +489,7 @@ sub make_next {
 
 			# How are we sorting the next, previous, etc
 			my $sort_by; my $search_value;
+			$script->{sortby} ||= "id";
 			if ($script->{sortby}) { 
 				$sort_by = "_".$script->{sortby}; 
 				$search_value = $filldata->{$table."_".$script->{sortby}}; 
@@ -533,6 +517,7 @@ sub make_next {
 			}
 
 			$$input =~ s/$autotext/$nexttext/;
+
 		}
 
 	}
@@ -545,6 +530,7 @@ sub make_counter {
 	my ($dbh,$input,$silent) = @_;
 
 	my @boxlist;
+	$$input =~ s/&#60;counter (.*?)&#62;/<counter $1>/g;  # Restore formatting command	
 	while ($$input =~ /<counter(.*?)>/sig) {
 
 		my $autotext = "<counter".$1.">";
@@ -567,6 +553,8 @@ sub make_boxes {
 	my ($dbh,$input,$silent) = @_;
 
 	my @boxlist;
+	$$input =~ s/&#60;box (.*?)&#62;/<box $1>/g;  # Restore formatting command
+
 	while ($$input =~ /<box (.*?)>/sig) {
 		my $autotext = $1;
 
@@ -586,6 +574,8 @@ sub make_escape {
 	return unless $$input =~ /<escape>/;
 	my $newinput = "";
 
+	$$input =~ s/&#60;escape&#62;/<escape>/g;  # Restore formatting command	
+	$$input =~ s/&#60;\/escape&#62;/<\/escape>/g;  # Restore formatting command	
 	my @elist = split /<escape>/,$$input;
 	foreach my $eitem (@elist) {
 		unless ($newinput) { $newinput = $eitem; next; }
@@ -600,6 +590,7 @@ sub make_tz {
 	my ($dbh,$input,$silent) = @_;
 	return unless $$input =~ /<timezone>/;
 	my $newinput = $Site->{st_timezone};
+	$$input =~ s/&#60;timezone&#62;/<timezone>/g;  # Restore formatting command	
 	$$input =~ s/<timezone>/$newinput/ig;
 }
 
@@ -619,6 +610,7 @@ sub make_conditionals {
    	my ($text_ptr,$table,$id,$filldata) = @_;
 
 	my $count = 0; 									# Look for conditional statements
+	$$input =~ s/&#60;if&#62;(.*?)&#60;then&#62;(.*?)&#60;endif&#62;/<if>$1<then>$2<endif>/g;  # Restore formatting command	
 	while ($$text_ptr =~ /<if>(.*?)<then>(.*?)<endif>/sig) {
 		$count++; last if ($count > 100);			# Prevent infinite loop
 		my $replace = "";							# Create an original empty replace string
@@ -656,6 +648,7 @@ sub make_keylist {
    	my $vars = ();
        	if (ref $query eq "CGI") { $vars = $query->Vars; }
 
+	$$text_ptr =~ s/&#60;keylist (.*?)&#62;/<keylist $1>/g;  # Restore formatting command
 
 	unless ($$text_ptr =~ /<keylist (.*?)>/i) {
 		if ($diag>9) { print "/Make Keylist - No content found, returning<p> </ul>"; }
@@ -688,12 +681,11 @@ sub make_keylist {
 		}
 
 		our $ddbbhh = $dbh;
-		
+
  		my @connections = &find_graph_of($script->{db},$script->{id},$script->{keytable});
 
 		my $results_count=0;
 		foreach my $connection (@connections) {
-
 			next unless ($connection);			# escape in case of zero results counts
 
 									# Get item data
@@ -810,6 +802,8 @@ sub make_author {
 
 	my ($text_ptr,$table,$id,$filldata) = @_;
 
+	$$text_ptr =~ s/&#60;author (.*?)&#62;/<author $1>/g;  # Restore formatting command
+
    	return 1 unless ($$text_ptr =~ /<author (.*?)>/i);
 	while ($$text_ptr =~ /<author (.*?)>/ig) {
 
@@ -844,6 +838,7 @@ sub make_admin_nav {
 
 	my ($dbh,$text_ptr) = @_;
 
+	$$text_ptr =~ s/&#60;admin_nav (.*?)&#62;/<admin_nav $1>/g;  # Restore formatting command
    	return 1 unless ($$text_ptr =~ /<admin_nav(.*?)>/i);
 
    	my @tables = $dbh->tables();
@@ -893,6 +888,7 @@ sub make_comment_form {
 		my ($dbh,$text_ptr) = @_;
 		return unless (defined $text_ptr);
 
+	$$text_ptr =~ s/&#60;CFORM&#62(.*?)&#60END_CFORM&#62;/<CFORM>$1<END_CFORM>/g;  # Restore formatting command
 		while ($$text_ptr =~ /<CFORM>(.*?)<END_CFORM>/sg) {
 
 			my $autotext = $1; my ($cid,$ctitle) = split /,/,$autotext;
@@ -971,7 +967,7 @@ sub make_comment_form {
 sub make_enclosures {
 
 	my ($text_ptr,$table,$id,$filldata) = @_;
-
+	$$text_ptr =~ s/&#60;enclosures (.*?)&#62;/<enclosures $1>/g;  # Restore formatting command
    	return 1 unless ($$text_ptr =~ /<enclosures (.*?)>/i);
 	while ($$text_ptr =~ /<enclosures (.*?)>/ig) {
 
@@ -1013,6 +1009,7 @@ sub make_media {
 
 	my ($text_ptr,$table,$id,$filldata) = @_;
   #print "Making media<p>";
+	$$text_ptr =~ s/&#60;media (.*?)&#62;/<media $1>/g;  # Restore formatting command
    	return 1 unless ($$text_ptr =~ /<media (.*?)>/i);
 	while ($$text_ptr =~ /<media (.*?)>/ig) {
 
@@ -1057,7 +1054,7 @@ sub make_media {
 sub make_associations {
 
 	my ($text_ptr,$table,$id,$filldata) = @_;
-
+	$$text_ptr =~ s/&#60;associate (.*?)&#62;/<associate $1>/g;  # Restore formatting command
   	return 1 unless ($$text_ptr =~ /<associate (.*?)>/i);
 	while ($$text_ptr =~ /<associate (.*?)>/ig) {
 		my $autotext = $1;
@@ -1093,7 +1090,7 @@ sub make_associations {
 sub make_images {
 
 	my ($text_ptr,$table,$id,$filldata) = @_;
-
+	$$text_ptr =~ s/&#60;image (.*?)&#62;/<image $1>/g;  # Restore formatting command
   return 1 unless ($$text_ptr =~ /<image (.*?)>/i);
 	while ($$text_ptr =~ /<image (.*?)>/ig) {
 
@@ -1364,17 +1361,15 @@ sub make_lunchbox {
 	#-------------------------------------------------------------------------------
 sub make_keywords {
 
-	my ($dbh,$query,$text_ptr) = @_;
+	my ($dbh,$query,$text_ptr,$r) = @_;
 
 
 	if ($diag>9) { print "Make Keywords <br>"; }
 
    	my $vars = (); my $results_count=0;
    	my $running_results_count;
-
-
-
-   	return 1 unless ($$text_ptr =~ /<keyword (.*?)>/i);				# Return 1 if no keywords
+	$$textptr =~ s/&#60;keyword (.*?)&#62;/<keyword $1>/g;  # Restore formatting command	
+	return 1 unless ($$text_ptr =~ /<keyword (.*?)>/i);				# Return 1 if no keywords
 											# This allows static pages to be published
 											# Otherwise, if keyword returns 0 results,
 											# the page will not be published, email not sent
@@ -1568,14 +1563,13 @@ $rest = "Did not skip";
 
 
 						# Insert Keyword Text Into Page
-#print "Content-type: text/html\n\n";
-#print "<textarea>$replace</textarea>"
+
 		$$text_ptr =~ s/\Q<keyword $autocontent>\E/$replace/;
 		$sth->finish( );
 
 
 	}
-#
+
 
 	if ($diag>9) { print "/Make Keywords <br>"; }
 	return $running_results_count;

@@ -100,6 +100,66 @@ sub parse_feed {
 
 
 
+#------------------------  Process CDATA
+#
+# Stores all instances of ![CDATA[]] in an array, Replaces with a numerical value which is the index of the awway
+# Used in:
+#  parse_feed.pl
+#
+#------------------------------------------------------------
+
+sub process_cdata {
+
+
+	my ($feed) = @_;
+	&diag(8,qq|<div class="function">Process CDATA<div class="data">|);
+
+	my $cdatacounter = 0;
+	while ($feed->{feedstring} =~ s/<!\[CDATA\[(.*?)\]\]>/CDATA($cdatacounter)/ms) {
+		$feed->{cdata}->[$cdatacounter] = "$1";
+    &diag(8,qq|CDATA $cdatacounter: <form><textarea cols=80 rows=3>$1</textarea></form><br>|);
+		$cdatacounter++;
+	}
+	&diag(8,qq|</div></div>|);
+
+}
+
+
+#------------------------- Replace CData -----------------------------------
+#
+#  Replaces CDATA extracted and stored by Process CDATA
+#
+# Used in:
+#  save_feed.pl
+#  scraper.pl
+#------------------------------------------------------------
+
+
+sub replace_cdata {
+
+	my ($feedrecord,$record) = @_;
+	&diag(3,qq|<div class="function">Replace CDATA<div class="info">|);
+	&diag(3,"Replacing CDATA in $record->{type}<br>\n");
+
+
+	while (my ($ix,$iy) = each %$record) {
+    next if ($ix eq "feedstring");
+		if ( $record->{$ix} =~ /CDATA\((.*?)\)/ ) {
+
+			 &diag(3,qq|Replacing CDATA in $ix: <form><textarea cols=80 rows=3>|.$record->{$ix}.qq|</textarea></form><br>|);
+		   $record->{$ix} =~ s/CDATA\((.*?)\)/$feedrecord->{cdata}->[$1]/msg;
+		   &diag(3,qq|Replacement: <form><textarea cols=80 rows=3>|.$record->{$ix}.qq|</textarea></form><br>|);
+	  }
+	}
+
+	&diag(3,qq|</div></div>|);
+}
+
+
+
+
+
+
 
 
 
@@ -167,7 +227,7 @@ sub process_attributes {
 	foreach my $ai (@attitems) {							# For each attribute
 		my ($attkey,$attval) = split/=$del/,$ai;				# Split at the delimiter
 		$attval =~ s/$del$//;							# Carve trailing delimeter
-		if ($attkey =~ /url|uri|href|src/) { &process_url($attval);}		# process URLs
+		# if ($attkey =~ /url|uri|href|src/) { &process_url($attval);}		# process URLs
 		$att->{$attkey} = $attval;						# Store values
 	}
 	$att->{href} =~ s/utm=(.*?)$//;							# Wipe out utm parameters

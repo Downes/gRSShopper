@@ -17,6 +17,7 @@ sub autotimezones {
     	my $vars = ();
     	if (ref $query eq "CGI") { $vars = $query->Vars; }
 
+	$$text_ptr =~ s/&#60time(.*?)&#62/<time$1>/g;  # Restore formatting command
 	while ($$text_ptr =~ /<timezone epoch="(.*?)">/sg) {
 		my $epoch = $1; my $tz = $vars->{timezone};
 		my $replace;
@@ -94,6 +95,7 @@ sub autodates {
 	my ($text_ptr) = @_;
 
 
+	$$text_ptr =~ s/&#60;date (.*?)&#62;/<date $1>/g;  # Restore formatting command
 
 	while ($$text_ptr =~ /<date (.*?)>/sg) {
 
@@ -150,6 +152,8 @@ sub autodates {
 
 		my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime(time);
 		$year = $year+1900;
+	
+		$$text_ptr =~ s/&#60;$date_type&#62;/<$date_type>/g;  # Restore formatting command
 
 
 		if ($date_type =~ /YEAR/i) { $$text_ptr =~ s/<YEAR>/$year/ig; next;}
@@ -176,6 +180,7 @@ sub autodates {
 			$$text_ptr =~ s/<$date_type>\Q$autotext\E<$date_type_end>/$replace/sig;
 		}
 	}
+
 }
 
 	#-------------------------------------------------------------------------------

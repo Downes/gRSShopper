@@ -276,7 +276,7 @@ sub find_graph_records_of {
 		if ($type) {											# by type, or
 			return @{$Site->{$tableone}->{$idone}->{$type}};
 		} else {												# by table
-    #print "Finding graph $tableone,$idone for $tabletwo (in cache)
+   # print "Finding graph $tableone,$idone for $tabletwo (in cache)
 	# ",@{$Site->{$tableone}->{$idone}->{$tabletwo}},"<br>";
 			return @{$Site->{$tableone}->{$idone}->{$tabletwo}};
 		}
@@ -326,7 +326,7 @@ sub find_graph_of {
 	unless ($dbh) { $dbh = $ddbbhh; }
 	return unless ($dbh);						# For some reason mooc.ca doesn't pass $dbh
 
-	if ($Site->{$tableone}->{$idone}) {				# Return cached graph entry
+	if ($Site->{$tableone}->{$idone}) {	# Return cached graph entry
 
 		if ($type) {							# by type, or
 
@@ -334,38 +334,60 @@ sub find_graph_of {
 
 		} else {							# by table
 
-    #print "Finding graph $tableone,$idone for $tabletwo (in cache)
-	# ",@{$Site->{$tableone}->{$idone}->{$tabletwo}},"<br>";
-			return @{$Site->{$tableone}->{$idone}->{$tabletwo}};
+			if ($Site->{$tableone}->{$idone}->{$tabletwo}) {
+				return @{$Site->{$tableone}->{$idone}->{$tabletwo}};
+			} 
 		}
 
 
 
-	} else {		# Create a cache and call the function again
-					# so we have one DB call per record, not 12, or 16 times
-   #print "Finding graph $tableone,$idone for $tabletwo <br>";
-		my $sql = qq|SELECT * FROM graph WHERE (graph_tableone = ? AND graph_idone = ?) OR (graph_tabletwo = ? AND graph_idtwo = ?)|;
-		my $sth = $dbh->prepare($sql);
-		$sth -> execute($tableone,$idone,$tableone,$idone); my $grfound=0;
+	} 
+
+	# Create a cache and call the function again
+	# so we have one DB call per record, not 12, or 16 times
 		
-		while (my $c = $sth -> fetchrow_hashref()) {
+	my $sql = qq|SELECT * FROM graph WHERE (graph_tableone = ? AND graph_idone = ?) OR (graph_tabletwo = ? AND graph_idtwo = ?)|;
 
-			next unless ($c->{graph_idtwo});		# Don't pass zero graph references
-			$grfound = 1;
-			if ($c->{graph_tableone} eq $tableone && $c->{graph_idone} eq $idone) {
-				push @{$Site->{$tableone}->{$idone}->{$c->{graph_tabletwo}}},$c->{graph_idtwo};
-				if ($c->{graph_type}) { push @{$Site->{$tableone}->{idone}->{$c->{graph_type}}},$c->{graph_idtwo}; }
-			} elsif ($c->{graph_tabletwo} eq $tableone && $c->{graph_idtwo} eq $idone) {
-				push @{$Site->{$tableone}->{$idone}->{$c->{graph_tableone}}},$c->{graph_idone};
-				if ($c->{graph_type}) { push @{$Site->{$tableone}->{idone}->{$c->{graph_type}}},$c->{graph_idone}; }
-			}
+	my $sth = $dbh->prepare($sql);
+	$sth -> execute($tableone,$idone,$tableone,$idone); my $grfound=0;
+	$grfound=0;
+	while (my $c = $sth -> fetchrow_hashref()) {
+		
+		
+		next unless ($c->{graph_idtwo});		# Don't pass zero graph references
+
+		$grfound = 1;
+		if ($c->{graph_tableone} eq $tableone && $c->{graph_idone} eq $idone) {
+			push @{$Site->{$tableone}->{$idone}->{$c->{graph_tabletwo}}},$c->{graph_idtwo}
+				unless grep{$_ == $c->{graph_idtwo}} @{$Site->{$tableone}->{$idone}->{$c->{graph_tabletwo}}}; # Unique values only
+
+			push @{$Site->{$c->{graph_tabletwo}}->{$c->{graph_idtwo}}->{$tableone}},$idone
+				unless grep{$_ == $idone} @{$Site->{$c->{graph_tabletwo}}->{$c->{graph_idtwo}}->{$tableone}}; # Both ways, because it's an acyclic graph		
+
+			if ($c->{graph_type}) { push @{$Site->{$tableone}->{idone}->{$c->{graph_type}}},$c->{graph_idtwo}; }
+			
+		} elsif ($c->{graph_tabletwo} eq $tableone && $c->{graph_idtwo} eq $idone) {
+			push @{$Site->{$tableone}->{$idone}->{$c->{graph_tableone}}},$c->{graph_idone}
+				unless grep{$_ == $c->{graph_idone}} @{$Site->{$tableone}->{$idone}->{$c->{graph_tableone}}}; 
+
+			push @{$Site->{$c->{graph_tableone}}->{$c->{graph_idone}}->{$tabletwo}},$idtwo
+				unless grep{$_ == $idtwo} @{$Site->{$c->{graph_tableone}}->{$c->{graph_idone}}->{$tabletwo}};
+
+			if ($c->{graph_type}) { push @{$Site->{$tabletwo}->{idtwo}->{$c->{graph_type}}},$c->{graph_idone}; }
+		} else {
+			print "Graph save error.<p>";
 		}
-		if ($grfound) {
+	}
+
+
+	if ($Site->{$tableone}->{$idone}->{$tabletwo}) {
+
+
 			my @connections = &find_graph_of($tableone,$idone,$tabletwo,$type);  # Once we've stored the data, call the result from cache
 			return @connections;
 		} else { return qw(0 0); }
 
-	}
+	
 
 }
 

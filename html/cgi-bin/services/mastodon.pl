@@ -15,23 +15,49 @@ sub mastodon_post {
 
     my ($dbh,$table,$id,$tweet) = @_;
 
-
 		&admin_only(); # We only want the site owner to be able to use icchat to post to mastodon
 
 # Check and make sure it can be and hasn't been posted
 
-    return "Content information not defined" unless ($table && $id);
-    return "Mastodon turned off."  unless ($Site->{mas_post} eq "yes");
-    return "Already posted this $table to Mastodon." if ($record->{$table."_social_media"} =~ "mastodon");
-    return "Mastodon requires a client ID, client secret and access token" unless
+    my $mastoerror = "";
+    $mastoerror = "Content information not defined" unless ($table && $id);
+    $mastoerror = "Mastodon turned off."  unless ($Site->{mas_post} eq "yes");
+    $mastoerror = "Already posted this $table to Mastodon." if ($record->{$table."_social_media"} =~ "mastodon");
+    $mastoerror = "Mastodon requires a client ID, client secret and access token" unless
        ($Site->{mas_instance} && $Site->{mas_cli_id} && $Site->{mas_cli_secret} && $Site->{mas_acc_token});
+    if ($mastoerror) { &status_error("$mastoerror"); }
 
 
-    $tweet = &compose_microcontent($dbh,$table,$id,$tweet,500);
+
+    my $status = &compose_microcontent($dbh,$table,$id,$tweet,500);
 
 
-	return "Content information not defined" unless (&new_module_load($query,"Mastodon::Client"));
-	
+
+   my $uri = "https://mastodon.social/api/v1/statuses";
+   my $visibility = "public";
+   my $token = "6benDKVa828014pu7EyhMr2NYEFKemZGBx3RFx4-rMw";
+   use HTTP::Tiny;
+   my $response = HTTP::Tiny->new->post_form(
+      $uri,
+      { # form data
+         status => $status,
+         visibility => $visibility,
+	 username => 'oldaily',
+         password => 'mastodonD2vidhume'
+      },
+      { # options
+         headers => { Authorization => "Bearer $token" },
+      }
+   );
+
+   &status_error("Failed! $response->{status} $response->{reason}") unless $response->{success};
+
+   use JSON::Parse 'parse_json';
+   my $response_content = parse_json ($response->{content}); 
+   return $response_content->{url};
+
+   &status_error("$response->{content} $cc"); 	
+exit;
     my $client = Mastodon::Client->new(
       instance        => $Site->{mas_instance},
       name            => 'gRSShopper',

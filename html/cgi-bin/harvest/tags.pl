@@ -211,7 +211,7 @@ sub _enclosure {
 
 	my ($element,$content,$attributes) = @_;
 	print "Processing _enclosure for $element->{type} ..." if ($DEBUG > 0);
-	my $DEBUG = 2;
+	my $DEBUG = 0;
 	my $att = &process_attributes($attributes);      		# Enclosure always has attributes (except for Feedburner, which is broken)
 	my $type = $element->{type};
 
@@ -286,7 +286,7 @@ sub _feedburner_origLink {
 	my $type = $element->{type};
 
 	# Note tha 'link' tag is superseded by feedburner:origLink
-	$content = &process_url($content);
+	#$content = &process_url($content);
 	$element->{$type."_link"} = $content;
 
 }
@@ -562,7 +562,7 @@ sub _link {
 	&diag(5,"LINK: $element->{type},$content,$attributes <br>\n");
 
 	my $type = $element->{type};
-	$content = &process_url($content);
+	#$content = &process_url($content);
 
 	if ($attributes) {
 		my $att = process_attributes($attributes);
@@ -1098,7 +1098,7 @@ sub _url {				# Typically used with the 'image' media object
 	my ($element,$content) = @_;
 	my $type = $element->{type};
 
-	$content = &process_url($content);
+	#$content = &process_url($content);
 	$element->{$type."_url"} = $content;
 }
 

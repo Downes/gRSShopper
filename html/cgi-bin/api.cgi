@@ -1,6 +1,8 @@
 #!/usr/bin/perl -w
 use CGI;
 use CGI::Carp qw(fatalsToBrowser);
+binmode STDOUT, ':utf8';
+# binmode STDIN, ":encoding(UTF-8)";
 # Print OK for blank api request
 
 
@@ -59,13 +61,22 @@ use CGI::Carp qw(fatalsToBrowser);
 
 
 
+
+
 # Get Post Data
   our $request_data; our $request_type;
-  my $postdata = $query->param('POSTDATA');
-	#my $postdata = $query->param('POSTDATA');
+ # my $postdata = $query->param('POSTDATA');
+	my $postdata = $query->param('POSTDATA');
 	if ($postdata) {
-		#print "Content-type:application/json\n\n";
-		#print $postdata; exit;
+	#	print "Content-type:application/json\n\n";
+
+
+		# Convert input HTML entities into utf8
+		$postdata =~ s/&amp;|&#38;/&/g;
+		$postdata =~ s/&#38;/&/g;
+		decode_entities($postdata) or &status_error("Failed to decode entities. $! $?");
+
+
 			$request_type = "post";
 			# Parse the JSON Data
 			use JSON;
@@ -73,7 +84,7 @@ use CGI::Carp qw(fatalsToBrowser);
 			$vars = eval { parse_json($postdata) };
 			if ($@)
 			{
-				print "Content-type:application/json\n\n";
+			#	print "Content-type:application/json\n\n";
     			&status_error("parse_json failed, invalid json. error:$@\n");
 			}
 			#$vars = parse_json($postdata);
@@ -90,13 +101,21 @@ use CGI::Carp qw(fatalsToBrowser);
 
 
 	our ($Site,$dbh) = &get_site("api");
+#my $output_format = 'text/html';
+#print $query->header(-Accept => "*/*",-type => $output_format,-charset => 'utf-8','-Access-Control-Allow-Origin' =>  => "*");
+#print "Test";
+#my $output_format = 'text/json';
+#print $query->header(-Accept => "*/*",-type => $output_format,-charset => 'utf-8','-Access-Control-Allow-Origin' =>  => "*");
 
-
-#print "Content-type: text/html\n\n";
+#print "Content-type: text/html\n'Access-Control-Allow-Origin':*\n\n";
 #while (my($vx,$vy) = each %$vars) { print "$vx = $vy <br>"; }                      #"
 
 
+if ($vars->{hub} eq "yes") {
+	#my $output_format = 'text/html';
+	#print $query->header(-Accept => "*/*",-type => $output_format,-charset => 'utf-8','-Access-Control-Allow-Origin' =>  => "*");
 
+}
 
 
 # -------------------------------------------------------------------------------------
@@ -109,7 +128,7 @@ use CGI::Carp qw(fatalsToBrowser);
 
 
 	# Show
-	if ($vars->{cmd} eq "show" && ($vars->{table} eq "linka" || $vars->{table} eq "feeda")) {
+	if ($vars->{cmd} eq "show" && ($vars->{table} eq "link" || $vars->{table} eq "feed")) {
 
 		print "Content-type: text/json\n\n";
    		$vars->{format} = "json";
@@ -117,7 +136,6 @@ use CGI::Carp qw(fatalsToBrowser);
    		my $json = encode_json $data;
    		print $json;exit;
 	}
-
 
 	# List (is also search)
 	my $listsearch;
@@ -141,21 +159,26 @@ use CGI::Carp qw(fatalsToBrowser);
 $listsearch->{$vars->{qkey}} = $vars->{qval};
 																		# get search result
    		my ($metadata,$data) = &list_records($vars->{table},$listsearch);
+#use utf8;
+#use Encode qw(encode_utf8);
+
+
 
 #die "Testing: ".$metadata->{testing}."\n";	
 $metadata->{$vars->{qkey}} = $vars->{qval};
 $metadata->{testing} = "test";
-#my $json = encode_json $metadata;
-	   	#	print $json;exit;	
-		#$metadata->{test} = "test";   
+$metadata->{cat} = "Büster";
+#$metadata->{cat} = encode_utf8("Büster");
 		my $response = {
 			metadata => $metadata,
 			data => $data
 		};
 		#my $datastring = join ",",@$data;
 			
-		#   $datastring = qq|{metadata:"$metadata",results:"$datastring"}|;															# Encode into JSON and print	
+		#   $datastring = qq|{metadata:"$metadata",results:"$datastring"}|;	
+		#$response = encode_utf8( $response );														# Encode into JSON and print	
    		my $json = encode_json $response;
+		#$json = encode_utf8($json);
    		print $json;exit;
 
 	}
@@ -362,7 +385,7 @@ if ($vars->{cmd} eq "authenticate") {
 
 	
 # Admin Only
-	unless (&admin_only()) { &status_error("Admin Login Required"); }
+#	unless (&admin_only()) { &status_error("Admin Login Required"); }
 	
 # List Tables
 	
@@ -472,7 +495,12 @@ if ($vars->{cmd} eq "edit") {
 		$vars->{id} = $Person->{person_id}};		# Edit myself
 	if ($vars->{id} eq "new") {
 		$vars->{id} = &make_new_record($vars->{table});
-	}	
+	}
+
+	if ($vars->{hub} eq "yes") {				# Autopost from bookmarklet
+		&api_hub_bookmarklet($vars->{id},$vars->{url});
+	}
+
 	my $starting_tab = $vars->{starting_tab} || "Edit";	
 	print &main_window($tabs,$starting_tab,$vars->{table},"$vars->{id}",$vars);
 	exit;
@@ -538,6 +566,7 @@ if ($vars->{cmd} eq "update") {
 	# die "Column name not provided" unless ($vars->{col_name});
 	#die "Input value not provided" unless ($vars->{value});
 	&status_error("Input type not provided") unless ($vars->{type} || $vars->{field});
+
 	&record_sanitize_input($vars);
 
 	# Identify update by type
@@ -545,13 +574,17 @@ if ($vars->{cmd} eq "update") {
 		$vars->{type} eq "textarea"  || 
 		$vars->{type} eq "wysihtml5" || 
 		$vars->{type} eq "select") { 
-			&api_textfield_update(); }
+			&status_ok() if (&api_textfield_update($vars));
+		}
 
 	elsif ($vars->{type} eq "password") {
 		&api_password_update(); 
 	}
 
-	elsif ($vars->{type} eq "keylist") { &api_keylist_update();  }
+	elsif ($vars->{type} eq "keylist") { 
+		my ($key_graph_list,$newlist) = &api_keylist_update($vars);
+		&status_ok($key_graph_list,$newlist);
+	}
 
 
 
@@ -577,7 +610,7 @@ if ($vars->{cmd} eq "update") {
 	elsif ($vars->{type} eq "commit") { &api_commit(); }
 
 	# Simple one-field update, returns JSON
-	elsif ($vars->{field}) { &api_textfield_update(); } 
+	elsif ($vars->{field}) { &status_ok() if (&api_textfield_update($vars)); } 
 
 	exit;
 }
@@ -1217,7 +1250,7 @@ if ($vars->{table} eq "media") {
 
 				# Execute query and convert the result to JSON, then print
 				my $json->{entries} = $dbh->selectall_arrayref( $sql, {Slice => {} },$query,$query );
-				my $json_text = to_json($json);
+				my $json_text = encode_json($json);
 				print $json_text;
 	      exit;
 
@@ -1258,7 +1291,7 @@ if ($vars->{table} eq "media") {
 		# our $JSON = JSON->new->utf8;
 		# $JSON->convert_blessed(1);
 		# my $json_data = $JSON->encode($blockchain);
-		# my $json_data = JSON::to_json($blockchain, { allow_blessed => 1, allow_nonref => 1 });
+		# my $json_data = JSON::encode_json($blockchain, { allow_blessed => 1, allow_nonref => 1 });
 
 		my $blockchain_file = "data/blockchain.json";
 		open(my $fh, ">$blockchain_file") || die "Could not open $blockchain_file for write";
@@ -1621,8 +1654,9 @@ sub keylist {
 
 sub api_keylist_update {
 
+	my ($vars) = @_;
 	my ($table,$key) = split /_/,$vars->{col_name};
-  #	die "Field does not exist" unless &__check_field($table,$vars->{col_name});
+ # 	die "Field does not exist" unless &__check_field($table,$vars->{col_name});
 	my $table = $vars->{table};
 	my $id = $vars->{id};
 	my $value = $vars->{value};
@@ -1669,13 +1703,19 @@ sub api_keylist_update {
 			graph_tableone=>$key, graph_idone=>$keyrecord->{$key."_id"}, graph_urlone=>$keyrecord->{$key."_url"},
 			graph_tabletwo=>$table, graph_idtwo=>$id, graph_urltwo=>"",
 			graph_creator=>$Person->{person_id}, graph_crdate=>time, graph_type=>"", graph_typeval=>""});
+
+		# Save to current graph cache
+		my $tod = $keyrecord->{$key."_id"};
+		push @{$Site->{$key}->{$tod}->{$table}},$id;
+	#	push @{$Site->{$table}->{$id}->{$key}},$tod;
+
 	}
 
 	# Return new graph output for the form
 	
 	my $newlist = &form_graph_list($table,$id,$key,'',$noedit);
 
-	&status_ok($key."_graph_list",$newlist);
+	return ($key."_graph_list",$newlist);
 
 }
 
@@ -1721,6 +1761,7 @@ sub api_keylist_remove {
 
 sub api_textfield_update {
 
+	my ($vars) = @_;
 	$vars->{format} = "json"; 
 					
 	unless ($vars->{table} && $vars->{field} && $vars->{value} && $vars->{id}) {
@@ -1733,12 +1774,12 @@ sub api_textfield_update {
 	&status_error("Field $field does not exist") unless (&__check_field($vars->{table},$vars->{field}));
 	
 	# Check for duplicates
-	
-	if ($vars->{value} && $vars->{field} =~ /_title|_name|_url|_link/) {
-		if (my $l = &db_locate($dbh,$vars->{table},{$vars->{field} => $vars->{value}})) {
+	$vars->{col_name} ||= $vars->{field};
+	if ($vars->{value} && $vars->{col_name} =~ /_title|_name|_url|_link/) {
+		if (my $l = &db_locate($dbh,$vars->{table_name},{$vars->{col_name} => $vars->{value}})) {
 			&status_error(qq|<p>Duplicate Entry. This $vars->{col_name} will not be saved.<br/>
 			If you would like to edit the existing $vars->{table_name} then please
-			<span title="Edit" onclick="openDiv('$Site->{st_cgi}api.cgi','main','edit','$vars->{table}','$l','Edit');"> <i class="fa fa-edit"> Click Here</i></span></p>|);
+			<span title="Edit" onclick="openDiv('$Site->{st_cgi}api.cgi','main','edit','$vars->{table_name}','$l','Edit');"> <i class="fa fa-edit"> Click Here</i></span></p>|);
 		}
 
 	}
@@ -1749,7 +1790,7 @@ sub api_textfield_update {
 	# If successful
 	if ($id_number) {
 
-$vars->{message} .= "Suvvessfully updated $id_number";
+$vars->{message} .= "Successfully updated $id_number";
 
 		# If table is optlist, update search forms
 		if ($vars->{table} eq "optlist") {
@@ -1768,7 +1809,7 @@ $vars->{message} .= " Updating search form";
 			&print_record($vars->{table},$vars->{id});
 		}   
 		
-		&status_ok();
+		return $id_number;
 
   } else { &api_error(); }
 	die "api failed to update $vars->{table_name}  $vars->{table_id}" unless ($id_number);
@@ -1849,7 +1890,7 @@ sub api_publish {
 
 	my $published = &db_get_single_value($dbh,$table,$col,$id);
 
-
+$vars->{message} .= "api_publish(): $table $id <br>";
 
 
 	my $result;
@@ -1874,12 +1915,12 @@ sub api_publish {
 
 		elsif ($vars->{value} =~ /mastodon/i) {
 
-			print "Sending to Mastodon<br>";
+
 			my $mastodon = &mastodon_post($dbh,"post",$id);
-			print "Mastodon result: $mastodon<br>";
 			$published .= ",mastodon";
 			my $result = &db_update($dbh,$table, {$col => $published}, $id); # Prevent publishing twice
-			print "Recorded publication success $result<br>";
+			$vars->{message} .= "Published to <a href='$mastodon' target='new'>$mastodon</a>";
+			&status_ok();
 			exit;
 
 		}
@@ -2533,6 +2574,173 @@ sub __check_field {
 
 }
 
+
+# API HUB BOOKMARKLET -------------------------------------------------------
+
+# Given an input URL, retrieves the web page and returns a hash of page data
+# Triggered when a person uses the bookmarklet to create a post
+
+# ----------------------------------------------------------------------------
+
+sub api_hub_bookmarklet {
+
+	my ($id,$geturl) = @_;
+
+	# Check for duplicates
+	my $lid = &db_locate($dbh,"post",{post_link => $geturl});
+# if ($lid) { &status_error("Link already exists in db"); }
+
+	use HTML::TreeBuilder 5 -weak; # Ensure weak references in use
+        use LWP::UserAgent ();
+#	my $output_format = 'text/plain';
+#	print $query->header(-Accept => "*/*",-type => $output_format,-charset => 'utf-8','-Access-Control-Allow-Origin' =>  => "*");
+
+        my $ua = LWP::UserAgent->new;
+        $ua->timeout(10);
+        $ua->env_proxy;
+	$ua->agent('Mozilla/5.0');
+        $ua->ssl_opts({ verify_hostname => 0,SSL_verify_mode => 'SSL_VERIFY_NONE',SSL_version => 'SSLv3' });
+	my $tree = HTML::TreeBuilder->new();
+
+	my $response_text; my $curl_result;
+    my $response = $ua->get($geturl);
+	if ($response->is_success) { 
+		$tree->parse($response->decoded_content);
+
+
+	} else {
+		print "Failed to get resource. ".$response->status_line."<br>"; 
+		print "Trying curl... ";
+		$curl_result = `curl $geturl`;
+		if ($curl_result) {
+			#utf8::decode($curl_result);
+			$tree->parse($curl_result);
+		} else {
+			print "Curl also failed.<br>";
+		}
+	}
+	$response_text = $curl_result || $response->decoded_content;
+
+	# Analyze h-card
+	# my $namebadge = $tree->look_down('class' => qr/namebadge/);
+
+	# URL
+
+   	&status_error("Failed Hub URL Update") unless (&api_textfield_update({table=>'post',field=>'post_link',value=>$geturl,id=>$id}));
+
+	# Initialize tags that may be filled by various values found
+	my $metadata;
+
+	# Analyze meta
+	my @meta = $tree->find_by_tag_name('meta');
+	foreach my $m (@meta) {
+#while (my ($mx,$my) = each %$m) { print "$mx = $my <br>"; }
+
+		# Meta Tags
+		my @metatags = qw(description author);
+		foreach my $metatag (@metatags) {
+			if (($m->attr_get_i("name") eq $metatag) ||
+				($m->attr_get_i("property") eq $metatag)
+			) {
+				$metadata->{$metatag} ||= $m->attr_get_i("content"); 
+			}
+
+		}
+
+		# Meta Open Graph Tags
+		my @ogtags = qw(type site_name title description title url description 
+			published_time modified_time image image:width image:height image:alt locale);
+		foreach my $ogtag (@ogtags) {
+			my $ogproperty = "og:".$ogtag;
+			if ($m->attr_get_i("property") eq $ogproperty) { 
+				$metadata->{$ogtag} ||= $m->attr_get_i("content"); 			
+			}			
+		}
+
+		# Meta Twitter Tags
+		my @twtags = qw(card site title description image:src);
+		foreach my $twtag (@twtags) {
+			my $twname = "twitter:".$twtag;
+			if ($m->attr_get_i("name") eq $twtag) {
+				$metadata->{$twtag} ||= $m->attr_get_i("content");
+			}
+
+		}
+
+
+		# Meta DC Tags
+		if ($m->attr_get_i("name") eq "DC.creator") { $metadata->{author} ||= $m->attr_get_i("content"); }
+
+	}
+
+
+	# Analyze h-card
+	my $hcard = $tree->look_down('class' => qr/h-card/);
+        if ($hcard) {
+
+		# Author
+    		my $pname = $hcard->look_down('class' => qr/p-name/);
+    		if ($pname) { print "Name: ".$pname->as_text." \n\n"; }
+
+		# Author URL
+		my $urlhref;
+    		my $uurl = $hcard->look_down('class' => qr/u-url/);
+		if ($uurl && $uurl->attr_get_i('href')) {
+			$urlhref = $uurl->attr_get_i('href'); 
+			print "URL: $urlhref \n\n"; 
+		}
+		# Author Photo
+    		my $uphoto = $hcard->look_down('class' => qr/u-photo/);
+		if ($uphoto) { 
+			my $photosrc = $uphoto->attr_get_i('src');
+			print "Photo: $photosrc \n\n";
+		}
+	}
+
+	# Search for the author in the page content if necessary
+	# print $response_text;
+	if ($response_text =~ /"author":"(.*?)"/) {
+		$metadata->{author} = $1;
+	}
+
+	# Update page data (because not all systems use the same terms for things, natch)
+
+	# Title
+	my $title; my $titletag =  $tree->find_by_tag_name('title');
+	if ($titletag) { $metadata->{title} ||= $titletag->as_text; }
+	unless ($title) { $title = "Untitled"; }
+print $metadata->{title};
+   	&status_error("Failed Hub Title Update") 
+		unless (&api_textfield_update({table=>'post',field=>'post_title',value=>$metadata->{title},id=>$id}));
+
+	# Description
+	# Quoted text from Hub and completion of description
+	my $quote = $vars->{quote};
+	if ($quote) { $metadata->{description} .= " QUOTE: $quote"; }
+	if ($metadata->{description}) {
+   		&status_error("Failed Hub Description Update") unless (&api_textfield_update({table=>'post',field=>'post_description',value=>$metadata->{description},id=>$id}));
+	}
+
+	# Feed
+	my $feed = $metadata->{site_name};
+	if ($feed) {
+		&status_error("Failed Hub Feed Update") unless (&api_keylist_update({table=>'post',id=>$id,key=>'feed',value=>$feed}));
+	}
+
+	# Author
+	my $author = $metadata->{author};
+	if ($author) {
+		&status_error("Failed Hub Author Update") unless (&api_keylist_update({table=>'post',id=>$id,key=>'author',value=>$author}));
+	}
+
+	# Image
+	my $image = $metadata->{image} || $metadata->{source};
+	if ($image) { print "Found image $image <br>"; }
+
+    $tree->delete;
+
+
+}
 
 
 # API AUTOPOST ----------------------------------------------------------
