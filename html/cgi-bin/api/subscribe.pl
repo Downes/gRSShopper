@@ -9,6 +9,7 @@
 #
 # -------------------------------------------------------------------------
 
+
 sub api_subscription_form {
 
 	# Get the list of pages to which you can subscribe by email

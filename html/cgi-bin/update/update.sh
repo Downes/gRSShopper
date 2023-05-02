@@ -1,45 +1,22 @@
 #/bin/bash
 repository="https://github.com/Downes/gRSShopper"
-SCRIPTPATH=$(dirname $0)
-fcgi=$(dirname ${SCRIPTPATH})
-fcgi="${fcgi}/"
-echo " CGI directory is ${fcgi}\n"
-html=$(dirname ${fcgi})
-html="${html}/"
-echo " HTML directory is ${html}\n"
-base=$(dirname ${html})
-base="${base}/"
-echo " Base directory is ${base}\n"
-
-js="${html}assets/js/"
-css="${html}assets/css/"
-
-repo="${base}repofolder/"
-repocgi="${repo}html/cgi-bin/"
-repojs="${repo}html/assets/js/"
-repocss="${repo}html/assets/css/"
-
-backup="${base}backup/"
-mkdir -p "${backup}"
-cgibackup="${backup}cgibackup"
-mkdir -p "${cgibackup}"
-jsbackup="${backup}jsbackup"
-mkdir -p "${jsbackup}"
-cssbackup="${backup}cssbackup"
-mkdir -p "${cssbackup}"
-
-echo "Backing up data:"
-rsync -rv $fcgi $cgibackup || echo "failed to back up $fcgi to $cgibackup $?"
-rsync -rv $js $jsbackup || echo "failed to back up $js to $jsbackup $?"
-rsync -rv $css $cssbackup || echo "failed to back up $css to $cssbackup $?"
-
-rm -R -f $repo
-
-echo "Updating from $repository"
-git clone $repository $repo || echo "Git clone failed $?"
-echo "Synchronizing:";
-rsync -rv --exclude 'multisite.txt' $repocgi $fcgi || echo "Failed to sync $repocgi with $fcgi : $?"
-rsync -rv $repojs $js || echo "Failed to sync $repojs to $js : $?"
-rsync -rv $repocss $css || echo "Failed to sync $repocss to $css : $?"
-
+CGIfolder="../"
+JSfolder="../../assets/js"
+CSSfolder="../../assets/css"
+repoFolder="./update/repofolder"
+repoCGI="./update/repofolder/cgi-bin/*"
+repoJS="./update/repofolder/html/assets/js/*"
+repoCSS="./update/repofolder/html/assets/css/*"
+cgbackup="./cgbackup"
+cgbackup="./jsbackup"
+cgbackup="./cssbackup"
+cp -R /var/www/html/cgi-bin/* $cgbackup
+cp -R /var/www/html/assets/js/* $jsbackup
+cp -R /var/www/html/assets/css/* $cssbackup
+rm -R -f $repoFolder
+git clone $repository $repoFolder || echo "Git clone failed $?"
+cp -R $repoCGI $CGIfolder || echo "CGI copy to $CGIfolder failed $?"
+cp -R $repoJS $JSfolder || echo "JS copy to $JSfolder failed $?"
+cp -R $repoCSS $CSSfolder || echo "CSS copy to $JSfolder failed $?"
+chmod 775 ./update.sh || echo "Failed to renew update script $?"
 echo "Updated CGI"

@@ -154,6 +154,15 @@ sub choose_page {
 
 # -------   Header ------------------------------------------------------------
 
+sub header {
+
+	my ($dbh,$query,$table,$format,$title) = @_;
+	my $template = "page_header";
+
+	return &template($dbh,$query,$template,$title);
+
+
+}
 
 # -------   Footer -----------------------------------------------------------
 

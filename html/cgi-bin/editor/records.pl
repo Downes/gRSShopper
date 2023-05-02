@@ -107,36 +107,39 @@ sub record_graph {
 sub record_sanitize_input {
 
 
-	my ($vars) = @_;
+	my ($vars,$opts) = @_;
 
+	 unless (ref($vars)) { 
+		return &sanitized($vars,$opts);
+	}
 	while (my ($vkey,$vval) = each %$vars) {
+		$vars->{msg} .= "Received to sanitize: ".$vars->{$vkey}." --";
+		if ($vkey =~ /title/) {
+		#$vars->{$vkey} .= "Sanitized"; }
+		#$vars->{$vkey} = &sanitized($vars->{$vkey},$opts);
+	}
+}
 
-		$vars->{$vkey} =~ s/#!//g;				# No programs!
-		$vars->{$vkey} =~ s/\x{201c}/"/g;	# "
-		$vars->{$vkey} =~ s/\x{201d}/"/g;	# "
-		$vars->{$vkey} =~ s/\x{2014}/-/g;	# '
-		$vars->{$vkey} =~ s/\x{2018}/'/g;	# '
-		$vars->{$vkey} =~ s/\x{2019}/'/g;	# '
-		$vars->{$vkey} =~ s/\x{2026}/.../g;	# ...
-		$vars->{$vkey} =~ s/'/&apos;/g;	#     No SQL injections
+sub sanitized {
 
-		# If it's not from a JS editor, auto-insert spaces
-		unless ($vars->{$vkey} =~ /^<p>/i) {
-			$vars->{$vkey} =~ s/\r//g;
+	my ($str,$opts) = @_;
+return;
+
+	$str =~ s/#!/hashbang/g;	# No programs!
+	$str =~ s/'/&apos;/g;	#     No SQL injections
+
+	# If it's not from a JS editor, auto-insert spaces
+		unless ($str =~ /^<p>/i) {
+			$str =~ s/\r//g;
 	#		$vars->{$vkey} =~ s/\n/\n\n/g;   # Adds an extra LF for single returns - converts MS Doc paras to extra LFs
 	#		$vars->{$vkey} =~ s/\n\n\n/\n\n/g; $vars->{$vkey} =~ s/\n/<br\/>/g;
 		}
-	}
 
-
-	unless ($Site->{context} eq "rcomment") { return if ($Person->{person_status} eq "Admin"); }
-
-	$vars->{$vkey} =~ s/<(\/|)(scr|if|ob|e|t)(.*?)>//sig;	# No scripts, iframes, embeds, tables
-
-	unless ($Site->{context} eq "rcomment") { return if ($Person->{person_status} eq "Registered"); }
-
-	$vars->{$vkey} =~ s/<(\/|)(a|img)(.*?)>//sig;	# No links, images
-
+	#use HTML::Entities;
+	#$str = encode_entities($str);
+	$str =~ s/<(\/|)(scr|if|ob|e|t)(.*?)>//sig;	# No scripts, iframes, embeds, tables
+	if ($opts->{nolinks}) { $str =~ s/<(\/|)(a|img)(.*?)>//sig; }	# No links, images
+	
 }
 
 	# -------  Anti-Spam ------------------------------------------------------
@@ -655,9 +658,7 @@ sub make_new_record {
 	# so we'll try to look up the ID
 	my $input_data_type = ref($data) || "string";
 	if ($data && $input_data_type eq "string" && $id ne "new") {	 
-		$id = &db_locate($dbh,"form",{$table."_title"=>$data}); 
-		print "Found existing record<p>";
-		}
+		$id = &db_locate($dbh,"form",{$table."_title"=>$data}); }
 
 	# Otherwise, yes, we're creating a new record
 	else {

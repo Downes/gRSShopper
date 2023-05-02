@@ -28,66 +28,6 @@ sub Tab_Edit {
 	return  $output;
 
 }
-
-	# TABS ----------------------------------------------------------
-	# ------- Format --------------------------------------------
-	#
-	# Generic Format Functions
-	#
-	# Uses the _summary view but I'll fix this later
-	# Basically the same as Tab_Edit (I should have a 'default' tab function)
-	#
-	# -------------------------------------------------------------------------
-sub Tab_Format {
-
-	my ($window,$table,$id_number,$record,$data,$defined) = @_;
-
-	my $output = qq|<div>|;
-
-
-  	if ($id_number eq "me") { $id_number = $Person->{person_id}; }
-	foreach my $field (@{$window->{tab_list}->{Format}}) {
-		$output .= &process_field_types($window,$table,$id_number,$field,$record,$data,$defined);
-	}
-
-	$output .= "</div>";
-
-	return  $output;
-
-}
-	# TABS ----------------------------------------------------------
-	# ------- Use --------------------------------------------
-	#
-	# Specialist Functions to Use File
-	#
-	#
-	# -------------------------------------------------------------------------
-sub Tab_Use {
-
-	my ($window,$table,$id_number,$record,$data,$defined) = @_;
-
-	my $output = "";
-
-	my $mimetype = $record->{$table."_mime"};
-	my $favicon_url = $Site->{st_cgi}."admin.cgi?action=favicon_button".
-		"&image_file=".$record->{file_dirname};
-	if ($mimetype =~ /jpeg|jpg|png/i) {
-		$output .= qq|Use this file to generate site icons. <br>
-		<iframe style="width:90%; height:20em;" src="$favicon_url"></iframe>|;
-	}
-
-  	if ($id_number eq "me") { $id_number = $Person->{person_id}; }
-	foreach my $field (@{$window->{tab_list}->{Use}}) {
-		$output .= &process_field_types($window,$table,$id_number,$field,$record,$data,$defined);
-	}
-
-	unless ($output) { $output = "No current uses for this file.<br>"; }
-	$output = qq|<div style="margin:1em;">|.$output."</div>";
-
-	return  $output;
-
-}
-
 	# TABS ----------------------------------------------------------
 	# ------- Analyze --------------------------------------------
 	#
@@ -520,7 +460,8 @@ sub Tab_Page {
 		$output .= &process_field_types($window,$table,$id_number,$field,$record,$data,$defined);
 	}
 
-	$output .= &form_publish_page($table,$id_number,"html txt latex");
+
+	$output .= &form_pushbutton($table,$id_number,"tab","publish");
 
 	$output .= &form_pushbutton($table,$id_number,"tab","clone");
 

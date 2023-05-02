@@ -12,12 +12,6 @@ sub format_content {
 
 
 	if ($diag>9) { print "Format Content <br>"; }
-
-    	my $vars = ();
-    	if (ref $query eq "CGI") { $vars = $query->Vars; }
-
-
-
 						# Default Content
 	unless (defined $wp->{page_content}) { $wp->{page_content} = &printlang("No content"); }
 	unless (defined $wp->{page_description}) { $wp->{page_description} = &printlang("No description");; }
@@ -30,7 +24,6 @@ sub format_content {
 	unless (defined $Site->{st_title}) { $Site->{st_title} = &printlang("Site Title");; }
 	$wp->{page_linkcount} = 0;
 
-
 	&make_data_elements(\$wp->{page_content},$wp,$wp->{page_format});		# Fill page content elements
 
 	&make_boxes($dbh,\$wp->{page_content});						# Make Boxes
@@ -40,17 +33,19 @@ sub format_content {
 
 	$wp->{page_content} =~ s/<count>/$vars->{results_count}/mig;			# Update results count from keywords
 
+
 	# These are for breadcrumbs
 	$wp->{page_content} =~ s/\Q[*table*]\E/$wp->{type}/g;					# Insert record table
 	&esc_for_javascript(\$wp->{title});  									# JS/JSON escape for title
 	$wp->{page_content} =~ s/\Q[*title*]\E/$wp->{title}/g;					# Insert record title	
-
 	my $today = &nice_date(time);
 	$wp->{page_content} =~ s/#TODAY#/$today/;
-
 	&autodates(\$wp->{page_content});
 	&make_grid(\$wp->{page_content});						# make grid for graphing
 	&make_tz($dbh,\$wp->{page_content});								# Time zones
+
+
+	
 
         &get_loggedin_image(\$wp->{page_content});
 
@@ -423,8 +418,8 @@ sub clean_up {		# Misc. clean-up for print
 	unless ($format eq "edit" || $format =~ /rss|json/i) {
 	  $$text_ptr =~ s/&quot;/"/mig;					# Replace quotes
 	  $$text_ptr =~ s/&amp;/&/mig;					# Replace amps
-	  $$text_ptr =~ s/&lt;/</mig;					# Replace amps
-	  $$text_ptr =~ s/&gt;/>/mig;					# Replace amps
+	  $$text_ptr =~ s/&lt;|&#60;/</mig;					# Replace amps
+	  $$text_ptr =~ s/&gt;|&#62;/>/mig;					# Replace amps
   }
 
   	$$text_ptr =~ s/&amp;#(.*?);/&#$1;/mig;				# Fix broken special chars
@@ -481,7 +476,7 @@ sub clean_up {		# Misc. clean-up for print
 		# .^$*+?()[{\|
 
 		#$$text_ptr =~ s|//|////|g; 
-		$$text_ptr =~ s/\s"/ ``/g;
+		$$text_ptr =~ s/\s"/`` /g;
 		$$text_ptr =~ s/'/\\textsc{\\char13}s/g;  #'
 
 	}

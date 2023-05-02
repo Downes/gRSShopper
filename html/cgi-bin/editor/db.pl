@@ -384,7 +384,6 @@ sub db_get_template {
 	my $ary_ref = $dbh->selectcol_arrayref($stmt);
 	my $ret = $ary_ref->[0];
 
-
 	return $ret;
 
 }
@@ -418,7 +417,7 @@ sub get_template {
 	&autodates(\$template);										# 	- Autodates
 	&make_tz($dbh,\$template);								# Time zones
 
-	&make_langstring(\$template);							# Language Strings
+#	&make_langstring(\$template);							# Language Strings
 
 														# More Formatting
 

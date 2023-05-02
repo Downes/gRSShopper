@@ -298,7 +298,10 @@ sub publish_page {
 	while ($wp = $sth -> fetchrow_hashref()) {
 		$count++;
 
-								# Publish the page only if allowed
+		$wp->{page_code} =~ s/&#60;/</g;	# Convert data that was encoded back to HTML or keyword, etc
+		$wp->{page_code} =~ s/&#62;/>/g;
+
+						# Publish the page only if allowed
 		next unless (&is_allowed("publish","page",$wp));
 		$vars->{message} .= "Publishing Page: ".$wp->{page_title}.". ".$LF; 
 
@@ -319,15 +322,22 @@ sub publish_page {
 
 		my $header = &db_get_template($dbh,$wp->{page_header},$wp->{page_title});
 		my $footer = &db_get_template($dbh,$wp->{page_footer},$wp->{page_title});
+
 		$wp->{page_content} = $header . $wp->{page_content} . $footer;
 
-								# Update 'update' value
+	#$vars->{message}.="1 <textarea cols='60' rows='20'>$footer</textarea>";		
+						# Update 'update' value
 		$wp->{page_update} = time;
 		&db_update($dbh,"page",{page_update=>$wp->{page_update}},$wp->{page_id});
 
 
 								# Format Page Content
+
+	$vars->{message}.="YES";								
 		&format_content($dbh,$query,$options,$wp);
+	$vars->{message}.="YES";
+
+	#$vars->{message}.="3 <textarea cols='60' rows='20'>$footer</textarea>";		
 
 								# Publish only if new content was added, unless empty content allowed
 		unless ($wp->{page_linkcount} || $wp->{page_allow_empty} eq "yes") {

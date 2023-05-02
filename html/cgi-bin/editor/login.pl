@@ -16,8 +16,6 @@ sub check_user {
 #print "Vars in check_user<p>";
 #while (my($vx,$vy) = each %$vars) { print "$vx = $vy <br>";}
 
-
-	# Logout
     if ($query->param("action") eq "logout") {
 
 		$session->delete();
@@ -27,18 +25,6 @@ sub check_user {
 		</script>|;
         exit;
     } 
-
-	# Create user
-	if ($query->param("action") eq "new") {
-		print $query->header();
-		print &show_login($session);
-		exit;
-	}
-
-	if ($query->param("action") eq "Create a New Profile") { 
-			&_make_profile();     # Make a new profile if asked
-	}
-
 	#   $session->clear(["~logged-in"]);
 #print "Into init_login()<p>";	
     &init_login($session);
@@ -55,9 +41,17 @@ sub check_user {
 #	    -secure=>1);
 
 	$output_format ||= "text/html";	# default mime type
+
+
+    #  PRINT HEADER
+    #
+    # Writes session cookie
+    # Allows CORS cross-origin
+    # Specifies content tyle (eg. text/json) in $output_format
+
     unless ($Site->{context} eq "cron" || $Site->{context} eq "rcomment") {
-		print $query->header(-type => $output_format,-cookie=>$cookie,-charset => 'utf-8');
-	}
+	print $query->header(-type => $output_format,-cookie=>$cookie,-charset => 'utf-8','-Access-Control-Allow-Origin' =>  => "*");
+    }
 
    
 #print "Content-type: text/html\n\n OK";
@@ -85,16 +79,13 @@ sub show_login {
 	}});|;  # Reloads parent page in event of login or logout
 
     # Logged In
-    if (($session->param("~logged-in")) && ($query->param("new") eq "")) { 
+    if ($session->param("~logged-in")) { 
 		my $reload = "";
 		if ($session->param("~reload")) {
 			$reload = $reload_script;
 			$session->param("~reload",0);
 		}
-        return "".$session->param("~profile")->{username}.
-			qq| [<a href="//|.$ENV{'SERVER_NAME'}.$ENV{'SCRIPT_NAME'}.qq|?action=logout">Logout</a>]
-			[<a href="//|.$ENV{'SERVER_NAME'}.$ENV{'SCRIPT_NAME'}.qq|?action=new&new=user">Create New User</a>]
-			<p>
+        return "".$session->param("~profile")->{username}.qq| [<a href="//|.$ENV{'SERVER_NAME'}.$ENV{'SCRIPT_NAME'}.qq|?action=logout">Logout</a>]<p>
 		<script>window.scrollTo(0,document.body.scrollHeight);
 		$reload
 		</script>|;
@@ -111,7 +102,7 @@ sub show_login {
     	my $count = &db_count($dbh,"person"); my $extra;
 	if ($count == 0) { $count = "Create an Admin Profile"; } 
 	elsif ($query->param("new")) { 
-		#$query->param("new") = "";	# Clear param
+		$query->param("new") = "";	# Clear param
 		$count = "Create a New Profile"; 
 		$extra = qq|<input type=text placeholder="Email" name="lg_email">|;
 	}
@@ -183,11 +174,11 @@ sub _load_profile {
     my ($lg_name, $lg_psswd,$output_format) = @_;
     my $cgi = $query;
 #print "Loading profile <p>";
-
-    my $persondata = &db_get_record($dbh,"person",{person_title=>$lg_name});		# Load a profile
+    my $persondata = &db_get_record($dbh,"person",{person_title=>$lg_name});
     
     unless ($persondata) {		                   # User does not exist
     	my $count = &db_count($dbh,"person");
+    	if ($query->param("action") eq "Create a New Profile") { &_make_profile(); }    # Make a new one if asked
     	if ($query->param("action") eq "Create an Admin Profile" && $count == 0) { &_make_profile("admin"); }    # Make a new one if asked
         print "Content-type: text/html\n\n";               # Or exit
         print "User does not exist. $count users exist";
@@ -551,7 +542,7 @@ sub permission_default {
 sub login_needed {
 
 	my ($status) = @_;
-
+return;
 	print "Content-type: text/html\n";
 	if ($status =~ /^admin$/i) { print "You must be an admin to continue.";  } else {
 	print "A login is needed to continue."; }

@@ -117,7 +117,11 @@ use CGI::Carp qw(fatalsToBrowser);
 		my $action = $vars->{action};
 		my $id = $vars->{id};
 
-
+	# Header for Bookmarklet
+	if ($action eq "hub") {
+		print $query->header();
+		while (my($vx,$vy) = each %$vars) { print "$vx = $vy<br>"; }
+	}
 
 	# Determine Request Table, ID number ( assumes admin.cgi?$table=$id and not performing action other than list, edit or delete)
 
@@ -3318,11 +3322,13 @@ sub admin_update_grsshopper{
 											# Newsletters
 
 
-		&log_cron(9,"Checking for newsletters");
+		&log_cron(9,"Checking for newsletters xx");
 		my $sql = qq|SELECT * FROM page WHERE page_subsend='yes' AND page_subhour=? AND page_submin=? AND (page_subwday LIKE ? OR page_submday LIKE ?)|;
 		my $sth = $dbh -> prepare($sql);
 		$sth -> execute($hour,$min,'%'.$weekday.'%','%'.$mday.'%') or 
 			&log_cron(0,sprintf("Newsletter Error: %s",$dbh->errstr()));;
+		
+		&log_cron(5,"$sql \n");
 
 		while (my $npage = $sth -> fetchrow_hashref()) {
 			my $report = &send_nl($dbh,$query,$npage->{page_id},"subscribers",0);
@@ -3330,13 +3336,13 @@ sub admin_update_grsshopper{
 			&log_cron(5,"$report");			
 		}
 		$sth->finish;
+	
 
 
 											# Harvester
 
 
 
-$Site->{st_harvest_on} = "yes";
 $Site->{st_harvest_int} = 5;
 
 		if ($Site->{st_harvest_on} eq "yes") {
@@ -4004,6 +4010,7 @@ $Site->{st_stale_expire} = (72 * 60 * 60);
       my ($rtable,$batch) = @_;
 
       $batch ||= 10;
+	  if ($rtable eq "post") { $batch=1000;}
       my $count = 0;
       while ($count < $batch) {
 #&send_email("stephen\@downes.ca","stephen\@downes.ca","Republish","\nRepub: $rtable $reppub\n");

@@ -9,6 +9,8 @@
 #           FORM FUNCTIONS
 	#-------------------------------------------------------------------------------
 
+
+
 sub fieldlable {				# Creates Lable value used by forms
 	my ($col, $table) = @_; 
 
@@ -157,7 +159,7 @@ sub form_textinput {
 		<div class="text-input"> 
 			<label for="$col">$fieldlable</label>
 			<div class="text-input-form">
-				<input type="text" class="text-input-field" placeholder="$placeholder" id="|.$col.qq|" value="$value" style="width:|.$size.qq|em;max-width:90%;" onChange="
+			$fillvalue	<input type="text" class="text-input-field" placeholder="$placeholder" id="|.$col.qq|" value="$value" style="width:|.$size.qq|em;max-width:90%;" onChange="
 				   	var submitValue=\$('#|.$col.qq|').val();
 					submitData(
 					   {div:'|.$col.qq|_result',
@@ -172,7 +174,6 @@ sub form_textinput {
 			</div>
 		</div>
 	|;
-
 
 }
 
@@ -226,13 +227,13 @@ sub form_textarea {
 	my $placeholder = ucfirst($col); $placeholder =~ s/_/ /g;
 	#$value ||= $col;
 
+	# Old-Style Form Alternative
+	if (defined($vars->{raw_form})) { return qq|$col<br><textarea name="$col" cols="$width" rows="$height">$value</textarea>|; }
+
+
 	# Escape markup
 	$value =~ s/</&lt;/sig;
 	$value =~ s/>/&gt;/sig;
-
-
-	# Old-Style Form Alternative
-	if (defined($vars->{raw_form})) { return qq|$col<br><textarea name="$col" cols="$width" rows="$height">$value</textarea>|; }
 
 	return qq|
 
@@ -271,6 +272,7 @@ sub form_wysihtml {
 	my ($width,$height) = split 'x',$size;
 	$height ||= 10;
 	$width ||= 40;
+	$wwidth ||= '100%';
 	$ckheight = $height-3;  #Leaves room for toolbars
 
 
@@ -279,12 +281,12 @@ sub form_wysihtml {
 
 	$value ||= $placeholder;
 
+	# Old-Style Form Alternative
+	if (defined($vars->{raw_form})) { return qq|$col<br><textarea name="$col" cols="$width" rows="$height">$value</textarea>|; }
+
 	# Escape markup
 	$value =~ s/</&lt;/sig;
 	$value =~ s/>/&gt;/sig;
-
-	# Old-Style Form Alternative
-	if (defined($vars->{raw_form})) { return qq|$col<br><textarea name="$col" cols="$width" rows="$height">$value</textarea>|; }
 
 	return qq|
 
@@ -298,11 +300,10 @@ sub form_wysihtml {
 				<div id="|.$col.qq|_result"></div>$advice
 			</div>
    		</div>
-	
 		<script>
    		\$( document ).ready(function() {
 			CKEDITOR.replace( '|.$col.qq|', {
-				width: '100%',
+				width: '|.$wwidth.qq|',
 				height: '|.$ckheight.qq|em',
 				// Define the toolbar groups as it is a more accessible solution.
 				toolbarGroups: [
@@ -332,6 +333,7 @@ sub form_wysihtml {
 
 					submitData(
 						{div:'|.$col.qq|_result',
+                                                formtype:'wysihtml',
 						cmd:'update',
 						table:'$table',
 						field:'$col',
@@ -387,12 +389,12 @@ sub form_keylist {
 	my $col = $table."_".$key;
 	my $key_title = ucfirst($key);
 	my $url = $Site->{st_cgi}."api.cgi";
+	my $value;
 	if ($host) { $host = "'$host'"; }
 
 	my $keylist_text = &form_graph_list($table,$id,$key,'',$noedit);
 
-    my $input_field;
-    $input_field = qq|<input list="$key_title" class="keylist-input-field empty-after" placeholder="Add $key_title" id="|.$col.qq|" style="width:|.$size.qq|em;max-width:100%;">|;
+
 
   	my $count = &db_count($dbh,$key);
 
@@ -407,6 +409,9 @@ sub form_keylist {
   	} else {
 		$input_field .= "Search and Select";
 	}	 
+
+    my $input_field;
+    $input_field = qq|<input value="$value" list="$key_title" class="keylist-input-field empty-after" placeholder="Add $key_title" id="|.$col.qq|" style="width:|.$size.qq|em;max-width:100%;">|;
 
 	return qq|
 
@@ -683,7 +688,6 @@ sub form_graph_list {
 	my ($table,$id,$key,$type,$noedit) = @_;
 	my $output = "";
 	my $admin = &admin_only();
-
 	my @keylist = &find_graph_of($table,$id,$key,$type);
   my $onclickurl = $Site->{st_cgi}."api.cgi";
 	foreach my $keyid (@keylist) {

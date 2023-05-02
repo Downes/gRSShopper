@@ -101,8 +101,8 @@ sub search {
 
 						# Header
 	$page->{page_format} = $format;
-	$page->{page-title} = "Search ".ucfirst($table)."s";
-	$page->{page_content} = &get_template("page_header",$page,$page->{format});
+	$page->{page_title} = "Search ".ucfirst($table)."s";
+	$page->{page_content} = &header($dbh,$query,$page->{table},$page->{format},$page->{title});
 	$page->{page_content} .= "<h3>$page->{title}</h3>";
 
 
@@ -197,10 +197,7 @@ sub search {
   #	}
 
 						# Footer
-	$page->{page_content} .= 
-		&get_template("page_footer",$page,$page->{format});
-	
-
+	$page->{page_content} .= &footer($dbh,$query,$table,$page->{format},"Search ".ucfirst($table)."s");
 
 
 						# Format Content
@@ -331,7 +328,7 @@ sub list_tables {
 
 	# Print Cache version to file
 	my $page_file = $Site->{st_cgif}."data/tables-".$tab;
-	open FILE, ">$page_file" or die "Could not open $page_file $!";
+	open FILE, ">$page_file" or die $!;
 	print FILE $output;
 	close FILE;
 
@@ -466,9 +463,7 @@ sub list_records {
 			my $id = $list_record->{$table."_id"};  # So the record is $table $id
 			# Unescape data that was escaped for storage
 			while (my($lx,$ly) = each %$list_record) {
-				if ($list_record->{$lx}) {
-					$list_record->{$lx} =~ s/&amp;/&/g;
-				}
+				$list_record->{$lx} =~ s/&amp;/&/g;
 			}
 
 #print "List record $id \n";
