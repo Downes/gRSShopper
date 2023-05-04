@@ -117,6 +117,7 @@ sub record_sanitize_input {
 		if ($vkey =~ /title/) {
 		#$vars->{$vkey} .= "Sanitized"; }
 		#$vars->{$vkey} = &sanitized($vars->{$vkey},$opts);
+		}
 	}
 }
 
