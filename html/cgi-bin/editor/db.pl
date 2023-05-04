@@ -752,11 +752,11 @@ sub db_create_table {
 		unless ($values[0] =~ /^$table/) { $values[0] = $table."_".$values[0]; } # Normalize field names
 		next unless (&index_of($values[0],\@fieldlist) < 0);  # No duplicate field names
 		push @fieldlist,$values[0];
-
+		unless ($values[1]) { $values[1] = "varchar(250)"; } # Assign a default type
 		$sql .= qq|`$values[0]` |.$values[1].qq||;
 		if ($values[2]) { $sql .= qq|(|.$values[2].qq|)|; }
-		if ($values[3]) { $sql .= qq| |.$values[2].qq||; }
-		if ($values[4]) { $sql .= qq| |.$values[2].qq||; }
+		if ($values[3]) { $sql .= qq| |.$values[3].qq||; }
+		if ($values[4]) { $sql .= qq| |.$values[4].qq||; }
 		$sql .= ",\n";
 
 	}
@@ -764,12 +764,12 @@ sub db_create_table {
 
 
 	$sql .= qq|  PRIMARY KEY  (`|.$table.qq|_id`)) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;|;
-
+print $sql;
 	$return .=qq|<pre>$sql</pre>|;
-	my $sth = $dbh->prepare($sql) or  $return .= "Can't prepare SQL statement in db_create_table : ", $sth->errstr(), "\n";
+	my $sth = $dbh->prepare($sql) or  print "Can't prepare SQL statement in db_create_table : ", $sth->errstr(), "\n";
 
     	if ($sth->execute()) { $return .= "Table $table created<p>"; }
-	else { $return .= "Can't execute SQL statement in db_create_table : ", $sth->errstr(), "\n"; }
+	else { print "Can't execute SQL statement in db_create_table : ", $sth->errstr(), "\n"; }
 
     	$return;
 }
@@ -884,6 +884,9 @@ sub db_insert {		# Inserts record into table from hash
     	if (ref $query eq "CGI") { $vars = $query->Vars; }
 
 
+	# Catch case where the table doesn't exist, create the table, then perform the insert
+	# This might create a table even if the data is bacd, but if you don't like that move this down
+
 	my $dtype = ref $input;
 	&status_error("Unsupported data type specified to insert (data was $dtype)")
 		unless (ref $input eq 'HASH' || ref $input eq 'gRSShopper::Record' || ref $input eq 'gRSShopper::Person' || ref $input eq 'gRSShopper::File');
@@ -906,11 +909,18 @@ sub db_insert {		# Inserts record into table from hash
 	$sql .= '(' . join(', ', @sqlf) .') VALUES ('. join(', ', @sqlq) .')';
 
 
+
+
 	my $sth = $dbh->prepare($sql) or print "Content-type: text/html\n\n".$sth->errstr;;		# Execute SQL Statement
 
-   	$sth->execute(@sqlv) or print "Content-type: text/html\n\n".$sth->errstr;
+   	$sth->execute(@sqlv) or print "Content-type: text/html\n\nDB INSERT ERROR: ".$sth->errstr;
+
+ 
 
 	if ($sth->errstr) { $vars->{err} = "DB INSERT ERROR: ".$sth->errstr." <p>"; }
+
+
+
 
 	my $insertid = $dbh->{'mysql_insertid'};
 	
@@ -1085,7 +1095,7 @@ sub db_count {
 	my $stmtc = "SELECT COUNT(*) AS items FROM $table $where";
 
 	my $sthc = $dbh -> prepare($stmtc);
-	$sthc -> execute()  || die "Error: " . $dbh->errstr . " -- ".$stmtc;
+	$sthc -> execute()  || return 0;
 	my $refc = $sthc -> fetchrow_hashref();
 	my $count = $refc->{items};
 	$sthc->finish( );
@@ -1128,6 +1138,25 @@ sub db_tables {
 		while (my($hx,$hy) = each %$hash_ref) { push @tables,$hy; }
 	}
 	return @tables;
+}
+
+	#-------------------------------------------------------------------------------
+	#
+	# -------   Table Exists ---------------------------------------------------------
+	#
+	# 		Returns 0 if the table does not exist
+	#	      Edited: 28 March 2010
+	#-----------------------------------------------------------------------------
+
+sub db_table_exists {
+
+	my ($dbh, $tbl_name) = @_;
+	my $db_clause = "";
+
+		($db_clause, $tbl_name) = (" FROM $1", $2) if $tbl_name =~ /(.*)\.(.*)/;
+		$tbl_name =~ s/([%_])/\\$1/g;   # escape any special characters
+		return ($dbh->selectrow_array ("SHOW TABLES $db_clause LIKE '$tbl_name'"));
+
 }
 
 	# -------   Update Vote ------------------------------------------------------                                                   UPDATE

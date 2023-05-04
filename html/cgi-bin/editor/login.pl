@@ -27,6 +27,7 @@ sub check_user {
     } 
 	#   $session->clear(["~logged-in"]);
 #print "Into init_login()<p>";	
+
     &init_login($session);
 
 
@@ -96,9 +97,8 @@ sub show_login {
     
   #  &list_all_rows();
   #  &delete_all_rows();
-  
-  
-    
+
+  	
     	my $count = &db_count($dbh,"person"); my $extra;
 	if ($count == 0) { $count = "Create an Admin Profile"; } 
 	elsif ($query->param("new")) { 
@@ -174,6 +174,7 @@ sub _load_profile {
     my ($lg_name, $lg_psswd,$output_format) = @_;
     my $cgi = $query;
 #print "Loading profile <p>";
+
     my $persondata = &db_get_record($dbh,"person",{person_title=>$lg_name});
     
     unless ($persondata) {		                   # User does not exist
@@ -217,6 +218,13 @@ sub _make_profile {
 		exit;
 	}
 	
+	# Make sure 'person' table exists, and create it if it doesn't
+	unless (&db_table_exists($dbh,"person")){
+		print "Creating 'person' table.<br>";
+		my @fields = qw(person_openid person_title person_pref person_name person_status person_mode person_password person_midm person_description person_email person_eformat person_html person_weblog person_photo person_xml person_foaf person_street person_city person_province person_country person_home_phone person_work_phone person_fax_phone person_organization person_remember person_showreal person_showemail person_showuser person_showpage show_pref show_name show_html show_weblog show_photo show_email person_lastread person_firstname person_lastname person_socialnet);
+		&db_create_table($dbh,"person",\@fields);
+	}
+
 	# Check for unique username
 	my $persondata = &db_get_record($dbh,"person",{person_title=>$cgi->param("lg_name")});
 	if ($persondata) { 
@@ -226,6 +234,7 @@ sub _make_profile {
 	}
 	    
 	# Check in case this is the first user, which must be Admin
+
 	my $count = &db_count($dbh,"person");
 	if ($count == 0) { $count = "Admin"; } else { $count = "Registered"; }
 	print "<p>Making $count Profile</p>"; 

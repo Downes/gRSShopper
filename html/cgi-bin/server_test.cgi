@@ -473,18 +473,27 @@ sub rewrite_multisite {
   # Open database info file for writing
   unless ($cgif) { print "No cgi directory defined; I won't be able to read the database.<br>"; exit;}
   my $data_file = $cgif."data/multisite.txt";
-	unless (open IN,">>$data_file") {     # Try to append
-    unless (open IN,">$data_file") {    # Otherwise, try to create
-      &error("Cannot open website information file $data_file : $!"); exit; } }
-
-  # Write new database information to website information file
-  print "Writing to multisite: $home,$name,$loc,$usr,$pwd <br>";
-  unless(print IN "$home\t$name\t$loc\t$usr\t$pwd\t$lan\n") {
-    &error("Cannot write to website information file $data_file : $!"); 
+  my $newdata; my $replaced=0;
+  if (-e $data_file) {
+    open IN,"$data_file" || &error("Cannot read website information file $data_file : $!");       
+    my $line; my $newline;
+    while (<IN>) {
+      $line = $_;
+      $line =~ s/(\s|\r|\n)$//g;
+      ($lhome,$lname,$lloc,$lusr,$lpwd,$llan,$lurlf,$lcgif) = split "\t",$line;
+      if ($lhome eq $home) {
+          $lhome=$home;$lname=$name;$lloc=$loc;$lusr=$usr;$lpwd=$pwd;
+          $replaced++;
+      }
+      $newdata .= "$lhome\t$lname\t$lloc\t$lusr\t$lpwd\t$llan\t$lurlf\t$lcgif\n";
+    }
   }
-
+  unless ($replaced) { $newdata .= "$home\t$name\t$loc\t$usr\t$pwd\t$lan\t$urlf\t$cgif\n"; }
   close IN;
-
+  open OUT,">$data_file"; 
+  print OUT $newdata || &error("Cannot write to website information file $data_file : $!");
+  close OUT;
+  
 }
 
 sub access_database {
