@@ -6,6 +6,7 @@ LABEL Description="gRSShopper - personal content aggregation, management and pub
 	Version="1.0" \
 	Maintainer="Stephen Downes <stephen@downes.ca>"
 
+RUN apt-get clean
 RUN apt-get update
 RUN apt-get upgrade -y
 
