@@ -1038,18 +1038,18 @@ package gRSShopper::Site;
   	while (<IN>) {
 		my $line = $_; $line =~ s/(\s|\r|\n)$//g;
 
-# No longer using first line as default; if it doesn't match the domain, it isn't used
+# Using first line as default; if it doesn't match the domain, it isn't used
 
-#		if ($line && $count==0) { # Assign defualts with first line
-#			( $self->{st_home},
-#			$self->{database}->{name},
-#			$self->{database}->{loc},
-#			$self->{database}->{usr},
-#			$self->{database}->{pwd},
-#			$self->{site_language},
-#			$self->{urlf},
-#			$self->{cgif} ) = split "\t",$line;   
-#		}
+		if ($line && $count==0) { # Assign defualts with first line
+			( $self->{st_home},
+			$self->{database}->{name},
+			$self->{database}->{loc},
+			$self->{database}->{usr},
+			$self->{database}->{pwd},
+			$self->{site_language},
+			$self->{urlf},
+			$self->{cgif} ) = split "\t",$line;   
+		}
 		if ($line =~ /^$self->{st_host}/) {
 			( $self->{st_home},
 			  $self->{database}->{name},
@@ -1066,9 +1066,7 @@ package gRSShopper::Site;
 
 	# Initialize if line beginning with site URL can't be found
 	unless ($self->{database}->{name}) { 
-		unless ($self->{context} eq "server test") {
 			die "Cannot determine the name of the database to use. Please initialize site at ".$self->{st_cgi}."server_test.cgi"; 
-		}
 	} 
 	
 	return;
