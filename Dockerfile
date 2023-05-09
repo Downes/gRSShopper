@@ -7,7 +7,8 @@ LABEL Description="gRSShopper - personal content aggregation, management and pub
 	Maintainer="Stephen Downes <stephen@downes.ca>"
 
 RUN apt-get clean
-RUN apt-get update
+# This is failing, security issue?
+# RUN apt-get update
 RUN apt-get upgrade -y
 
 RUN apt-get install rsync -y
