@@ -1,4 +1,4 @@
-FROM ubuntu:latest
+FROM ubuntu:20.04
 USER root
 LABEL Description="gRSShopper - personal content aggregation, management and publishing platform." \
 	License="Apache License 2.0" \
@@ -7,8 +7,7 @@ LABEL Description="gRSShopper - personal content aggregation, management and pub
 	Maintainer="Stephen Downes <stephen@downes.ca>"
 
 RUN apt-get clean
-# This is failing, security issue?
-# RUN apt-get update
+RUN apt-get update
 RUN apt-get upgrade -y
 
 RUN apt-get install rsync -y
