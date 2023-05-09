@@ -1066,7 +1066,9 @@ package gRSShopper::Site;
 
 	# Initialize if line beginning with site URL can't be found
 	unless ($self->{database}->{name}) { 
-		die "Cannot determine the name of the database to use. Please initialize site at ".$self->{st_cgi}."server_test.cgi"; 
+		unless ($self->{context} eq "server test") {
+			die "Cannot determine the name of the database to use. Please initialize site at ".$self->{st_cgi}."server_test.cgi"; 
+		}
 	} 
 	
 	return;
