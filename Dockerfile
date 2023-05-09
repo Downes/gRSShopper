@@ -10,6 +10,7 @@ RUN apt-get clean
 RUN apt-get update
 RUN apt-get upgrade -y
 
+RUN apt-get install apt-utils -y
 RUN apt-get install rsync -y
 RUN apt-get install systemd -y
 RUN apt-get install build-essential -y
