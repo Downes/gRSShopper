@@ -1,0 +1,986 @@
+/*  Site-Wide CSS  */
+
+/*  Colors                      */
+/*  Usage:  var(--back-color)   */
+
+:root {--fore-color:#111;
+  --secondary-fore-color:#444;
+  --third-fore-color:rgb(123, 123, 123);
+  --form-fore-color: #f8f8f8;
+  --button-fore-color:#f8f8f8;
+  --icon-color: green;
+  --icon-size: 1.2rem;
+  --success-color: #ACE1AF;
+  --error-color: #FFC0CB;
+  --back-color:#f8f8f8;
+  --button-color:#1f1e1e;
+  --secondary-back-color:#a9a9a9d7;
+  --third-back-color:#6d6d6de9;
+  --button-back-color: #fafafa;
+  --form-back-color: #f8f8f8;
+  --shadow-color: #8f8f8f;
+  --blockquote-color:#f57c00;
+  --pre-color:#1565c0;
+  --border-color:rgb(123,123,123,0.15);
+  --secondary-border-color:#ddd;
+  --form-border-color: #f8f8f8;
+  --heading-ratio:1.19;
+  --universal-margin:0;
+  --universal-padding:0;
+  --tab-padding:.5rem;
+  --button-padding:.2rem;
+  --universal-border-width:1px;
+  --universal-border-radius:.2rem;
+  --universal-menubox-radius:.8rem;
+  --universal-leading:0.5rem;
+  --a-link-color:#0277bd;
+  --a-visited-color:#01579b
+}
+
+/* Global Settings */
+
+body {
+  -ms-text-size-adjust:100%; 
+  -webkit-text-size-adjust:100%; 
+  line-height: 150%;
+  font-family:Roboto,Arial; 
+  font-weight:normal; 
+  margin:0; 
+  padding:0; 
+  width:100vw; 
+  height: 95vh;
+  color: var(--fore-color);
+  background-color: var(--back-color);
+}
+
+a {color: var(--a-link-color); }
+
+p {
+  color: var(--fore-color);
+  margin-top: var(--universal-leading);
+  margin-bottom: var(--universal-leading);
+}
+
+h1,h2,h3 {
+  margin-top: var(--universal-leading);
+  margin-bottom: var(--universal-leading); 
+  color: var(--secondary-fore-color);
+}
+
+/* Button */
+
+
+.button,button,.btn,.keylist-input-button,input[type=button] {
+  position: relative;
+  background-color: var(--button-back-color);
+  color: var(--button-color);
+  border: var(--universal-border-width) solid var(--border-color);
+  border: var(--universal-border-width) solid var(--border-color);
+  border-radius: var(--universal-border-radius);
+ 
+
+  font-size: 1em;
+  padding: var(--button-padding);
+  text-align: center;
+  transition-duration: 0.4s;
+  text-decoration: none;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.button:hover,button:hover,.btn:hover,input[type=button]:hover {
+  background-color: var(--secondary-back-color);
+  color: var(--icon-color);
+}
+
+.button:after,button:after,.btn:after,input[type=button]:after {
+  content: "";
+  background: #f1f1f1;
+  display: block;
+  position: absolute;
+  padding-top: var(--tab-padding);
+  padding-left: var(--tab-padding);
+  margin-left: -20px !important;
+  margin-top: -120%;
+  opacity: 0;
+  transition: all 0.8s
+}
+
+.button.active,button.active,.btn.active,input[type=button].active {
+  background-color: var(--third-back-color);
+  color:var(--back-color);
+}
+
+.button:active:after,button:active:after {
+  padding: 0;
+  margin: 0;
+  opacity: 1;
+  transition: 0s;
+  box-shadow: 0px 0px var(--shadow-color);
+}
+
+.button_large {
+  width: 200px;
+}
+
+.button-blank {
+  padding: 0;
+  margin: 0;
+  background: #f1f1f1;
+  box-shadow: 0px 0px var(--shadow-color);
+  border: 0px solid white;
+
+}
+
+.btn-inline {
+  /* Used to create options in, eg., error messages */
+  margin:0;
+  padding:calc(0.0 * var(--tab-padding)) calc(0.75 * var(--tab-padding));
+  background-color: var(--button-fore-color);
+  box-shadow: 1px; 2px var(--shadow-color);
+  color: var(--button-back-color);
+}
+
+
+
+.page { 
+  margin:1%;
+  border-collapse:collapse;
+  border: var(--universal-border-width) solid var(--border-color); 
+  color:#455a64; 
+  padding-top:1%; 
+  background-color: var(--back-color);
+  padding-bottom:1%;
+  padding-left:1%;
+  padding-right:2%; 
+}
+
+form {    /* To override mini-css  */
+
+    background: var(--form-back-color);
+    color: var(--form-fore-color);
+    border: .0625rem solid var(--form-border-color);
+    border-radius: var(--universal-border-radius);
+    /*
+    margin: var(--universal-margin);
+    padding: var(--universal-padding); */
+    margin: 10px;
+    padding: 0;
+    font-size: 1rem;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Ubuntu, "Helvetica Neue", Helvetica, sans-serif;
+    line-height: 1.3;
+    -webkit-text-size-adjust: 100%;
+}
+
+
+#page_frame { 
+  background-color: var(--back-color);
+}
+
+
+.head {
+  background-color: var(--back-color);
+  margin-bottom:1%;
+  padding:1%;
+  border: var(--universal-border-width) solid #f0f0f0
+}
+
+.byline { 
+  font: 400 12pt/16pt Verdana,Arial, sans-serif;
+  color: var(--fore-color);
+  line-height:120%;
+}
+
+label {
+  padding: 12px 12px 0px 12px;
+  margin:0;
+  display: inline-block;
+  color:green;
+}
+
+.label-inline{
+  color:green;
+  display: inline;
+}
+
+
+.head h1 {
+  margin-top:0%; 
+}
+
+.fa {
+  color: var(--icon-color);
+  font-size: var(--icon-size);
+}
+.linknav {
+  background:var(--back-color);
+  margin-bottom:1%;
+  padding:1%;
+  border: var(--universal-border-width) solid #f0f0f0
+}
+
+.email_page { margin:1%;border-collapse:collapse;border: var(--universal-border-width) solid #f0f0f0; color:#455a64; 
+  padding-top:3%; 
+  background:var(--secondary-back-color);padding-bottom:1%;padding-left:2%;padding-right:2%; }
+.email_head {background:#ffffff;margin-bottom:1%;padding:2%;border: var(--universal-border-width) solid #f0f0f0}
+.email_byline { font: 400 12pt/16pt Verdana,Arial, sans-serif;color:#000040;line-height:120%;}
+
+
+/* Containers */
+
+.container {
+  width:100%;
+}
+
+
+/* Generic Navigation Link used all over the place */
+
+.navlink {
+
+  border:var(--universal-border-width) solid white;
+  background-color: var(--back-color);
+  padding: 2px;
+
+}
+/* Success and Error Warnings */
+
+.success {
+    border: var(--universal-border-width) solid var(--success-color); 
+    background-color:  var(--back-color);
+    margin: 1rem;
+    padding: calc(0.3 * var(--tab-padding)) calc(0.75 * var(--tab-padding));
+    box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    vertical-align: middle;
+    display:inline;
+ 
+}
+
+.error {
+    border: var(--universal-border-width) solid var(--error-color); 
+    background-color: var(--back-color);
+    margin: 1rem;
+    padding: calc(0.3 * var(--tab-padding)) calc(0.75 * var(--tab-padding));
+    box-sizing: border-box;
+    -moz-box-sizing: border-box;
+
+    vertical-align: middle;
+}
+
+/* Tables */
+
+table th, table td {
+  padding: calc(0.5 * var(--universal-padding));
+}
+
+
+/* Left side navigation elements */
+
+ /* Style the buttons that are used to open and close the accordion panel */
+ .accordion {
+  background-color: var(--back-color);
+  color: var(--fore-color);
+  cursor: pointer;
+  padding: var(--tab-padding);
+  width: 100%;
+  text-align: left;
+  border: none;
+  outline: none;
+  transition: 0.4s;
+}
+
+/* Add a background color to the button if it is clicked on 
+(add the .active class with JS), and when you move the mouse over it (hover) */
+.active, .accordion:hover {
+  background-color: var(--back-color);
+}
+
+/* Style the accordion panel. Note: hidden by default */
+.panel {
+  padding: var(--universal-padding);
+  background-color: var(--back-color);
+  display: none;
+  overflow: hidden;
+} 
+
+
+/* The gRSShopper page remains hidden until activated by the startUp() javascripot function */
+/* when checks for user authentication */
+/* Main Content Window  */
+
+#main {
+    transition: margin-left .5s;
+    transition: margin-right .5s;
+    padding: 0px;
+    padding-right: 15px;
+    position: absolute;
+    color: var(--fore-color);
+    box-shadow: inset 0 0 0 20px white;
+   
+}
+
+#page_frame {
+  display: block;
+}
+
+#login-panel {
+   display:none;
+}
+
+/* Tab-Pane - tabs in main window */
+/* also inherits from Bootstrap */
+.tab-pane {
+  padding: 1%;
+  height: 100vh;
+  background-color: var(--back-color);
+}
+
+.html-record {
+   padding:1em;
+   margin: 0.5em;
+   margin-top:1em;
+   background-color: var(--back-color);
+}
+
+.html-title {
+   font-size: 1.5em;
+   font-family: Roboto, Arial, sans-serif;
+   margin-bottom:0.5em;
+
+}
+
+.html-byline {
+   font-size: 1em;
+   font-family: Roboto, Arial, sans-serif;
+   background-color: var(--back-color);
+}
+
+.html-description {
+
+    font-size: 1em;
+    font-family: Roboto, Arial, sans-serif;
+}
+
+/* Left Navigation Tabs */
+
+
+@media screen and (max-height: 450px) {
+  .sidenav {padding-top: 15px;}
+  .sidenav a {font-size: 18px;}
+  .talknav {padding-top: 15px;}
+  .talknav a {font-size: 18px;}
+}
+
+
+/* Style the tab panel */
+.tabPanel {
+    overflow: hidden;
+    max-width:100%;
+    border: var(--universal-border-width) solid var(--border-color);
+    background-color: var(--back-color);
+}
+
+
+/* Style the buttons that are used to open the tab content */
+/*     background-color: inherit; */
+
+[aria-pressed="true"] {
+  background-color: var(--third-back-color);
+  color: #137a5a;
+}
+
+.tabs {
+  color: var(--primary-color);
+  overflow: hidden;
+  border-bottom: var(--universal-border-width) solid var(--border-color);
+  background-color: var(--back-color);
+
+}
+
+.tab {
+  margin:0;
+  padding:calc(0.3 * var(--tab-padding)) calc(0.75 * var(--tab-padding));
+  transition: 0.3s;
+  border: var(--universal-border-width) solid var(--border-color);
+  background-color: var(--back-color);
+  color: var(--fore-color);
+}
+
+.tab:hover {
+  background-color: var(--secondary-back-color);
+  color: var(--icon-color);
+}
+
+tab.active {
+  background-color: var(--third-back-color);
+  color:var(--back-color);
+}
+
+.mainlinks {
+  background-color: var(--back-color);
+  color: var(--fore-color);
+  border: var(--universal-border-width) solid var(--border-color);
+}
+
+.mainlinks:hover {
+  background-color: var(--secondary-back-color);
+  color: var(--icon-color);
+}
+
+.mainlinks.active {
+  background-color: var(--third-back-color);
+  color:var(--back-color);
+}
+.tablinks {
+  background-color: var(--back-color);
+  color: var(--fore-color);
+  border: var(--universal-border-width) solid var(--border-color);
+}
+
+/* Change background color of buttons on hover */
+.tablinks:hover {
+  background-color: var(--secondary-back-color);
+  color: var(--icon-color);
+}
+
+/* Create an active/current tablink class */
+.tablinks.active {
+  background-color: var(--third-back-color);
+  color:var(--back-color);
+}
+
+/* Style the buttons that are used to open the tab content */
+/*     background-color: inherit; */
+.editorlinks {
+  background-color: var(--back-color);
+  color: var(--fore-color);
+  border: var(--universal-border-width) solid var(--border-color);
+}
+
+/* Change background color of buttons on hover */
+.editorlinks:hover {
+  background-color: var(--secondary-back-color);
+  color: var(--icon-color);
+}
+
+/* Create an active/current tablink class */
+.editorlinks.active {
+  background-color: var(--third-back-color);
+  color:var(--back-color);
+}
+
+
+/* Used for main page navigation in PLE.html only */
+.tabcontents {
+  max-width: 100%;
+}
+
+/* Style the left side tab content */
+.tabcontent {
+  display: none;
+  border: var(--universal-border-width) solid #ccc;
+  border-top: none;
+}
+
+/* Style the right side tab content */
+.talktabcontent {
+    display: none;
+    border: var(--universal-border-width) solid #ccc;
+    border-top: none;
+}
+
+/* Style the Table List */
+
+.table-list {
+    list-style-type: none;
+    padding: 0;
+    border: var(--universal-border-width) solid #ddd;
+}
+
+.table-list-heading {
+    padding: 8px 16px;
+    background-color: var(--secondary-back-color);
+    border-bottom: var(--universal-border-width) solid #ddd;
+}
+
+.table-list-element {
+    padding: 8px 16px;
+    background-color: var(--back-color);
+    border-bottom: var(--universal-border-width) solid #ddd;
+    color: var(--fore-color);
+}
+
+.table-list-element a {
+  color: var(--fore-color);
+}
+
+.table-list-element:hover {
+    background-color: var(--third-back-color);
+    color: var(--back-color);
+}
+
+.table-list-element:hover a {
+  color: var(--back-color);
+}
+
+
+.table-list li:last-child {
+    border-bottom: none
+}
+
+/* Search Form */
+
+#table-list-search {
+  display:none;
+}
+
+.table-list-search-form {
+  padding: var(--tab-padding);
+}
+
+
+
+/* side panel css */
+
+
+.sidenav {
+    height: 100%;
+    width: 0;
+     position: fixed; 
+    z-index: 1;
+    top: 0;
+    left: 0;
+    background-color: var(--secondary-back-color);
+    overflow-x: hidden;
+    transition: 0.5s;
+    padding-top: 0px;
+    margin-top: 0px;
+}
+
+
+
+.talknav {
+    height: 100%;
+    width: 0;
+    position: fixed; 
+    z-index: 1;
+    top: 0;
+    right: 1504;
+    background-color: var(--secondary-back-color);
+    overflow-x: hidden;
+    transition: 0.5s;
+    padding-top: 0px;
+    margin-top: 0px;
+}
+
+.sidenav .closebtn {
+    position: absolute; 
+    top: 0;
+    right: 25px;
+    font-size: 36px;
+    margin-left: 50px;
+}
+
+.talknav .closebtn {
+    position: absolute; 
+    top: 0;
+    right: 1504px;
+    font-size: 36px;
+    margin-left: 50px;
+}
+
+/* Spinner CSS */
+
+#spinner-donut {
+
+  position: absolute;
+  top:30%;
+  left:50%;
+  width:50px;
+  height:50px;
+  background-image:url('../img/ajax-loader.gif');
+  background-size: 50px;
+  background-repeat:no-repeat;
+  background-position:center;
+  z-index:10000000;
+  opacity: 0.4;
+  filter: alpha(opacity=40);
+  display:none;
+  
+}
+
+/* Admin Frame */
+
+.admin-iframe {
+  border:0;
+  width:100%;
+  height:800px;
+  padding:15px 0px 0px 15px;
+}
+
+.menubox {
+  border: var(--universal-border-width) solid var(--border-color);
+  border-radius: var(--universal-menubox-radius);
+  padding: 10px;
+  margin-bottom: 15px;
+  width: 90%;
+  clear: both;
+}
+
+.menubox h3 {
+  color: var(--icon-color);
+  margin-top: 10px;
+  margin-bottom: 5px;
+
+}
+
+.option_title {
+  display: inline-block;
+  width: 15%;
+  text-align: right;
+}
+
+.option_input {
+  display: inline-block;
+  width: 60%;
+}
+/*  Table used in show_columns  */
+
+#show_columns{
+  font-family:"Trebuchet MS", Arial, Helvetica, sans-serif;
+  width:100%;
+  border-collapse:collapse;
+}
+
+#show_columns td, #show_columns th  {
+  font-size:1em;
+  border:1px solid var(--border-color);
+  padding:3px 7px 2px 7px;
+}
+
+#show_columns th {
+  font-size:1.1em;
+  text-align:left;
+  padding-top:5px;
+  padding-bottom:4px;
+  background-color:var(--third-back-color);
+  color:#ffffff;
+}
+
+#show_columns tr.alt td {
+  color:#000000;
+  background-color:var(--secondary-back-color);
+}
+
+
+/*  Yes-No Toggle CSS */
+/* Credit: Chris Davies https://gist.github.com/chrisdavies/27e04975f3eac7578991 */
+
+.toggle-check {
+  font-family: sans-serif;
+  font-size: 13.33px;
+  line-height: 16px;
+
+}
+
+.toggle-check-input {
+  width: 1px;
+  height: 1px;
+  position: absolute;
+  display: none;
+}
+
+.toggle-check-text {
+
+  display: inline-block;
+  position: relative;
+  text-transform: uppercase;
+  background: var(--error-color);
+  padding: 0.25em 0.5em 0.25em 2em;
+  border-radius: var(--universal-border-radius);
+  min-width: 2em;
+  color: var(--primary-color);
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.toggle-check-text:after {
+  content: ' ';
+  display: block;
+  background:var(--primary-color);
+  width: 1.1em;
+  height: 1.1em;
+  border-radius: var(--universal-border-radius);
+  position: absolute;
+  left: 0.3em;
+  top: 0.25em;
+  transition: left 0.15s, margin-left 0.15s;
+}
+
+.toggle-check-text:before {
+  content: 'No';
+}
+
+.toggle-check-input:checked ~ .toggle-check-text {
+  background: var(--success-color);
+  padding-left: 0.5em;
+  padding-right: 2em;
+}
+
+.toggle-check-input:checked ~ .toggle-check-text:before {
+  content: 'Yes';
+}
+
+.toggle-check-input:checked ~ .toggle-check-text:after {
+  left: 100%;
+  margin-left: -1.4em;
+}
+
+
+/* Results Box, generic */
+
+.results {
+  display: inline-block;
+  max-width: 60%;
+}
+
+
+/* Editor Styles */
+
+p.info {
+    padding: 0px 12px 0px 12px;
+    margin:0;
+    display: block;
+    color:black;
+
+}
+
+.graph-list-element {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 0.875em; /* 14px/16=0.875em */
+  margin-left:1em;
+}
+
+.text-input {
+  z-index: 1;
+}
+
+.text-input-form {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 0.875em; /* 14px/16=0.875em */
+  margin-left:12px;
+  max-width: 60em;
+}
+
+.text-input-field {
+  margin:0;
+  padding:10;
+  width: 40%;
+  height: 1.6em;
+  line-height: 1.8em;
+}
+
+.text-input-textarea {
+  
+   max-width:90%; 
+   line-height:1.8em;
+}
+
+.keylist-input {
+  background-color: var(--primary-back-color);
+
+}
+.keylist-input-form {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 0.875em; /* 14px/16=0.875em */
+  margin-left:10px;
+}
+
+.keylist-input-field {
+  margin:0;
+  padding:10;
+  width: 40%;
+  height: 1.6em;
+  line-height: 1.6em;
+}
+
+.keylist-input-button {
+  margin:0;
+  padding:0;
+  padding-left:5px;padding-right:5px;
+  height: 1.6em;
+  line-height: 1.6em;
+}
+
+.optlist-input {
+  background-color: var(--primary-back-color);
+
+}
+
+.action {
+  padding-top:0;padding-bottom:0;
+}
+
+.optlist-input-form {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 0.875em; /* 14px/16=0.875em */
+  margin-left:10px;
+}
+
+.harvest-button {
+  height: 1.6em;
+  line-height: 1.6em;
+  margin:0;
+  margin-right:5px;
+  padding:0;
+  padding-left:5px;padding-right:5px;
+}
+
+.harvest-select {
+  height: 1.9em;
+  line-height: 1.9em;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 0.875em; /* 14px/16=0.875em */
+  margin:0;
+  padding:0;
+  margin-top:8px;
+  margin-left:10px;
+}
+
+.harvest-option {
+  height: 1.9em;
+  line-height: 1.9em;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 0.875em; /* 14px/16=0.875em */
+  margin:0;
+  margin-left:10px;
+  padding:0;
+}
+
+.row button {
+  margin:0;
+  margin-right:3px;
+  padding: calc(0.3 * var(--tab-padding)) calc(0.75 * var(--tab-padding));
+
+}
+
+.editor-selected {
+
+  margin:0;
+  margin-right:5px;
+  padding: calc(0.3 * var(--tab-padding)) calc(0.75 * var(--tab-padding));
+  color:red;
+}
+
+.editor-unselected {
+
+  margin:0;
+  margin-right:5px;
+  padding: calc(0.3 * var(--tab-padding)) calc(0.75 * var(--tab-padding));
+  color:blue;
+}
+
+
+/*     Modal Styles     */
+
+/* 1. Ensure this sits above everything when modal is visible */
+.modal {
+  position: absolute;
+  z-index: 10000; /* 1 */
+  top: 0;
+  left: 0;
+  visibility: hidden;
+  width: 100%;
+  height: 100%;
+}
+
+.modal.is-visible {
+  visibility: visible;
+}
+
+.modal-overlay {
+position: fixed;
+z-index: 10;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+background: hsla(0, 0%, 0%, 0.5);
+visibility: hidden;
+opacity: 0;
+transition: visibility 0s linear 0.3s, opacity 0.3s;
+}
+
+.modal.is-visible .modal-overlay {
+opacity: 1;
+visibility: visible;
+transition-delay: 0s;
+}
+
+.modal-wrapper {
+position: absolute;
+z-index: 9999;
+top: 6em;
+left: 50%;
+width: 32em;
+margin-left: -16em;
+background-color: #fff;
+box-shadow: 0 0 1.5em hsla(0, 0%, 0%, 0.35);
+}
+
+.modal-transition {
+transition: all 0.3s 0.12s;
+transform: translateY(-10%);
+opacity: 0;
+}
+
+.modal.is-visible .modal-transition {
+transform: translateY(0);
+opacity: 1;
+}
+
+.modal-header,
+.modal-content {
+padding: 1em;
+}
+
+.modal-header {
+position: relative;
+background-color: #fff;
+box-shadow: 0 1px 2px hsla(0, 0%, 0%, 0.06);
+border-bottom: var(--universal-border-width) solid #e8e8e8;
+}
+
+.modal-close {
+position: absolute;
+top: 0;
+right: 0;
+padding: 1em;
+color: #aaa;
+background: none;
+border: 0;
+}
+
+.modal-close:hover {
+color: #777;
+}
+
+.modal-heading {
+font-size: 1.125em;
+margin: 0;
+-webkit-font-smoothing: antialiased;
+-moz-osx-font-smoothing: grayscale;
+}
+
+.modal-content > *:first-child {
+margin-top: 0;
+}
+
+.modal-content > *:last-child {
+margin-bottom: 0;
+}
+
+.modal-launch-button {
+  background-color: #fff;
+  color: blue;
+}

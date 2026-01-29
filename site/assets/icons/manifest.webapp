@@ -1,0 +1,14 @@
+{
+    "version": "1.0",
+    "name": "Test",
+    "description": "TODO",
+    "icons": {
+        "60": "https://localhost/assets/icons/firefox_app_60x60.png?ver=15Zd8",
+        "128": "https://localhost/assets/icons/firefox_app_128x128.png?ver=15Zd8",
+        "512": "https://localhost/assets/icons/firefox_app_512x512.png?ver=15Zd8"
+    },
+    "developer": {
+        "name": "TODO",
+        "url": "https://localhost/"
+    }
+}

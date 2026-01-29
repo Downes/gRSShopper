@@ -1,0 +1,12 @@
+services:
+  grsshopper:
+    build: .
+    restart: unless-stopped
+    networks:
+      - web
+    volumes:
+      - ./site:/usr/local/apache2/htdocs
+
+networks:
+  web:
+    external: true

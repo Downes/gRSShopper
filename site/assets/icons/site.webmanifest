@@ -1,0 +1,19 @@
+{
+    "name": "Test",
+    "short_name": "Test",
+    "icons": [
+        {
+            "src": "https://localhost/assets/icons/android-chrome-192x192.png?ver=15Zd8",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "https://localhost/assets/icons/android-chrome-512x512.png?ver=15Zd8",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ],
+    "start_url": "index.html",
+    "display": "standalone",
+    "orientation": "portrait"
+}

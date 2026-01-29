@@ -1,0 +1,7 @@
+change.mooc.ca	__DBNAME__	127.0.0.1	__DBUSER__	__DBPASS__	en
+plenk.mooc.ca	plenk	grsshopper-mariadb	grsshopper_plenk	9mgRfvvkU01J4P8NDZcagMR5	en
+fallacies.ca	fallacy	grsshopper-mariadb	grsshopper_plenk	9mgRfvvkU01J4P8NDZcagMR5	en
+www.fallacies.ca	fallacy	grsshopper-mariadb	grsshopper_plenk	9mgRfvvkU01J4P8NDZcagMR5	en
+el30.mooc.ca	el30_mooc_ca	grsshopper-mariadb	grsshopper_plenk	9mgRfvvkU01J4P8NDZcagMR5	en
+ethics.mooc.ca	ethics	grsshopper-mariadb	grsshopper_plenk	9mgRfvvkU01J4P8NDZcagMR5	en
+
