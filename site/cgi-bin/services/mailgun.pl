@@ -23,7 +23,7 @@ sub mailgun_subscribe_confirm {
     my $res = $mailgun->add_list_member($ml => {
         address => $email, # member address
         subscribed => 'yes',           # yes(default) or no
-        upsert     => 'no',            # no (default). if yes, update existing member
+        upsert     => 'yes',            # no (default). if yes, update existing member
     });
 
     &mailgun_message($mailgun,$email,"Subscription confirmed","You've been added to the $listid mailing list");
@@ -56,7 +56,6 @@ sub mailgun_message {
     my ($mailgun,$recipient,$pgtitle,$pgcontent) = @_;
     # $recipient is either an email address (in which case it will contain an '@' or it is a listid)
 
-
     # To
     unless ($recipient =~ /@/) {
         unless ($recipient) { &status_error("Recipient is undefined."); }
@@ -73,6 +72,8 @@ sub mailgun_message {
     # Body
     unless ($pgcontent) { &status_error("Email doesn't contain any content"); }
 
+    # Email will choke on wide utf8 content
+    $pgcontent = encode_entities($pgcontent,'^\n\x20-\x7e');
 
     my $res = $mailgun->message({
         from    => $from,

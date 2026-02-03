@@ -101,7 +101,6 @@ sub search {
 
 						# Header
 	$page->{page_format} = $format;
-	$page->{page_title} = "Search ".ucfirst($table)."s";
 	$page->{page_content} = &header($dbh,$query,$page->{table},$page->{format},$page->{title});
 	$page->{page_content} .= "<h3>$page->{title}</h3>";
 
@@ -291,7 +290,7 @@ sub list_tables {
 
 		# Make sure the user is allowed to view the table, and that it's in the list for this tab
 	#	next unless (&is_viewable("nav",$tname));
-	#	if (@filter) { next unless (my ($matched) = grep $_ eq $tname, @filter); }
+		if (@filter) { next unless (my ($matched) = grep $_ eq $tname, @filter); }
 
 		# Format the output
 		# Open Main: url,cmd,db,id,title,starting_tab
@@ -328,9 +327,10 @@ sub list_tables {
 
 	# Print Cache version to file
 	my $page_file = $Site->{st_cgif}."data/tables-".$tab;
-	open FILE, ">$page_file" or die "Can't write to cache file $page_file: $!";
-	print FILE $output;
-	close FILE;
+#print "I want to print to $page_file<p>";	
+#	open FILE, ">$page_file" or die $!;
+#	print FILE $output;
+#	close FILE;
 
 	print $output;
 		print "NOT Printed from cache";
@@ -518,6 +518,7 @@ sub list_records {
 					}
 				}
 			}
+			#$itemdata = &hash_to_json($itemdata);
 			push @$listarray,$itemdata;
 		}
 

@@ -10,8 +10,15 @@ sub format_content {
 
 	my ($dbh,$query,$options,$wp) = @_;
 
+my $diag=0;
+	if ($diag>9) { print "Format Content - page ".$wp->{page_id}."\n\n"; }
 
-	if ($diag>9) { print "Format Content <br>"; }
+    	my $vars = ();
+    	if (ref $query eq "CGI") { $vars = $query->Vars; }
+
+
+
+
 						# Default Content
 	unless (defined $wp->{page_content}) { $wp->{page_content} = &printlang("No content"); }
 	unless (defined $wp->{page_description}) { $wp->{page_description} = &printlang("No description");; }
@@ -24,28 +31,30 @@ sub format_content {
 	unless (defined $Site->{st_title}) { $Site->{st_title} = &printlang("Site Title");; }
 	$wp->{page_linkcount} = 0;
 
+
+
 	&make_data_elements(\$wp->{page_content},$wp,$wp->{page_format});		# Fill page content elements
 
 	&make_boxes($dbh,\$wp->{page_content});						# Make Boxes
 	&make_counter($dbh,\$wp->{page_content});						# Make Boxes
+
 	my $results_count = &make_keywords($dbh,$query,\$wp->{page_content},$wp);	# Make Keywords
+
 	$wp->{page_linkcount} .= $results_count;
 
 	$wp->{page_content} =~ s/<count>/$vars->{results_count}/mig;			# Update results count from keywords
-
 
 	# These are for breadcrumbs
 	$wp->{page_content} =~ s/\Q[*table*]\E/$wp->{type}/g;					# Insert record table
 	&esc_for_javascript(\$wp->{title});  									# JS/JSON escape for title
 	$wp->{page_content} =~ s/\Q[*title*]\E/$wp->{title}/g;					# Insert record title	
+
 	my $today = &nice_date(time);
 	$wp->{page_content} =~ s/#TODAY#/$today/;
+
 	&autodates(\$wp->{page_content});
 	&make_grid(\$wp->{page_content});						# make grid for graphing
 	&make_tz($dbh,\$wp->{page_content});								# Time zones
-
-
-	
 
         &get_loggedin_image(\$wp->{page_content});
 
@@ -109,7 +118,7 @@ sub format_content {
 		$wp->{page_content} = $newlines;
 	}
 
-	if ($diag>9) { print "/Format Content <br>"; }
+	if ($diag>9) { print "/Format Content \n\n"; }
 
 }
 sub get_loggedin_image{
@@ -164,10 +173,10 @@ sub format_record {
 	# Check input variables
 	
 	unless ($table) { return "Attempting to format record but no table provided."; }
-	unless ($id_number) { return "Attempting to format $table but no record ID provided."; }
 
-	$diag = 0;
-	if ($diag>9) { print "Format Record $table "..",$record_format <br>"; }
+	unless ($id_number) { return "Attempting to format $table but no record ID provided."; }
+	my $diag = 0;
+	if ($diag>9) { print "Format Record $table .. $record_format \n"; }
 
 	return "Record $table $id_number is unpublished."
 		unless (&published_on_web($dbh,$table,$filldata,@pubcolumns));
@@ -200,9 +209,9 @@ sub format_record {
 	my $view_text = "";								# Get the code and add header and footer for Page
 	if (!$keyflag && $table eq "page" && ($record_format ne "page_list" && $record_format ne "summary")) {
 		
-			$view_text .= &db_get_template($dbh,$filldata->{page_header}) .
+			$view_text .= &db_get_template($dbh,$filldata->{responsive_header}) .
 			$filldata->{page_code}.
-			&db_get_template($dbh,$filldata->{page_footer});
+			&db_get_template($dbh,$filldata->{responsive_footer});
 	} else {
 
 									# Or Get the Template (aka View)
@@ -245,6 +254,7 @@ sub format_record {
 	&make_tz($dbh,\$view_text);								# Time zones
 
 	#&make_langstring(\$view_text);							# Language Strings
+
 
 	&make_images(\$view_text,$table,$id_number,$filldata);							# Images
 
@@ -310,7 +320,9 @@ sub format_record {
 #print "<hr>$record_format <br>$view_text <hr>";
 
 
-	if ($diag>9) { print "/Format Record <br>"; }
+
+
+	if ($diag>9) { print "/Format Record \n\n"; }
 	return $view_text;											# Return the Completed Record
 
 }

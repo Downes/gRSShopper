@@ -4,3 +4,6 @@ db/
 # Perl local::lib artifacts
 site/cgi-bin/modules/
 site/cgi-bin/modules.bak-*
+
+# local staging for site imports
+/_incoming_site/

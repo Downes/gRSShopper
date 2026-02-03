@@ -39,6 +39,8 @@ sub log_cron {
 	my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime(time);
 	my @wdays = qw|Sunday Monday Tuesday Wednesday Thursday Friday Saturday|;
 	my $weekday = @wdays[$wday];
+	$mon++;
+	$day++;
 	if ($min < 10) { $min = "0".$min; }
 	if ($mday < 10) { $mday = "0".$mday; }
 	my $logtime="$mon/$mday $hour:$min ";

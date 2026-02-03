@@ -76,9 +76,7 @@ my $base_dir = $Site->{st_urlf}."archive";
 my $base_url = $Site->{st_url}."archive";
 my $archive_page = $base_dir . "/index.html";
 print "Content-type: text/html\n\n";
-my $page_content = "<h1>Archives</h1>".
-	sprintf(qq|<h2><a href="%s%s">%s%s</a> from %d to %d</h2>|,$Site->{st_url},$page_filename,$Site->{st_url},$page_filename,$end_year,$start_year);
-
+my $page_content = "<h1>Archives</h1>";
 # = $Site->{header};
 my @months = ('Jan','Feb','Mar','Apr','May','Jun','Jul',
  			   'Aug','Sept','Oct','Nov','Dec');
