@@ -1,6 +1,7 @@
 #!/usr/bin/perl -w
 use CGI;
 use CGI::Carp qw(fatalsToBrowser);
+use lib 'modules/lib/perl5';
 binmode STDOUT, ':utf8';
 # binmode STDIN, ":encoding(UTF-8)";
 # Print OK for blank api request

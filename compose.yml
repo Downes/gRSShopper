@@ -4,9 +4,13 @@ services:
     restart: unless-stopped
     networks:
       - web
+      - db
     volumes:
       - ./site:/usr/local/apache2/htdocs
+      - /srv/www:/srv/www:rw
 
 networks:
   web:
+    external: true
+  db:
     external: true

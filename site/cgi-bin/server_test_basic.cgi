@@ -25,6 +25,7 @@
 ##########################################################################
 	use CGI;
 	use CGI::Carp qw(fatalsToBrowser);
+	use lib 'modules/lib/perl5';
 
 
 
@@ -113,8 +114,8 @@ my @modules = qw(CGI CGI::Carp CGI::Session Crypt::Eksblowfish::Bcrypt Cwd DateT
 DBI DBD::mysql Digest::MD5 Digest::SHA Email::Stuffer Email::Sender::Transport::SMTP Fcntl 
 File::Basename File::Slurp File::stat File::Find HTML::Entities HTTP::Request::Common
 Image::Resize JSON JSON::Parse JSON::XS Lingua::EN::Inflect LWP LWP::UserAgent LWP::Simple MIME::Types 
-Mastodon::Client MIME::Lite::TT::HTML Net::Twitter::Lite::WithAPIv1_1 REST::Client Scalar::Util 
-Text::ParseWords Time::Local URI::Encode URI::Escape vCard WWW::Curl::Easy WWW::Mechanize XML::OPML);
+Mastodon::Client MIME::Lite::TT::HTML REST::Client Scalar::Util 
+Text::ParseWords Time::Local URI::Encode URI::Escape vCard WWW::Mechanize XML::OPML);
 
 
 print "Checking: ";

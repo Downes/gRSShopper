@@ -1,3 +1,6 @@
 **/grsshopper-old/
 db/
 **/data/
+# Perl local::lib artifacts
+site/cgi-bin/modules/
+site/cgi-bin/modules.bak-*

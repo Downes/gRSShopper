@@ -33,6 +33,7 @@
 
 	use File::Basename;
 	use CGI::Carp qw(fatalsToBrowser);	
+	use lib 'modules/lib/perl5';
 	my $dirname = dirname(__FILE__);
 	require $dirname . "/grsshopper.pl";
 	&load_modules("page");

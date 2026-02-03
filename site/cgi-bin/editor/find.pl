@@ -328,7 +328,7 @@ sub list_tables {
 
 	# Print Cache version to file
 	my $page_file = $Site->{st_cgif}."data/tables-".$tab;
-	open FILE, ">$page_file" or die $!;
+	open FILE, ">$page_file" or die "Can't write to cache file $page_file: $!";
 	print FILE $output;
 	close FILE;
 

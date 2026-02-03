@@ -981,9 +981,7 @@ package gRSShopper::Site;
 
         # Multisite in this deployment: single shared docroot (no per-domain /var/www layout)
         $hostdir = "/usr/local/apache2/htdocs/";
-	
-	# For downes.ca  -- need a better way to define non-standard starting directories
-	if ($host =~ /downes/) { $hostdir = "/home/downesca/public_html/"; }
+
 
 	$self->{script} = $0; 
 	$self->{data_dir} = $hostdir."cgi-bin/data/";
