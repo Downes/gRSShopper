@@ -52,68 +52,130 @@ sub quick_show_search {
 
             # Prints a record to its proper file location  ie. post=123 prints to /post/123
 
+# -------   Print Record  ------------------------------------------------------
+# Writes page HTML into a sharded path:
+#   scheme 100 :  id=78157 -> /post/781/57/index.html
+# Also writes the redirect shard (if this is a 'post' with a valid http/https link):
+#   $Site->{st_urlf}/_rd/781/57  (file contains just the URL + newline)
+#
+# Returns the numeric id on success.
+
 sub print_record {
     my ($table,$id_number,$format,$context) = @_;
 
-	# Identify record to output																									# 
-	die "The Table not specified in request" unless ($table);			#   - table
-	die "ID not specified in request" unless ($id_number);	#   - id
-	$format = "html";									#format
+    die "The Table not specified in request" unless ($table);
+    die "ID not specified in request"        unless ($id_number);
+    $format = "html";  # write HTML pages to disk
 
-	my $findable = $id_number;
+    # Fetch the record
+    my $print_record = &db_get_record($dbh,$table,{$table."_id"=>$id_number})
+        or die "Error getting record $table $id_number";
 
-	# Get Record
-	my $print_record = &db_get_record($dbh,$table,{$table."_id"=>$id_number});				# Get Record
-	die "Error getting record $table $id_number" unless ($print_record);
+    # Page title
+    $print_record->{page_title} =
+           $print_record->{$table."_title"}
+        || $print_record->{$table."_name"}
+        || $print_record->{$table."_noun"}
+        || ucfirst($table)." ".$print_record->{$table."_id"}
+        || "Untitled";
 
+    # Build page content
+    $print_record->{page_content} = &format_record($dbh,$query,$table,$format,$print_record);
 
+    # Header/footer templates
+    my ($header_template, $footer_template) = ("static_header", "static_footer");
+    #if ($table eq "presentation" && $format =~ /htm/i) {
+    #    ($header_template, $footer_template) = ("presentation_header", "presentation_footer");
+    #}
 
-	# Create Page Title
-	$print_record->{page_title} = $print_record->{$table."_title"}
-		|| $print_record->{$table."_name"}
-		|| $print_record->{$table."_noun"}
-		|| ucfirst($table)." ".$print_record->{$table."_id"}
-		|| "Untitled";												# Page Title
+    # Wrap with header/footer
+    $print_record->{page_content} =
+        &db_get_template($dbh,$header_template,$print_record->{page_title}) .
+        $print_record->{page_content} .
+        &db_get_template($dbh,$footer_template,$print_record->{page_title});
 
-	# Create Page Content (from formatted record)
-	$print_record->{page_content} = ""; #clear output content
-	$print_record->{page_content} = &format_record($dbh,$query,$table,$format,$print_record);			# Page Content = Formated Record content
+    # Final formatting
+    $print_record->{type}  = $table;
+    $print_record->{title} = $print_record->{$table."_title"} || $print_record->{$table."_name"} || "Untitled";
+    &format_content($dbh,$query,$options,$print_record);
 
+    my $output = $print_record->{page_content};
 
-	# Define header and footer templates
-	my $header_template = "static_header";					# Add static headers and footers
-	my $footer_template = "static_footer";					
+    # -------- Sharded paths --------
+    my $SHARD_SCHEME = 100;  # 100 => 781/57 ; set 1000 for 78/157 if you switch later
 
-	if ($table eq "presentation" && $format =~/htm/i) {
-		$header_template = "presentation_header";
-		$footer_template = "presentation_footer";
-	}
+    my ($parent, $leaf);
+    if ($SHARD_SCHEME == 100) {
+        $leaf   = $id_number % 100;        # 57
+        $parent = int($id_number / 100);   # 781
+    } else { # 1000
+        $leaf   = $id_number % 1000;       # 157
+        $parent = int($id_number / 1000);  # 78
+    }
 
-	# Add headers and footers
-	$print_record->{page_content} =
-		&db_get_template($dbh,$header_template,$print_record->{page_title}) .
-		$print_record->{page_content} .
-		&db_get_template($dbh,$footer_template,$print_record->{page_title});
+    # Base dir for this content type (e.g., /var/www/www.downes.ca/html/post)
+    my $base_dir  = File::Spec->catdir($Site->{st_urlf}, $table);
+    my $page_dir  = File::Spec->catdir($base_dir, $parent, $leaf);
+    my $page_file = File::Spec->catfile($page_dir, 'index.html');
 
-	# Format Page Content
-	$print_record->{type} = $table;
-	$print_record->{title} = $print_record->{$table."_title"} || $print_record->{$table."_name"} || "Untitled";
-	&format_content($dbh,$query,$options,$print_record);								# Format Page content
+    # Ensure page dir exists
+    unless (-d $page_dir) {
+        make_path($page_dir, { mode => 0775 }) or die "make_path($page_dir) failed: $!";
+    }
 
+    # Atomic write of the page (UTF-8)
+    my $tmp = "$page_file.tmp.$$";
+    open my $pfh, '>', $tmp or die "Failed to open $tmp for write: $!";
+    binmode($pfh, ':encoding(UTF-8)');
+    print {$pfh} $output or die "Print failure: $!";
+    close $pfh or die "Close failure on $tmp: $!";
+    chmod 0644, $tmp;
+    rename $tmp, $page_file or die "rename($tmp => $page_file) failed: $!";
 
+    # -------- Write redirect shard for THIS record (only when applicable) --------
+    # Host-scoped RD base: /var/www/www.downes.ca/html/_rd
+    if ($table eq 'post') {
+        my $url = $print_record->{post_link} // $print_record->{$table."_link"} // '';
+        $url =~ s/^\s+|\s+$//g;  # trim
 
-	my $output = $print_record->{page_content};										# Print  to file
-	my $page_dir = $Site->{st_urlf}.$table;
+        if ($url =~ m{^https?://}i) {  # only http/https targets
+            my $rd_base = File::Spec->catdir($Site->{st_urlf}, '_rd');
+            my $rd_dir  = File::Spec->catdir($rd_base, $parent);
+            my $rd_file = File::Spec->catfile($rd_dir, $leaf);
 
-	unless (-d $page_dir) { mkdir($page_dir,0775); }
-	my $page_file = $Site->{st_urlf}.$table."/".$id_number;
-    binmode(STDOUT, ":utf8");
+            unless (-d $rd_dir) {
+                make_path($rd_dir, { mode => 0755 }) or die "make_path($rd_dir) failed: $!";
+            }
 
-    open FILE, ">$page_file" or &status_error($vars->{message}."Failed to open $page_file for print in print_record(): $!");
+            # If file exists and identical, skip write
+            my $current = '';
+            if (-e $rd_file) {
+                if (open my $rfh, '<', $rd_file) {
+                    local $/ = undef;
+                    $current = <$rfh>;
+                    close $rfh;
+                    $current //= '';
+                    $current =~ s/^\s+|\s+$//g;
+                }
+                if ($current eq $url) {
+                    return $id_number;  # nothing to update
+                }
+            }
 
-	print FILE $output or die "Print failure: $!";
-	close FILE;
-	return $id_number;
+            # Atomic write: tmp -> rename
+            my $rtmp;
+            $rtmp = "$rd_file.tmp.$$";
+            open my $wfh, '>', $rtmp or die "open($rtmp) failed: $!";
+            binmode $wfh;
+            print {$wfh} $url, "\n";
+            close $wfh or die "close($rtmp) failed: $!";
+            chmod 0644, $rtmp;
+            rename $rtmp, $rd_file or die "rename($rtmp => $rd_file) failed: $!";
+        }
+        # else: no valid external link; silently do nothing (no logging requested)
+    }
+
+    return qq|$id_number : $page_file|;
 }
 
 #-------------------------------------------------------------------------------
@@ -133,6 +195,11 @@ sub output_record {
 	unless ($table) { my $err = ucfirst($table)." ID not specified in output record" ; die "$err"; } 	#   - ID number
 	unless ($id_number =~ /^[+-]?\d+$/) { $id_number = &find_by_title($dbh,$table,$id_number); } 		#     (Try to find ID number by title)
 	$format ||= $vars->{format} || "html";									#   - format
+
+	# JSON
+	if ($format =~ /json/i) {
+		return &record_to_json($dbh,$table,$id_number);
+	}
 
 	# Get Record
 	my $record = &db_get_record($dbh,$table,{$table."_id"=>$id_number});					# Get Record
@@ -154,6 +221,11 @@ sub output_record {
 		|| "Untitled";		# Page Title
 	unless ($table eq "page") { $record->{page_title} = $Site->{st_name} . " ~ " .
 		$record->{page_title}; }
+	
+	if ($format =~ /json/i) { 
+
+		return hash_to_json($record);
+	}
 
 	# Create Page Content (from formatted record)
 	$record->{page_content} = &format_record($dbh,$query,$table,$format,$record);				# Page Content = Formated Record content
@@ -220,7 +292,7 @@ sub output_record {
 	# Format Page Content
 	$record->{type} = $table;
 	$record->{title} = $record->{$table."_title"} || $record->{$table."_name"} || "Untitled";
-	
+
 	&format_content($dbh,$query,$options,$record);								# Format Page content
 
 	&make_pagedata($query,\$record->{page_content});							# Fill special Admin links and post-cache content
@@ -302,7 +374,10 @@ sub publish_page {
 		$wp->{page_code} =~ s/&#62;/>/g;
 
 						# Publish the page only if allowed
-		next unless (&is_allowed("publish","page",$wp));
+		unless (&is_allowed("publish","page",$wp)) {
+		#	print "Publishing this page is not allowed";
+		#	next;
+		};
 		$vars->{message} .= "Publishing Page: ".$wp->{page_title}.". ".$LF; 
 
 								# Skip non-auto in autopublish mode
@@ -322,22 +397,16 @@ sub publish_page {
 
 		my $header = &db_get_template($dbh,$wp->{page_header},$wp->{page_title});
 		my $footer = &db_get_template($dbh,$wp->{page_footer},$wp->{page_title});
-
 		$wp->{page_content} = $header . $wp->{page_content} . $footer;
 
-	#$vars->{message}.="1 <textarea cols='60' rows='20'>$footer</textarea>";		
-						# Update 'update' value
+								# Update 'update' value
 		$wp->{page_update} = time;
 		&db_update($dbh,"page",{page_update=>$wp->{page_update}},$wp->{page_id});
 
 
 								# Format Page Content
 
-	$vars->{message}.="YES";								
 		&format_content($dbh,$query,$options,$wp);
-	$vars->{message}.="YES";
-
-	#$vars->{message}.="3 <textarea cols='60' rows='20'>$footer</textarea>";		
 
 								# Publish only if new content was added, unless empty content allowed
 		unless ($wp->{page_linkcount} || $wp->{page_allow_empty} eq "yes") {
@@ -446,7 +515,7 @@ sub publish_page {
 
 
 	$sth->finish(  );
-
+print $vars->{message};
 	unless ($opt eq "silent" || $opt eq "initialize") { # print $vars->{message};
 	 }
 	return ($pgcontent,$pgtitle,$pgformat,$archive_url,$wp->{page_linkcount},$wp->{page_location},$wp->{page_type});

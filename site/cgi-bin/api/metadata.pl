@@ -15,15 +15,13 @@
 	#
 	# -------------------------------------------------------------------------
 
-
 sub analyze_link {
 
     my ($link) = @_;
     use LWP::Simple;
     use LWP::UserAgent ();
     use HTML::HeadParser;
-    unless (&new_module_load($query,"URI::Encode",qw(uri_encode uri_decode))) { $vars->{warnings} .= "URI::Encode;"; }
-   # use URI::Encode qw(uri_encode uri_decode); # Failing, even though it's installed?
+    use URI::Encode qw(uri_encode uri_decode);
     use HTTP::Headers;
 
    # print "Content-type: text/html\n\n";

@@ -5,7 +5,9 @@
 
 # WORK IN PROGRESS 07 September 2020
 # Updated 21 January 2022
-
+    use CGI;
+	use CGI::Carp qw(fatalsToBrowser);  
+    
 
 #    Copyright (C) <2011>  <Stephen Downes, National Research Council Canada>
 #    This program is free software: you can redistribute it and/or modify
@@ -32,17 +34,17 @@
 #print "<h1>Login Widget</h1>";
 
 	use File::Basename;
-	use CGI::Carp qw(fatalsToBrowser);	
-	use lib 'modules/lib/perl5';
 	my $dirname = dirname(__FILE__);
 	require $dirname . "/grsshopper.pl";
 	&load_modules("page");
+
 #print "Vars in Login Widget<p>";
 #while (my($vx,$vy) = each %$vars) { print "$vx = $vy <br>";}	
 	our ($Site,$dbh) = &get_site("page");	
 #print "Checking user <p>";	
 #print "Login name: ".$vars->{lg_name}."<p>";
-	my ($session,$username) = &check_user();
+
+	my ($session,$username) = &check_user("text/html");
 	our $Person = {}; bless $Person;
 	&get_person($Person,$username);
 	my $person_id = $Person->{person_id};

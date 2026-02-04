@@ -42,8 +42,8 @@ sub mastodon_post {
       { # form data
          status => $status,
          visibility => $visibility,
-	 username => 'oldaily',
-         password => 'mastodonD2vidhume'
+	       username => $Site->{mas_username},
+         password => $Site->{mas_password}
       },
       { # options
          headers => { Authorization => "Bearer $token" },
@@ -147,5 +147,6 @@ return qq|$chat->{chat_description}|;
 
 
 }
+
 
 1;

@@ -1,7 +1,8 @@
-#!/usr/bin/perl
-use CGI::Carp qw(fatalsToBrowser);
-use lib 'modules/lib/perl5';
-
+#!/usr/bin/perl -CS
+$!++;		
+   use CGI;
+        
+	use CGI::Carp qw(fatalsToBrowser);
   #  use lib '/home/downesca/public_html/cgi-bin/modules/MailChimp/lib';
 	# use lib '/home/downesca/public_html/cgi-bin/modules/MailChimp/lib/MailChimp';
 
@@ -23,8 +24,8 @@ use lib 'modules/lib/perl5';
 #    GNU General Public License for more details.
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-#-------------------------------------------------------------------------------
+ 
+#--------------------------------------------------------
 #
 #	    gRSShopper
 #           Admin Functions
@@ -38,9 +39,9 @@ use lib 'modules/lib/perl5';
 	our $diag = 0;
 	if ($diag>0) { print "Content-type: text/html\n\n"; }
 	
-#print "Content-type: text/html\n\n";
-#print "Admin \n";	
+# print "Admin \n";	
 	
+
 
 # Forbid bots
 
@@ -48,31 +49,32 @@ use lib 'modules/lib/perl5';
 
 # Load gRSShopper
 
-		use File::Basename;
-		use CGI::Carp qw(fatalsToBrowser);
-	    
-		my $dirname = dirname(__FILE__);
-		require $dirname . "/grsshopper.pl";
+	use File::Basename;
+	my $dirname = dirname(__FILE__);
+	require $dirname . "/grsshopper.pl";
 
 
 # Load modules
 
-	our ($query,$vars) = &load_modules("admin");
-
+	&load_modules("admin");
 
 # Load Site
 	
 	our ($Site,$dbh) = &get_site("admin");	
-
+	
+	# Cron (which runs every 60 seconds)
+	if (time - $Site->{cronrun} > 120)	{ $Site->{cronerr} = "Cron not running"; }
+	if ($Site->{context} eq "cron") { &cron_tasks($Site,$dbh); } 
 	
 # Load User
-	if ($vars->{action} eq "add_rcomment") { $Site->{context} = "rcomment"; }
-	my ($session,$username) = &check_user();
+
+	my ($session,$username) = &check_user("text/html");
 	our $Person = {}; bless $Person;
 	&get_person($Person,$username);
 
 	my $person_id = $Person->{person_id};
 	&show_login($session);
+	&admin_only();
 
 # Set vars
 	my $vars = $query->Vars;
@@ -80,9 +82,7 @@ use lib 'modules/lib/perl5';
 	if ($vars->{admin_pane}) {$Site->{admin_pane} = $vars->{admin_pane}; }  # Open the right admin page on completion of an action
 
 
-# Restrict to Admin and cron (which runs every 60 seconds)
-	if (time - $Site->{cronrun} > 120)	{ $Site->{cronerr} = "Cron not running"; }
-	if ($vars->{context} eq "cron") { &cron_tasks($dbh,$query,$ARGV); } else { &admin_only(); }
+
 
 # Restrict locally
 	unless ($vars->{action} eq "rcomment") {   # Exception for remote comments
@@ -92,7 +92,7 @@ use lib 'modules/lib/perl5';
 	}
 	
 	
-# print "Admin";
+
 
 
 	# Initialize system variables
@@ -118,11 +118,11 @@ use lib 'modules/lib/perl5';
 		my $action = $vars->{action};
 		my $id = $vars->{id};
 
-	# Header for Bookmarklet
-	if ($action eq "hub") {
-		print $query->header();
-		while (my($vx,$vy) = each %$vars) { print "$vx = $vy<br>"; }
-	}
+if ($action eq "hub") {
+	print $query->header();
+	while (my($vx,$vy) = each %$vars) { print "$vx = $vy<br>"; }
+
+}
 
 	# Determine Request Table, ID number ( assumes admin.cgi?$table=$id and not performing action other than list, edit or delete)
 
@@ -157,6 +157,61 @@ use lib 'modules/lib/perl5';
 	if ($action eq "list") { $format = "list"; }
 	$format ||= "html";		# Default to HTML
 
+if ($action eq "do_slides") {
+
+	print "Content-type: text/html\n\n";
+my $uploaded=0;
+	my $sql = "SELECT * FROM presentation";
+	my $sth = $dbh -> prepare($sql);
+	$sth -> execute();
+	while (my $presentation = $sth -> fetchrow_hashref()) {
+		print "<p>".$presentation->{presentation_id}.": ".$presentation->{presentation_title}."<br><ul>";	
+
+#		print "<p>".$presentation->{presentation_title}."<br><ul>";
+	my $uploadtitle;
+
+		my @presfiles;
+		if ($presentation->{presentation_slides} && ($presentation->{presentation_slides} ne " ")) {
+			push @presfiles, $presentation->{presentation_slides};
+		} else { 
+			print "No slides<br>"; 
+		}
+		if ($presentation->{presentation_slide_player} && ($presentation->{presentation_slide_player} ne " ")) {
+			push @presfiles, $presentation->{presentation_slide_player};
+		} else { 
+			print "No pdf<br>"; 
+		}
+		if ($presentation->{presentation_audio} && ($presentation->{presentation_audio} ne " ")) {
+			push @presfiles, $presentation->{presentation_audio};
+		} else { 
+			print "No audio<br>"; 
+		}
+
+		if (@presfiles) {
+
+			foreach $ffile (@presfiles) {
+				my $filename = (split(/\//,$ffile))[-1];
+				my $fsql = "SELECT * FROM file WHERE file_title = ?";
+				my $fsth = $dbh->prepare($fsql);
+				$fsth->execute($filename);
+				if (my $file = $fsth->fetchrow_hashref()) {
+					print "File $file->{file_title} exists in the file table<br>";
+				} else {
+					print "File $ffile does not exist in the file table<br>";
+				}
+			}
+		} else {
+			print "No files to upload<br>";
+		}
+
+		print "</ul></p>";
+
+	}
+
+
+	exit;
+
+}
 
 
 
@@ -436,8 +491,8 @@ use lib 'modules/lib/perl5';
 		$content .= &admin_configtable($dbh,$query,"Base URLs and Directories",
 			("Base URL:st_url","Base Directory:st_urlf","CGI URL:st_cgi","CGI Directory:st_cgif","Login URL:st_login"));
 
-		$content .= &admin_configtable($dbh,$query,"Media Directories",
-			("Images:st_img","Photos:st_photo","Files:st_file","Icons:st_icon"));
+		$content .= &admin_configtable($dbh,$query,"Media Directories incl. AWS",
+			("Images:st_img","Photos:st_photo","Files:st_file","Icons:st_icon","Audio:st_audio","Slides:st_slides"));
 
 		$content .= &admin_configtable($dbh,$query,"Upload Directories",
 			("Uploads:st_upload","Images:up_image","Documents:up_docs","Slides:up_slides","Audio:up_audio","Videos:up_video"));
@@ -518,7 +573,9 @@ use lib 'modules/lib/perl5';
 
 	# -----------------------------------   Admin: Accounts   -----------------------------------------------
 	#
-	#   View Logs
+	#  
+	#   Set values label:name using the admin_accounts panel
+	#   Access values from $Site->{name}
 	#
 	# ------------------------------------------------------------------------------------------------------
 
@@ -531,6 +588,12 @@ use lib 'modules/lib/perl5';
 
 		my $content = qq|<h2>Accounts</h2><p>These values control access information to external accounts.</p>|;
 
+		$content .= &admin_configtable($dbh,$query,"S3",
+			("S3 Account:s3_account","Key:s3_key","Secret:s3_secret","Bucket:s3_bucket"));
+
+		$content .= &admin_configtable($dbh,$query,"S3files",
+			("S3 Account:s3f_account","Key:s3f_key","Secret:s3f_secret","Bucket:s3f_bucket"));
+
 		$content .= &admin_configtable($dbh,$query,"Twitter",
 			("Twitter Account:tw_account","Post to Twitter:tw_post:yesno","Use Site Hashtag:tw_use_tag:yesno","Consumer Key:tw_cckey","Consumer Secret:tw_csecret","Token:tw_token","Token Secret:tw_tsecret"));
 
@@ -540,6 +603,10 @@ use lib 'modules/lib/perl5';
 		$content .= &admin_configtable($dbh,$query,"Mastodon",
 			("Mastodon Instance:mas_instance","Post to Mastodon:mas_post:yesno","Use Site Hashtag:mas_use_tag:yesno","Client ID:mas_cli_id","Client Secret:mas_cli_secret","Access Token:mas_acc_token"));
 		$content .= qq|To fill this form, login to Mastodon and then <a href="https://takahashim.github.io/mastodon-access-token/">get access token</a><br>|;
+
+		$content .= &admin_configtable($dbh,$query,"Bluesky",
+			("Bluesky Instance:blue_instance","Post to Bluesky:blue_post:yesno","Use Site Hashtag:blue_use_tag:yesno","Handle:blue_handle","App Password:blue_app_pass","API Key:blue_api_key"));
+		$content .= qq|To fill this form, login to Bluesky and then <a href="https://takahashim.github.io/mastodon-access-token/">get access token</a><br>|;
 
 		$content .= &admin_configtable($dbh,$query,"MailChimp",
 			("MailChimp Account:mailchimp_account","API Key:mailchimp_apikey","Datacenter:mailchimp_datacenter","API URL:mailchimp_url","API Version:mailchimp_version","Test List ID:mailchimp_test"));
@@ -1373,9 +1440,9 @@ exit;
 			#my $hash_ref = $dbh->selectall_hashref(qq|select * from $vars->{table}|,$keyfield);
 	    my $export->{$vars->{table}} = $dbh->selectall_hashref(qq|select * from $vars->{table}|,$keyfield);
 			use JSON::XS;
-			#my $utf8_encoded_json_text = encode_json $hash_ref;
-	    my $utf8_encoded_json_text = encode_json $export;
-			print "$utf8_encoded_json_text";
+			print &hash_to_json($export);
+	   		# my $utf8_encoded_json_text = encode_json $export;
+			# print "$utf8_encoded_json_text";
 			exit;
 		} else {
 
@@ -1433,11 +1500,13 @@ exit;
 
 		my $output = "Backing up $table";
 		if ($table eq "all") {$output .= " tables"; }
+		$output .= "<br>";
 		my $savefile = &db_backup($table);
 		my $saveurl = $savefile;
 		$saveurl =~ s/$Site->{st_urlf}/$Site->{st_url}/;
 
 		my $output .= qq|Table '$table' backed up to <a href="$saveurl">$savefile</a>|;
+		$output .= $vars->{backup_message};
 
 		if ($p) { $vars->{dbmsg} .= $output; &admin_database($dbh,$query,$table,""); }
 		else { return $output; }
@@ -2509,7 +2578,9 @@ sub admin_update_grsshopper{
 		my ($dbh,$query,$table,$id_number) = @_;
 		my $vars = $query->Vars;
 
-
+print "Content-type: text/html\n\n";
+print "Fuck off";
+exit;
 
 		# print "Content-type: text/html; charset=utf-8\n\n";
 		#print "Updating a $table id number $id_number <br>";
@@ -2741,96 +2812,7 @@ sub admin_update_grsshopper{
 
 	}
 
-	#
-	#   	Saves file
-	#
-	#   	Expects input from either upload_file() or upload_url()
-	#       input hash $file needs:
-	# 		$file->{fullfilename}   - full directory and file name of upload file
-
-
-	sub save_file {
-
-		my ($file) = @_;
-
-		my ($ffdev,$ffino,$ffmode,$ffnlink,$ffuid,$ffgid,$ffrdev,$ffsize, $ffatime,$ffmtime,$ffctime,$ffblksize,$ffblocks)
-				= stat($file->{fullfilename});
-		my $ffwidth = "400";
-
-
-		my $mime;
-		if (&new_module_load($query,"MIME::Types")) {
-			use MIME::Types;
-			my MIME::Types $types = MIME::Types->new;
-				my MIME::Type  $m = $types->mimeTypeOf($file->{fullfilename});
-				$mime = $m;
-		} else {
-			$mime="Unknown; install MIME::Types module to decode upload file mime types";
-			$vars->{msg} .= "Could not determine mime type of upload file; install MIME::types module<br>";
-		}
-
-		my $file_type; if ($mime =~ /image/) {
-			$file_type = "Illustration";
-
-
-
-		} else { $file_type = "Enclosure"; }
-
-
-
-		my $file_record = gRSShopper::Record->new(
-			file_title => $file->{file_title},
-			file_dirname => $file->{file_dir}.$file->{file_title},
-			file_dir => $file->{file_dir},
-			file_mime => $mime,
-			file_size => $ffsize,
-			file_post => $id_number,
-			file_link => $vars->{$table."_link"},
-			file_crdate => time,
-			file_creator => $Person->{person_id},
-			file_type => $file_type,
-			file_width => $ffwidth,
-			file_align => "top");
-
-
-
-		# Create File Record
-		$file_record->{file_id} = &db_insert($dbh,$query,"file",$file_record);
-		$vars->{msg} .= "File $upload_filename inserted as file number $file_id <br>";
-
-
-		if ($file_record->{file_id}) { return $file_record; }
-		else { &error($dbh,"","","File save failed: $! <br>"); }
-
-
-	}
-
-
-
-	# -------   Set File Upload Directory --------------------------------------------------------
-
-	sub file_upload_dir {
-
-		my ($ff) = @_;
-		my $filetype = "";
-		my $dir = "";
-
-		if ($ff =~ /\.jpg|\.jpeg|\.gif|\.png|\.bmp|\.tif|\.tiff/i) {
-			$filetype = "image"; $dir = $Site->{up_image};
-		} elsif ($ff =~ /\.doc|\.txt|\.pdf/i) {
-			$filetype = "doc"; $dir = $Site->{up_docs};
-		} elsif ($ff =~ /\.ppt|\.pps/i) {
-			$filetype = "slides"; $dir = $Site->{up_slides};
-		} elsif ($ff =~ /\.mp3|\.wav/i) {
-			$filetype = "audio"; $dir = $Site->{up_audio};
-		} elsif ($ff =~ /\.flv|\.mp4|\.avi|\.mov/i) {
-			$filetype = "video"; $dir = $Site->{up_video};
-		} else {
-			$filetype = "other"; $dir = $Site->{up_files};
-		}
-
-		return ($filetype,$dir);
-	}
+	
 
 	# -------   Edit Record --------------------------------------------------------
 	#
@@ -3260,7 +3242,7 @@ sub admin_update_grsshopper{
 
 	sub cron_tasks {
 
-		my ($dbh,$query) = @_;
+		my ($Site,$dbh) = @_;
 
 		my $log = "";	# Flag that indicates whether an activity was logged
 	
@@ -3269,15 +3251,16 @@ sub admin_update_grsshopper{
 
 		my $loglevel = 10;
 
-        &log_cron(8,sprintf("Context:%s, Args 0:%s, %s, 1:%s, 2:%s, 3:%s",
-			$Site->{context},$ARGV[0],$ARGV[1],$ARGV[2],$ARGV[3]));
-
+        &log_cron(8,sprintf("Context:%s, Args 0:%s, %s, 1:%s, 2:%s, 3:%s",$Site->{context},$ARGV[0],$ARGV[1],$ARGV[2],$ARGV[3]));
+print sprintf("Context:%s, Args 0:%s, %s, 1:%s, 2:%s, 3:%s",$Site->{context},$ARGV[0],$ARGV[1],$ARGV[2],$ARGV[3]);
 		# Get the time
 		my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime(time);
 		my @wdays = qw|Sunday Monday Tuesday Wednesday Thursday Friday Saturday|;
 		my $weekday = @wdays[$wday];
 		$year += 1900;
 		$mon++;if ($mon < 10) { $mon = "0".$mon; }
+		
+		
 		if ($min < 10) { $min = "0".$min; }
 		if ($mday < 10) { $mday = "0".$mday; }
 		if ($loglevel > 1) { $log .= "Hour: $hour, Minute = $min\n"; }
@@ -3286,7 +3269,7 @@ sub admin_update_grsshopper{
         # Republish  - Runs a batch every cron cycle (so as not to overload the whole system publishing 30K+ posts)
 		my $republish = 1;
 		foreach my $rtable ("feed","author","post","presentation") {
-		    if ($republish == 1) { &republish($rtable,15); }
+		 #   if ($republish == 1) { &republish($rtable,15); }
 		}
 
 
@@ -3323,13 +3306,13 @@ sub admin_update_grsshopper{
 											# Newsletters
 
 
-		&log_cron(9,"Checking for newsletters xx");
+		&log_cron(9,"Checking for newsletters");
 		my $sql = qq|SELECT * FROM page WHERE page_subsend='yes' AND page_subhour=? AND page_submin=? AND (page_subwday LIKE ? OR page_submday LIKE ?)|;
 		my $sth = $dbh -> prepare($sql);
 		$sth -> execute($hour,$min,'%'.$weekday.'%','%'.$mday.'%') or 
 			&log_cron(0,sprintf("Newsletter Error: %s",$dbh->errstr()));;
 		
-		&log_cron(5,"$sql \n");
+		&log_cron(5,"$sql");
 
 		while (my $npage = $sth -> fetchrow_hashref()) {
 			my $report = &send_nl($dbh,$query,$npage->{page_id},"subscribers",0);
@@ -3344,6 +3327,7 @@ sub admin_update_grsshopper{
 
 
 
+$Site->{st_harvest_on} = "no";
 $Site->{st_harvest_int} = 5;
 
 		if ($Site->{st_harvest_on} eq "yes") {
@@ -3542,6 +3526,7 @@ $Site->{st_stale_expire} = (72 * 60 * 60);
 		my $record = &db_get_record($dbh,"page",{page_id=>$page_id});
 		my ($pgcontent,$pgtitle,$pgformat,$pgarchive,$keyword_count) 
 			= &publish_page($dbh,$query,$page_id,0);
+
 		$pgtitle .= " ~ $date";
 
 		# I don't think mailchimp is working at the moment

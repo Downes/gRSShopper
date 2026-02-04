@@ -255,7 +255,7 @@ sub db_open {
 	die "Database dsn note specified in db_open" unless ($dsn);
 	die "Database user note specified in db_open" unless ($user);
 
-	my $dbh = DBI->connect($dsn, $user, $password)
+	my $dbh = DBI->connect($dsn, $user, $password,{mysql_enable_utf8mb4 => 1})
 		or die "Database connect error: $! \n";
 	# Uncomment next line to trace DB errors
  #	  if ($dbh) { $dbh->trace(1,"/var/www/connect/dberror.txt"); }
@@ -383,6 +383,7 @@ sub db_get_template {
 
 	my $ary_ref = $dbh->selectcol_arrayref($stmt);
 	my $ret = $ary_ref->[0];
+
 
 	return $ret;
 
@@ -545,20 +546,74 @@ sub db_backup {
 	}
 	close IN;
 
+	# Create backup filename
 	$table =~ s/$dbinfo->{database}->{name}\.//;
 	unless (-d $Site->{st_urlf}."files/backup/") { mkdir $Site->{st_urlf}."files/backup/"; }
-	my $backup_filename = $Site->{st_urlf}."files/backup/".$dbinfo->{database}->{name}."-".$table."-".time.".sql";
-	$backup_filename =~ s/--/-/;
-	`mysqldump --host=db --user=$dbinfo->{database}->{usr} --password=$dbinfo->{database}->{pwd} $dbinfo->{database}->{name} $table > $backup_filename`;
+	my $backup_file = $Site->{st_urlf}."files/backup/".$dbinfo->{database}->{name}."-".$table."-".time.".sql";
+	$backup_file =~ s/--/-/;
+
+	# Set UTF-8 for output
+	$dbh->do('SET NAMES utf8');
+
+	# Get list of tables
+	my $sth = $dbh->prepare("SHOW TABLES");
+	$sth->execute();
+	my @tables = ();
+	while (my $row = $sth->fetchrow_arrayref) {
+		push @tables, $row->[0];
+	}
+
+	# Backup file
+	open(my $fh, '>:encoding(UTF-8)', $backup_file) or die "Could not open file '$backup_file' $!";
+
+	# Loop through tables and create SQL for each
+	foreach my $tab (@tables) {
+		next if ($table && $tab ne $table);
+		print $fh "--\n-- Table structure for table `$tab`\n--\n\n";
+
+		# Create table structure
+		$sth = $dbh->prepare("SHOW CREATE TABLE $tab");
+		$sth->execute();
+		my $create_table = $sth->fetchrow_arrayref->[1];
+		print $fh "$create_table;\n\n";
+
+		# Insert data
+		print $fh "--\n-- Dumping data for table `$tab`\n--\n\n";
+		$sth = $dbh->prepare("SELECT * FROM $tab", { mysql_use_result => 1 });
+		$sth->execute();
+		while (my $row = $sth->fetchrow_arrayref) {
+			my $values = join(', ', map { defined $_ ? $dbh->quote($_) : 'NULL' } @$row);
+			print $fh "INSERT INTO $tab VALUES ($values);\n";
+		}
+		print $fh "\n";
+	}
+
+
+
+
+
+
+
+   # my $backup_command = "mysqldump --host=db --user=$dbinfo->{database}->{usr} --password=$dbinfo->{database}->{pwd} $dbinfo->{database}->{name} $table > $backup_filename";
+	
+	#$vars->{backup_message} .= "Starting the backup of database '$db_name'...\n";
+	#system($backup_command) == 0
+    #or $vars->{backup_message} .= "Backup failed: $!";
+
+	#$vars->{backup_message} .= "Backup completed successfully. File: $backup_file\n";
+
+
+	#my $backup_result = `mysqldump --host=db --user=$dbinfo->{database}->{usr} --password=$dbinfo->{database}->{pwd} $dbinfo->{database}->{name} $table > $backup_filename`;
 
 	# `mysqldump -h db -uroot –p test_db > backup.sql`;
 
 	$Site->{database}="";							# Clear site database info so it's not available later
 	$_ = "";								# Prevent accidental (or otherwise) print of config file.
 
-	return $backup_filename; 
-	# qq|mysqldump --user=$dbinfo->{database}->{usr} --password=$dbinfo->{database}->{pwd} $dbinfo->{database}->{name} $table > $backup_filename|;
 
+	#$vars->{backup_message} .= "<br>Response: " . $backup_result . "<br>Command: " .
+	 #qq|mysqldump --user=$dbinfo->{database}->{usr} --password=$dbinfo->{database}->{pwd} $dbinfo->{database}->{name} $table > $backup_filename|;
+	return $backup_file;
 
 }
 
@@ -752,11 +807,11 @@ sub db_create_table {
 		unless ($values[0] =~ /^$table/) { $values[0] = $table."_".$values[0]; } # Normalize field names
 		next unless (&index_of($values[0],\@fieldlist) < 0);  # No duplicate field names
 		push @fieldlist,$values[0];
-		unless ($values[1]) { $values[1] = "varchar(250)"; } # Assign a default type
+
 		$sql .= qq|`$values[0]` |.$values[1].qq||;
 		if ($values[2]) { $sql .= qq|(|.$values[2].qq|)|; }
-		if ($values[3]) { $sql .= qq| |.$values[3].qq||; }
-		if ($values[4]) { $sql .= qq| |.$values[4].qq||; }
+		if ($values[3]) { $sql .= qq| |.$values[2].qq||; }
+		if ($values[4]) { $sql .= qq| |.$values[2].qq||; }
 		$sql .= ",\n";
 
 	}
@@ -764,12 +819,12 @@ sub db_create_table {
 
 
 	$sql .= qq|  PRIMARY KEY  (`|.$table.qq|_id`)) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;|;
-print $sql;
+
 	$return .=qq|<pre>$sql</pre>|;
-	my $sth = $dbh->prepare($sql) or  print "Can't prepare SQL statement in db_create_table : ", $sth->errstr(), "\n";
+	my $sth = $dbh->prepare($sql) or  $return .= "Can't prepare SQL statement in db_create_table : ", $sth->errstr(), "\n";
 
     	if ($sth->execute()) { $return .= "Table $table created<p>"; }
-	else { print "Can't execute SQL statement in db_create_table : ", $sth->errstr(), "\n"; }
+	else { $return .= "Can't execute SQL statement in db_create_table : ", $sth->errstr(), "\n"; }
 
     	$return;
 }
@@ -879,22 +934,21 @@ sub db_insert {		# Inserts record into table from hash
 	my $table = shift || &status_error("Table not specified on insert");
 	my $input = shift || &status_error("No data provided on insert");
 
-
+#&status_error("Typeval is ".$input->{graph_typeval});
     	my $vars = ();
     	if (ref $query eq "CGI") { $vars = $query->Vars; }
 
 
-	# Catch case where the table doesn't exist, create the table, then perform the insert
-	# This might create a table even if the data is bacd, but if you don't like that move this down
-
 	my $dtype = ref $input;
 	&status_error("Unsupported data type specified to insert (data was $dtype)")
 		unless (ref $input eq 'HASH' || ref $input eq 'gRSShopper::Record' || ref $input eq 'gRSShopper::Person' || ref $input eq 'gRSShopper::File');
+
 	my $data= &db_prepare_input($dbh,$table,$input);
 
 	# Default link URL for link
 	if ($table eq "link") {
 		unless ($data->{link_link}) { $data->{link_link} = time; } # So we can create links manually
+		unless ($data->{link_section}) { $data->{link_section} = "none";}
 	}
 
 	my $sql   = "INSERT INTO $table ";	# Prepare SQL Statement
@@ -909,18 +963,14 @@ sub db_insert {		# Inserts record into table from hash
 	$sql .= '(' . join(', ', @sqlf) .') VALUES ('. join(', ', @sqlq) .')';
 
 
+	my $sth = $dbh->prepare($sql) or print "DB_Insert Error: Content-type: text/html\n\n".$sth->errstr;;		# Execute SQL Statement
+#unless ($table =~ /file/) { &status_error("db_insert for sd $table $sql @sqlv"); }
 
-
-	my $sth = $dbh->prepare($sql) or print "Content-type: text/html\n\n".$sth->errstr;;		# Execute SQL Statement
-
-   	$sth->execute(@sqlv) or print "Content-type: text/html\n\nDB INSERT ERROR: ".$sth->errstr;
-
- 
+   	$sth->execute(@sqlv) or &status_error( "Content-type: 968 text/html\n\n".$sth->errstr);
 
 	if ($sth->errstr) { $vars->{err} = "DB INSERT ERROR: ".$sth->errstr." <p>"; }
 
-
-
+# &status_error($sth->errstr) if ($sth->errstr);
 
 	my $insertid = $dbh->{'mysql_insertid'};
 	
@@ -994,7 +1044,7 @@ sub db_update {
 	unless ($where) { die "Error $msg Record ID not specified on update"; }
 
 	if ($diag eq "on") { print "DB Update ($table $input $where)<br/>\n"; }
-	die "Unsupported data type specified to update" unless (ref $input eq 'HASH' || ref $input eq 'Link' || ref $input eq 'Feed' || ref $input eq 'gRSShopper::Record' || ref $input eq 'gRSShopper::Feed');
+	&status_error("Unsupported data type specified to update") unless (ref $input eq 'HASH' || ref $input eq 'Link' || ref $input eq 'Feed' || ref $input eq 'gRSShopper::Record' || ref $input eq 'gRSShopper::Feed');
  #print " BUpdating $table $input $where <br>";
 	my $data = &db_prepare_input($dbh,$table,$input);
 	#print "Data: $data <br>";
@@ -1006,7 +1056,7 @@ sub db_update {
 	for my $k (sort keys %$data) {
 		push @sqlf, "$k = ?";
 		push @sqlv, $data->{$k};
-
+ #print "Saving $k = $data->{$k}";
         }
 
 	$sql .= join ', ', @sqlf;
@@ -1017,7 +1067,7 @@ sub db_update {
 	my $sth = $dbh->prepare($sql);
 
 	if ($diag eq "on") { print "$sql <br/>\n @sqlv <br/>\n"; }
-    	$sth->execute(@sqlv) or &status_error("Update failed: ".$sth->errstr);
+    	$sth->execute(@sqlv) or &status_error("Update failed: ($sql)".$sth->errstr);
 
 	return $where;
 
@@ -1095,7 +1145,7 @@ sub db_count {
 	my $stmtc = "SELECT COUNT(*) AS items FROM $table $where";
 
 	my $sthc = $dbh -> prepare($stmtc);
-	$sthc -> execute()  || return 0;
+	$sthc -> execute()  || die "Error: " . $dbh->errstr . " -- ".$stmtc;
 	my $refc = $sthc -> fetchrow_hashref();
 	my $count = $refc->{items};
 	$sthc->finish( );
@@ -1138,25 +1188,6 @@ sub db_tables {
 		while (my($hx,$hy) = each %$hash_ref) { push @tables,$hy; }
 	}
 	return @tables;
-}
-
-	#-------------------------------------------------------------------------------
-	#
-	# -------   Table Exists ---------------------------------------------------------
-	#
-	# 		Returns 0 if the table does not exist
-	#	      Edited: 28 March 2010
-	#-----------------------------------------------------------------------------
-
-sub db_table_exists {
-
-	my ($dbh, $tbl_name) = @_;
-	my $db_clause = "";
-
-		($db_clause, $tbl_name) = (" FROM $1", $2) if $tbl_name =~ /(.*)\.(.*)/;
-		$tbl_name =~ s/([%_])/\\$1/g;   # escape any special characters
-		return ($dbh->selectrow_array ("SHOW TABLES $db_clause LIKE '$tbl_name'"));
-
 }
 
 	# -------   Update Vote ------------------------------------------------------                                                   UPDATE

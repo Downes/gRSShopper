@@ -8,13 +8,26 @@
 	# Checks for logout, initializes session, writes cookie
 sub check_user {
 
-#print "Content-type: text/html\n\n";
-#print "<h2>Check User</h2><p>";
 	my ($output_format) = @_;
+
+
+    use CGI;
+	use CGI::Carp qw(fatalsToBrowser);
+    eval("use CGI::as_utf8;"); 
+	use CGI::Session;
+	our $query = new CGI;
+	$query->charset('utf-8');
+	our $vars = $query->Vars;
+	&filter_input($vars);				#	- filter CGI input
+
+	# Send straight to redirect
+	if ($vars->{action} eq "rd") { &redirect(); exit; }	
+
+	my $event=0;						# Toggle returns 1 in the event of new logon 
     my $session = new CGI::Session(undef, $query, {Directory=>'/tmp'});
+
     $session->expires("+1y");
-#print "Vars in check_user<p>";
-#while (my($vx,$vy) = each %$vars) { print "$vx = $vy <br>";}
+
 
     if ($query->param("action") eq "logout") {
 
@@ -28,7 +41,7 @@ sub check_user {
 	#   $session->clear(["~logged-in"]);
 #print "Into init_login()<p>";	
 
-    &init_login($session);
+    $event = &init_login($session);
 
 
 #print "Back from init_login()";
@@ -41,8 +54,11 @@ sub check_user {
 #	    -expires=>"Wed, 22 Oct 2025 07:28:00 GMT",
 #	    -secure=>1);
 
-	$output_format ||= "text/html";	# default mime type
+	# set mime type
 
+	$output_format ||= $vars->{format} || $output_format || "text/html";	
+	if ($output_format =~ /json/i) {$output_format = "application/json"; }
+	if ($output_format =~ /rss/i) {$output_format = "application/rss+xml"; }	
 
     #  PRINT HEADER
     #
@@ -55,15 +71,47 @@ sub check_user {
     }
 
    
-#print "Content-type: text/html\n\n OK";
+# print "Content-type: text/html\n\n OK";
+
     my $profile = $session->param("~profile");
     my $username = $profile->{username};
  #print "Just printed the cookie<p>";  
  # print "Returning session $session and username $username <p>";
  
-    return($session,$username);
+    return($session,$username,$event);
 
 
+}
+
+	# Sends user somewhere else
+
+
+sub redirect {
+
+
+	# Increment Counter
+	@string = qw(post link);
+	foreach my $table (@string) {
+		if ($vars->{$table}) { 
+			$vars->{table} = $table; 
+			$vars->{id} = $vars->{$table}; 
+		}
+	}
+
+	die "Error: No table to redirect to." unless ($vars->{table});
+	die "Error: No id to redirect to." unless ($vars->{id});
+	my ($hits,$total) = &record_hit($vars->{table},$vars->{id});
+
+	# Set target
+	my $linkfield = $vars->{table}."_link";
+	my $target = db_get_single_value($dbh,$vars->{table},$linkfield,$vars->{id});
+	$target =~ s/&amp;/&/g;
+	unless ($target) { $target = $Site->{st_url}.$vars->{table}."/".$id; }
+
+	# Send them
+	print "Content-type:text/html\n";
+	print "Location: $target\n\n";
+	exit;
 }
 
 
@@ -71,19 +119,22 @@ sub check_user {
 	# Use in iframe on web pages 
 sub show_login {
 
-    my $session = shift;
-	my $reload_script = qq|	document.addEventListener('readystatechange', event => { 
+    my ($session,$event) = @_;
+	my $reload;  # Reloads parent page in event of login or logout
+	if ($event) { $reload = qq|	document.addEventListener('readystatechange', event => { 
     if (event.target.readyState === "interactive") {   
-     //   alert("Success");
-	 //	alert(window.parent.location.href);
+        alert("Success");
+	 	alert(window.parent.location.href);
+	 window.parent.location.replace(window.parent.location.href);
 		parent.location.reload();
-	}});|;  # Reloads parent page in event of login or logout
+	}});|; }
+	 
 
     # Logged In
     if ($session->param("~logged-in")) { 
 		my $reload = "";
 		if ($session->param("~reload")) {
-			$reload = $reload_script;
+			#$reload = $reload_script;
 			$session->param("~reload",0);
 		}
         return "".$session->param("~profile")->{username}.qq| [<a href="//|.$ENV{'SERVER_NAME'}.$ENV{'SCRIPT_NAME'}.qq|?action=logout">Logout</a>]<p>
@@ -97,26 +148,28 @@ sub show_login {
     
   #  &list_all_rows();
   #  &delete_all_rows();
-
-  	
-    	my $count = &db_count($dbh,"person"); my $extra;
-	if ($count == 0) { $count = "Create an Admin Profile"; } 
-	elsif ($query->param("new")) { 
-		$query->param("new") = "";	# Clear param
-		$count = "Create a New Profile"; 
-		$extra = qq|<input type=text placeholder="Email" name="lg_email">|;
-	}
-	else { $count = "Login"; } 
-	
-        return qq|
-        <form method="post" action="//$ENV{'SERVER_NAME'}$ENV{'SCRIPT_NAME'}">
-        <input type=text placeholder="Username" name="lg_name">
-	$extra
-        <input type=password placeholder="Password" name="lg_password">
-        <input type="submit" name="action" value ="$count"  >
-        </form>
-		<script>window.scrollTo(0,document.body.scrollHeight);</script>
-        |;
+  
+  
+		# Count person records, if there are no person records, show option to create an admin
+		my $count = &db_count($dbh,"person"); my $extra;
+		if ($count == 0) { $count = "Create an Admin Profile"; } 
+		elsif ($query->param("new")) { 
+			$query->param("new") = "";	# Clear param
+			$count = "Create a New Profile"; 
+			$extra = qq|<input type=text placeholder="Email" name="lg_email">|;
+		}
+		else { $count = "Login"; } 
+		
+		# If there are person records, show the login form
+			return qq|
+			<form method="post" action="//$ENV{'SERVER_NAME'}$ENV{'SCRIPT_NAME'}">
+			<input type=text placeholder="Username" name="lg_name">
+		$extra
+			<input type=password placeholder="Password" name="lg_password">
+			<input type="submit" name="action" value ="$count"  >
+			</form>
+			<script>window.scrollTo(0,document.body.scrollHeight);</script>
+			|;
     }
 }
 
@@ -132,7 +185,7 @@ sub init_login {
     if ( $session->param("~logged-in") ) {
 #print "yes, logged in <br>";  
 #print "Login name (from form): ".$query->param("lg_name")."<p>";   
-        return 1;  # if logged in, don't bother going further
+        return 0;  # if logged in, don't bother going further
     }
 
 	
@@ -141,8 +194,6 @@ sub init_login {
 
     my $lg_name =  $query->param("lg_name") or return;
     my $lg_psswd = $query->param("lg_password") or return;
-
-
 
 
     # if we came this far, user did submit the login form
@@ -159,8 +210,6 @@ sub init_login {
         return 1;
     }
     
-
- 
     # if we came this far, the login/psswds do not match
     # the entries in the database
 #print "The login/passwds do not match<p>";	
@@ -173,8 +222,6 @@ sub init_login {
 sub _load_profile {
     my ($lg_name, $lg_psswd,$output_format) = @_;
     my $cgi = $query;
-#print "Loading profile <p>";
-
     my $persondata = &db_get_record($dbh,"person",{person_title=>$lg_name});
     
     unless ($persondata) {		                   # User does not exist
@@ -186,10 +233,8 @@ sub _load_profile {
         exit;
     }
 							# User Exists, Check Password
-#print "Checking password<p>";							
     if (&_check_password($lg_psswd,$persondata->{person_password})) {
        my $p_mask = "x" . length($p);
-#print "Password OK, returning ".$persondata->{person_title}."<p>";       
        return {username=>$persondata->{person_title}, password=>$p_mask, email=>$persondata->{person_email}};
     }
 
@@ -218,13 +263,6 @@ sub _make_profile {
 		exit;
 	}
 	
-	# Make sure 'person' table exists, and create it if it doesn't
-	unless (&db_table_exists($dbh,"person")){
-		print "Creating 'person' table.<br>";
-		my @fields = qw(person_openid person_title person_pref person_name person_status person_mode person_password person_midm person_description person_email person_eformat person_html person_weblog person_photo person_xml person_foaf person_street person_city person_province person_country person_home_phone person_work_phone person_fax_phone person_organization person_remember person_showreal person_showemail person_showuser person_showpage show_pref show_name show_html show_weblog show_photo show_email person_lastread person_firstname person_lastname person_socialnet);
-		&db_create_table($dbh,"person",\@fields);
-	}
-
 	# Check for unique username
 	my $persondata = &db_get_record($dbh,"person",{person_title=>$cgi->param("lg_name")});
 	if ($persondata) { 
@@ -234,7 +272,6 @@ sub _make_profile {
 	}
 	    
 	# Check in case this is the first user, which must be Admin
-
 	my $count = &db_count($dbh,"person");
 	if ($count == 0) { $count = "Admin"; } else { $count = "Registered"; }
 	print "<p>Making $count Profile</p>"; 
@@ -264,9 +301,6 @@ exit;
 
 }
 
-      
-
-	# Encrypt a password 
 	# Encrypt a password 
 sub _encrypt_password {
 
@@ -303,8 +337,6 @@ sub _check_password {
     }
     return length $salt == 16 && &_encrypt_password($plain_password, $salt) eq $hashed_password;
 }
-
-
 
 	# generate a 16 octet more-or-less random salt for blowfish
 sub _salt {

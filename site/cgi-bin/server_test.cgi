@@ -473,27 +473,18 @@ sub rewrite_multisite {
   # Open database info file for writing
   unless ($cgif) { print "No cgi directory defined; I won't be able to read the database.<br>"; exit;}
   my $data_file = $cgif."data/multisite.txt";
-  my $newdata; my $replaced=0;
-  if (-e $data_file) {
-    open IN,"$data_file" || &error("Cannot read website information file $data_file : $!");       
-    my $line; my $newline;
-    while (<IN>) {
-      $line = $_;
-      $line =~ s/(\s|\r|\n)$//g;
-      ($lhome,$lname,$lloc,$lusr,$lpwd,$llan,$lurlf,$lcgif) = split "\t",$line;
-      if ($lhome eq $home) {
-          $lhome=$home;$lname=$name;$lloc=$loc;$lusr=$usr;$lpwd=$pwd;
-          $replaced++;
-      }
-      $newdata .= "$lhome\t$lname\t$lloc\t$lusr\t$lpwd\t$llan\t$lurlf\t$lcgif\n";
-    }
+	unless (open IN,">>$data_file") {     # Try to append
+    unless (open IN,">$data_file") {    # Otherwise, try to create
+      &error("Cannot open website information file $data_file : $!"); exit; } }
+
+  # Write new database information to website information file
+  print "Writing to multisite: $home,$name,$loc,$usr,$pwd <br>";
+  unless(print IN "$home\t$name\t$loc\t$usr\t$pwd\t$lan\n") {
+    &error("Cannot write to website information file $data_file : $!"); 
   }
-  unless ($replaced) { $newdata .= "$home\t$name\t$loc\t$usr\t$pwd\t$lan\t$urlf\t$cgif\n"; }
+
   close IN;
-  open OUT,">$data_file"; 
-  print OUT $newdata || &error("Cannot write to website information file $data_file : $!");
-  close OUT;
-  
+
 }
 
 sub access_database {
@@ -760,64 +751,6 @@ sub access_website {
 #
 #
 
-
-#           Utility Functions
-
-	#-------------------------------------------------------------------------------
-	#
-	#           Misc. Utilities
-	#
-	#-------------------------------------------------------------------------------
-sub printlang {						# Print in current language
-							# languages loaded in gRSShopper::Site::__load_languages()
-
-	my @vars = @_; $counter = 1;
-	my $langstring = $vars[0];
-	return unless ($langstring);
-
-  	$langstring =~ s/&#39;/&apos;/g;                       # (probably need a more generic decoder here
-	$Site->{lang_user} ||= $Site->{site_language};		   # Current language, as selected from session
-	my $output = "";
-
-	# Are we using a dictionary? If so, $langstring will specify it using a colon
-	# ie., dictionary:langstring
-	# The first time we encounter the dictionary, we'll load it
-
-	my ($dictionary,$lstring) = split /:/,$langstring;					# Find duictionary and string, fix
-	unless ($lstring) {$lstring = $dictionary; $dictionary = ""; }		# in case no dictionary is declared
-	my $instructions;
-	if ($dictionary && $Site->{$Site->{lang_user}}->{$dictionary} ne "loaded") { 
-		$instructions .= &load_dictionary($dictionary,$lstring);
-	} 
-
-	# Convert the language string. Note how we can insert variables (designated by #1, #2, etc)
-	# into the string
-	if ($Site->{$Site->{lang_user}}->{$lstring}) {
-		$output .= $Site->{$Site->{lang_user}}->{$lstring};
-		while () {
-			my $var_number = '#'.$counter;
-			if ($output =~ m/$var_number/) {
-				$vars[$counter] =~ s/&#39;/&apos;/g;
-				$vars[$counter] =~ s/&quot;/"/g;   								# Allows insertion of quotation marks for eg. URLs
-				$output =~ s/$var_number/$vars[$counter]/g;
-
-			} else { last; }
-			$counter++;
-		}
-	}
-
-	if ($output) {	# Return the translated output, or
-		$output =~ s/&quot;/"/g;
-		return $output;
-	} elsif ($dictionary) {   # Return instructions for the dictionary, or
-		return $instructions;
-	} else {
-		return $langstring; # Return the unaltered language string
-	}
-}
-
-
-
 sub clean_vars {
 
   my $vars = shift;
@@ -872,8 +805,8 @@ sub get_status_file {
 
 sub print_status_file {
 	my ($file,$content) = @_;
-#	open FIN,">$file" or die &printlang("can't print",$file);
-#	print FIN $content;
-#	close FIN;
+	open FIN,">$file" or die &printlang("can't print",$file);
+	print FIN $content;
+	close FIN;
 }
 1;
