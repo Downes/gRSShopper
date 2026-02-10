@@ -163,8 +163,8 @@ sub format_record {
 
 	# Check input variables
 	
-	unless ($table) { return "Attempting to format record but no table provided."; }
-	unless ($id_number) { return "Attempting to format $table but no record ID provided."; }
+	unless ($table) { $vars->{message} .= "Attempting to format record but no table provided."; return; }
+	unless ($id_number) { $vars->{message} .= "Attempting to format $table but no record ID provided.";	return; }
 
 	$diag = 0;
 	if ($diag>9) { print "Format Record $table "..",$record_format <br>"; }

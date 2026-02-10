@@ -4035,8 +4035,11 @@ $Site->{st_stale_expire} = (72 * 60 * 60);
 				# But only print it if it has *already* been published - this function is
 				# intended to update existing content, not generate new content
 				# and may create permissions problems if cron is creating new files
-				my $page_file = $Site->{st_urlf}.$table."/".$id_number;
-				#if (-e $page_file) { &print_record($rtable,$newprevid);	}
+				my $page_file = $Site->{st_urlf}.$rtable."/".$newprevid;
+				#if (-e $page_file) { 
+					&print_record($rtable,$newprevid);	
+					&log_cron(8,sprintf("Republished %s ",$page_file));
+				#}
 				$reppub = $newprevcrdate;
 			} else { $reppub = 0; }
 

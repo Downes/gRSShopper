@@ -4,9 +4,7 @@ sub linkedin_post {
 
 print "Content-type: text/html\n\n";
 
-
-
-my $access_token = 'AQUim6ptunRioxbrLYSRPkdxAfO4f9uO8_SoTn5K0Rlz1mPwzLy0v9naeJyylrBTVluBqpcQqScOSLrdtMhyhj7uYD-z2hQKWNH7-iMMntVGKsbEusJZLEfPSOtpvPo5QSCAsRLkTmwo43Tu1jOwEtBDSb_RcVKDuqmQexemfjgZMNX0TeGHiHP-mdviioh3g3x5AEKE94VK3KGjzRKvDoU26ibBIUgRqFB5P6pZOJKQeo53Rgy9Hq9WP4isndKB3Ta7NPYQcFx50Kpvt0cF0eOqF9EoQycxljGsMc2QfQQROej7zTdCwShhwdse3cxrhI6ccg0BpT4GHvaPWFu2K9FhlbeUCA'; # Replace with your actual access token
+my $access_token = $ENV{'LINKEDIN_ACCESS_TOKEN'}; 
 my $api_url = 'https://api.linkedin.com/rest/posts'; # Endpoint for creating posts
 
 my $content = "This is the content of your newsletter post.";

@@ -137,6 +137,8 @@ sub print_record {
     chmod 0644, $tmp;
     rename $tmp, $page_file or die "rename($tmp => $page_file) failed: $!";
 
+
+
     # -------- Write redirect shard for THIS record (only when applicable) --------
     # Host-scoped RD base: /var/www/www.downes.ca/html/_rd
     if ($table eq 'post') {
