@@ -1,0 +1,183 @@
+<!-- Template: static_header -->
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!-->
+<html style="" class=" js flexbox canvas canvastext webgl touch geolocation postmessage no-websqldatabase indexeddb hashchange history draganddrop websockets rgba hsla multiplebgs backgroundsize borderimage borderradius boxshadow textshadow opacity cssanimations csscolumns cssgradients no-cssreflections csstransforms csstransforms3d csstransitions fontface generatedcontent video audio localstorage sessionstorage webworkers applicationcache svg inlinesvg smil svgclippaths"><!--<![endif]--><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="google-site-verification" content="JpKCsE4k0qiGU4zw7TcoNCrbvqAwdxygaBU-rVu_Xig" />
+
+<title>Downes.ca ~ Half an Hour</title>
+<meta name="description" content="Commentary on Half an Hour by Stephen Downes. Online learning, e-learning, new media, connectivism, MOOCs, personal learning environments, new literacy, and more">
+<meta name="keywords" content="">
+
+<link rel="alternate" title="OLDaily JSON" type="application/json" href="https://www.downes.ca/news/OLDaily.json" />
+<link rel="alternate" title="OLDaily RSS" type="application/rss" href="https://www.downes.ca/news/OLDaily.xml" />
+<link rel="share-url" href="https://www.downes.ca/post/?text=Half an Hour">
+
+<!-- Metadata -->
+<link rel="schema.DC" href="https://purl.org/dc/elements/1.1/">
+<meta name="DC.title" content="Half an Hour">
+<meta name="DC.description" content="Commentary on Half an Hour by Stephen Downes">
+<meta name="DC.creator" content="Stephen Downes">
+<meta name="DC.date" content="2026-02-04T11:22:00">
+<meta name="DC.identifier" content="https://www.downes.ca/post/">
+<meta name="fediverse:creator" content="@Downes@mastodon.social" />
+<meta name="fediverse:creator" content="@Downes@cosocial.ca" />
+<meta property="og:title" content="Half an Hour" />
+<meta property="og:image" content="https://www.downes.ca/files/images/post_.jpg" />
+<meta property="og:image:secure_url" content="https://www.downes.ca/files/images/post_.jpg" />
+<meta property="og:image:type" content="image/jpeg" />
+<meta property="og:image:alt" content="Icon for " />
+
+
+
+<!-- Mobile viewport -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<!-- icons -->
+<link rel="icon" href="https://www.downes.ca/assets/icons/favicon.ico" type="image/x-icon"/>
+<link rel="manifest" href="https://www.downes.ca/assets/icons/manifest.json">
+<meta name="msapplication-TileColor" content="#ffffff">
+<meta name="msapplication-TileImage" content="https://www.downes.ca/assets/icons/ms-icon-144x144.png">
+<meta name="theme-color" content="#ffffff"><!-- End Icons -->
+
+<!-- CSS-->
+
+<!-- link rel="stylesheet" href="https://www.downes.ca/assets/css/normalize.css" -->
+<!-- link rel="stylesheet" href="https://www.downes.ca/assets/js/flexslider/flexslider.css" -->
+<link rel="stylesheet" href="https://www.downes.ca/assets/css/basic-style.css">
+
+<!-- end CSS-->
+    
+<!-- JS-->
+<!--
+<script src="https://www.downes.ca/assets/js/libs/modernizr-2.6.2.min.js"></script>
+-->
+
+<!-- end JS-->
+
+
+
+
+</head>
+
+
+<body id="home">
+<!-- header area -->
+<div class="wrapper">
+
+
+   <div class="row"><!-- Header Row -->
+
+        <!-- Title -->
+        <div class="grid_12">
+
+        <!-- Sparrow -->
+<span style="float:left;max-width: 150px;  width:10%; height:auto;  display: inline-block; vertical-align: middle;><a  href="https://www.downes.ca/index.html" style="text-decoration:none;"><img src="https://www.downes.ca/assets/images/clear-sparrow.png" border=0 ></a></span>
+
+         <!-- Site Name -->
+          <span style="float:left; margin-left:10px;height:auto;"><a  href="https://www.downes.ca/index.html" style="text-decoration:none; margin-bttom:0pt;"><h1 style="margin-left:0px;">Stephen Downes</h1></a>Knowledge, Learning, Community</span>
+       
+     </div><!-- End Title -->
+     </div><!-- End Header Row -->
+
+     <!-- Navbar -->
+     <style>.navitems {margin-right:0.5em;float:left;}</style>
+     <div class="row"  style="clear:both;padding-bottom:10px;border-bottom:solid 1px black;margin-bottom:2px;"><div class="grid_12"><form action="https://www.downes.ca/cgi-bin/page.cgi" method="post" id="search-section-form" accept-charset="UTF-8" style="margin:0px;"><span class="navitems">[<a  href="https://www.downes.ca/me/mybooks.htm">Books</a>]</span><span  class="navitems">
+[<a  href="https://www.downes.ca/publications.htm">Publications</a>]</span><span  class="navitems">
+[<a  href="https://www.downes.ca/news/OLDaily.htm">Newsletter</a>]</span><span  class="navitems">
+[<a  href="https://www.downes.ca/cgi-bin/page.cgi?action=search">Posts</a>]</span><span  class="navitems">
+[<a  href="https://www.downes.ca/articles.htm">Articles</a>]</span><span  class="navitems">
+[<a  href="https://www.downes.ca/presentations.htm">Presentations</a>]</span><span  class="navitems">
+[<a  href="https://www.downes.ca/about.htm">About</a>]</span><span  class="navitems">
+[<a  href="https://docs.google.com/document/d/1HG3gUJlT8Wg-GvOL_FCCtUHVqSIYy6dZZ44FYdnq8AU/edit?usp=sharing">Now</a>]</span><span  class="navitems">
+       <input name="action" value="search" type="hidden">
+       <input type="text" placeholder="Search" id="edit-section-keys" name="q" value="" class="form-text"  style="padding:0px;margin:0px;"/></span>
+</div> </form><!-- End Navbar -->
+
+   </div>
+
+<!-- /Template: static_header --><div class="row">
+    <div class="col-sm-12">  
+    <h2>Feed Record: Half an Hour</h2>
+    </div>
+
+</div>
+<div class="row">
+    <div class="col-sm-12 col-md-2 col-lg-2"> 
+    <p>This is information about one of the sources cited in the OLDaily newsletter.</p>
+<p>
+  <admin feed,173></p>
+<p>Status: O</p>
+<p>Author: <span class="feed_author"></span><br />
+ <br>
+<table cellmargin=0 cellpadding=3 border=1>
+<tr><td>Language</td><td></td></tr>
+<tr><td>Copyright</td><td></td></tr>
+<tr><td>Last Updated</td><td>  </td></tr>
+<tr><td>Updates</td><td>  </td></tr>
+<tr><td>Generator</td><td>  </td></tr>
+</table>
+<p>Information about this feed is obtained from the    feed  source. Feed owners may supply additional information by updating their file or by sending email to <a  href="mailto:stephen@downes.ca">stephen@downes.ca</a>
+</p>
+   </div>
+    <div class="col-sm-12 col-md-3 col-lg-2" style="border:solid black 1px;"><h4>Contributors</h4>
+    <p><a  href="https://www.downes.ca/author/1">Stephen Downes</a><br>
+<a  href="https://www.downes.ca/author/1468">David Wiley</a><br>
+<a  href="https://www.downes.ca/author/7762">Wayne Mackintosh</a><br>
+Attempting to format author but no record ID provided.</p>    
+    </div>
+    <div class="class="col-sm-12 col-md-3 col-lg-2" style="border-top:solid black 1px;">  
+          <h4>Writes about</h4>
+
+    </div>
+    <div class="col-sm-12 col-md-4 col-lg-6" style="border:solid black 1px;">  
+         <h4>Recent Posts</h4>
+
+<p><a  href="https://www.downes.ca/post/64369" style="text-decoration:none;">Experts and Authority</a><br><a  href="https://www.downes.ca/post/63080" style="text-decoration:none;">Knowledge as Recognition </a><br><a  href="https://www.downes.ca/post/63096" style="text-decoration:none;">Open educational Resources 2.0</a><br><a  href="https://www.downes.ca/post/63097" style="text-decoration:none;">Does Data Corrupt Education</a><br><a  href="https://www.downes.ca/post/63098" style="text-decoration:none;">Rheingold, Lewin, Stevenson </a><br><a  href="https://www.downes.ca/post/63099" style="text-decoration:none;">EPortfolios and Badges Workshop</a><br><a  href="https://www.downes.ca/post/63254" style="text-decoration:none;">A Year in Photos</a><br><a  href="https://www.downes.ca/post/63370" style="text-decoration:none;">Educational Technology Strategies</a><br><a  href="https://www.downes.ca/post/63417" style="text-decoration:none;">Becoming MOOC</a><br><a  href="https://www.downes.ca/post/63643" style="text-decoration:none;">My Viva</a><br><a  href="https://www.downes.ca/post/44769" style="text-decoration:none;">Another Kick at the 'Free Content' Cat</a><br><a  href="https://www.downes.ca/post/44807" style="text-decoration:none;">Defending Edupunk</a><br><a  href="https://www.downes.ca/post/45338" style="text-decoration:none;">Exploration of an Inegrated Media Tool</a><br><a  href="https://www.downes.ca/post/45349" style="text-decoration:none;">Beyond Essays: Web 2.1 and the World of the Multimedia Collage</a><br><a  href="https://www.downes.ca/post/47232" style="text-decoration:none;">Open Content, Enclosure and Conversion</a><br><a  href="https://www.downes.ca/post/49540" style="text-decoration:none;">Whatever</a><br><a  href="https://www.downes.ca/post/49554" style="text-decoration:none;">Standards for Pedagogically Relevant Learning Environments</a><br><a  href="https://www.downes.ca/post/49555" style="text-decoration:none;">Learning Design Tools (Demonstrations)</a><br><a  href="https://www.downes.ca/post/49556" style="text-decoration:none;">The Future IMS Learning Design</a><br><a  href="https://www.downes.ca/post/49557" style="text-decoration:none;">An Overview of Common Cartridge</a><br><a  href="https://www.downes.ca/post/49558" style="text-decoration:none;">IMS Learning Tools Interoperability</a><br><a  href="https://www.downes.ca/post/49589" style="text-decoration:none;">IMS Curriculum Standards Workshop</a><br><a  href="https://www.downes.ca/post/46953" style="text-decoration:none;">The Future of Online Learning: Ten Years On</a><br><a  href="https://www.downes.ca/post/48582" style="text-decoration:none;">Blogs in Education</a><br><a  href="https://www.downes.ca/post/48583" style="text-decoration:none;">Relativism and Science</a><br><a  href="https://www.downes.ca/post/48289" style="text-decoration:none;">What I Do</a><br><a  href="https://www.downes.ca/post/48290" style="text-decoration:none;">The New Nature of Knowledge</a><br><a  href="https://www.downes.ca/post/47924" style="text-decoration:none;">The Monkeysphere Ideology</a><br><a  href="https://www.downes.ca/post/49203" style="text-decoration:none;">Maritime Reflections</a><br><a  href="https://www.downes.ca/post/49204" style="text-decoration:none;">Critical Thinking in the Classroom</a><br><a  href="https://www.downes.ca/post/41626" style="text-decoration:none;">Setting Up Sunbird</a><br><a  href="https://www.downes.ca/post/43459" style="text-decoration:none;">The Reality of Virtual Learning</a><br><a  href="https://www.downes.ca/post/45690" style="text-decoration:none;">Our Abilities, and the Future of Civilization</a><br><a  href="https://www.downes.ca/post/44646" style="text-decoration:none;">Knowledge Mobilization and Knowledge Translation</a><br><a  href="https://www.downes.ca/post/45220" style="text-decoration:none;">Individualism and Classism</a><br><a  href="https://www.downes.ca/post/40309" style="text-decoration:none;">Things I Don'T Like About the Mac</a><br><a  href="https://www.downes.ca/post/42915" style="text-decoration:none;">Last Year's eLearn Magazine Predictions</a><br><a  href="https://www.downes.ca/post/48753" style="text-decoration:none;">New Technology Supporting Informal Learning</a><br><a  href="https://www.downes.ca/post/45031" style="text-decoration:none;">OLDaily Production</a><br><a  href="https://www.downes.ca/post/41610" style="text-decoration:none;">The Open Journal Format</a><br><a  href="https://www.downes.ca/post/46642" style="text-decoration:none;">My Digital Identity</a><br><a  href="https://www.downes.ca/post/51169" style="text-decoration:none;">Questioning Pedagogy</a><br><a  href="https://www.downes.ca/post/34837" style="text-decoration:none;">Communities of Practice and Wrap-Up</a><br><a  href="https://www.downes.ca/post/34863" style="text-decoration:none;">Networks - Revisiting Objective/Subjective...</a><br><a  href="https://www.downes.ca/post/34885" style="text-decoration:none;">Adults and MySpace (2)</a><br><a  href="https://www.downes.ca/post/34895" style="text-decoration:none;">Identity Networks Are Here</a><br><a  href="https://www.downes.ca/post/35155" style="text-decoration:none;">ICT in Education in Colombia</a><br><a  href="https://www.downes.ca/post/35242" style="text-decoration:none;">Will Richardson's Business Model</a><br><a  href="https://www.downes.ca/post/35388" style="text-decoration:none;">mLearning Tools</a><br><a  href="https://www.downes.ca/post/35404" style="text-decoration:none;">Magdalene Islands</a><br><a  href="https://www.downes.ca/post/35566" style="text-decoration:none;">Ethics and Codes</a><br><a  href="https://www.downes.ca/post/35596" style="text-decoration:none;">Things You Really Need to Learn</a><br><a  href="https://www.downes.ca/post/35684" style="text-decoration:none;">My Work, My Freedom</a><br><a  href="https://www.downes.ca/post/35769" style="text-decoration:none;"> How to Write Articles and Essays Quickly and Expertly</a><br><a  href="https://www.downes.ca/post/35770" style="text-decoration:none;">Diddy</a><br><a  href="https://www.downes.ca/post/35976" style="text-decoration:none;">That Group Feeling</a><br><a  href="https://www.downes.ca/post/35998" style="text-decoration:none;">What's The Number for Tech Support?</a><br><a  href="https://www.downes.ca/post/36125" style="text-decoration:none;">Autonomy</a><br><a  href="https://www.downes.ca/post/41726" style="text-decoration:none;">What Is Left?</a><br><a  href="https://www.downes.ca/post/37083" style="text-decoration:none;">The Form of Informal</a><br><a  href="https://www.downes.ca/post/49289" style="text-decoration:none;">The Cloud and Collaboration</a><br><a  href="https://www.downes.ca/post/39548" style="text-decoration:none;">Why the Semantic Web Will Fail</a><br><a  href="https://www.downes.ca/post/47419" style="text-decoration:none;">Last Year's Predictions For 2008, Reviewed</a><br><a  href="https://www.downes.ca/post/39956" style="text-decoration:none;">Naming Does Not Necessitate Existence</a><br><a  href="https://www.downes.ca/post/40399" style="text-decoration:none;">Open Source Assessment</a><br><a  href="https://www.downes.ca/post/40554" style="text-decoration:none;">How Do You Know?</a><br><a  href="https://www.downes.ca/post/41127" style="text-decoration:none;">What Are You, Who Are You, And How Do You Know?</a><br><a  href="https://www.downes.ca/post/49519" style="text-decoration:none;">Learning by Creating</a><br><a  href="https://www.downes.ca/post/41175" style="text-decoration:none;">Privacy, Security and Trust: Challenges for the Intangible Economy</a><br><a  href="https://www.downes.ca/post/41145" style="text-decoration:none;">Pseudorandom Thoughts On Privacy, Security and Trust</a><br><a  href="https://www.downes.ca/post/41161" style="text-decoration:none;">Putting It All Together... Privacy, Security, Cybercrime and Safety</a><br><a  href="https://www.downes.ca/post/48315" style="text-decoration:none;">TNP: 20 Years On</a><br><a  href="https://www.downes.ca/post/42358" style="text-decoration:none;">Kirschner, Sweller, Clark (2006) - Summary</a><br><a  href="https://www.downes.ca/post/42760" style="text-decoration:none;">Not the Edublog Award Winners</a><br><a  href="https://www.downes.ca/post/41390" style="text-decoration:none;">Social Network Portability</a><br><a  href="https://www.downes.ca/post/57385" style="text-decoration:none;">Social Media: Interview</a><br><a  href="https://www.downes.ca/post/48929" style="text-decoration:none;">2009 Conference Schedule</a><br><a  href="https://www.downes.ca/post/42812" style="text-decoration:none;">Free Learning and Control Learning: On the So-Called Failure of Constructivist, Discovery, Problem-Based, Experiential, and Inquiry-Based Teaching</a><br><a  href="https://www.downes.ca/post/42360" style="text-decoration:none;">The Personal Network Effect</a><br><a  href="https://www.downes.ca/post/42855" style="text-decoration:none;">Economics in a DRM-Free World</a><br><a  href="https://www.downes.ca/post/43419" style="text-decoration:none;">How Memory Works</a><br><a  href="https://www.downes.ca/post/44502" style="text-decoration:none;">Terry Anderson's Proposal</a><br><a  href="https://www.downes.ca/post/47344" style="text-decoration:none;">What Not To Build</a><br><a  href="https://www.downes.ca/post/43787" style="text-decoration:none;">On Home Schooling</a><br><a  href="https://www.downes.ca/post/47390" style="text-decoration:none;">Types of Meaning</a><br><a  href="https://www.downes.ca/post/47710" style="text-decoration:none;">Serialized Feeds</a><br><a  href="https://www.downes.ca/post/47762" style="text-decoration:none;">Access2OER: The CCK08 Solution</a><br><a  href="https://www.downes.ca/post/47871" style="text-decoration:none;">Thoughts On Solutions</a><br><a  href="https://www.downes.ca/post/49761" style="text-decoration:none;">Dumb Money or Dumb Coverage?</a><br><a  href="https://www.downes.ca/post/50050" style="text-decoration:none;">Copyright Consultation Submission</a><br><a  href="https://www.downes.ca/post/50128" style="text-decoration:none;">An Operating System for the Mind</a><br><a  href="https://www.downes.ca/post/50324" style="text-decoration:none;">Intelligent Communities Summit - Day One</a><br><a  href="https://www.downes.ca/post/50330" style="text-decoration:none;">Intelligent Communities Summit - Day Two</a><br><a  href="https://www.downes.ca/post/50451" style="text-decoration:none;">Thoughts on Trust</a><br><a  href="https://www.downes.ca/post/51263" style="text-decoration:none;">The Great Convergence</a><br><a  href="https://www.downes.ca/post/51273" style="text-decoration:none;">Content Delivery Networks</a><br><a  href="https://www.downes.ca/post/51467" style="text-decoration:none;">Learning Styles and Work Styles</a><br><a  href="https://www.downes.ca/post/51481" style="text-decoration:none;">The Most Important Question</a><br><a  href="https://www.downes.ca/post/51708" style="text-decoration:none;">Learning and Assessment</a><br><a  href="https://www.downes.ca/post/51916" style="text-decoration:none;">Social OS and Collective Construction of Knowledge</a><br><a  href="https://www.downes.ca/post/51917" style="text-decoration:none;">My 1995 Web Site</a><br><a  href="https://www.downes.ca/post/51952" style="text-decoration:none;">Here Is Where I Grew Up...</a><br><a  href="https://www.downes.ca/post/51977" style="text-decoration:none;">Three Models of Knowledge Production</a><br><a  href="https://www.downes.ca/post/52082" style="text-decoration:none;">Managing Metadata with Resource Profiles</a><br><a  href="https://www.downes.ca/post/52128" style="text-decoration:none;">Surveys Are Not Connective Knowledge</a><br><a  href="https://www.downes.ca/post/52145" style="text-decoration:none;">We Learn</a><br><a  href="https://www.downes.ca/post/52156" style="text-decoration:none;">Personal Knowledge: Transmission or Induction?</a><br><a  href="https://www.downes.ca/post/52207" style="text-decoration:none;">Collaboration and Cooperation</a><br><a  href="https://www.downes.ca/post/52442" style="text-decoration:none;">Connectivism and Transculturality</a><br><a  href="https://www.downes.ca/post/52443" style="text-decoration:none;">Connectivism and Transculturality</a><br><a  href="https://www.downes.ca/post/52444" style="text-decoration:none;">The Edge of Authority</a><br><a  href="https://www.downes.ca/post/52667" style="text-decoration:none;">Atlantic Workshop on Semantics and Services - Day 1</a><br><a  href="https://www.downes.ca/post/52669" style="text-decoration:none;">Atlantic Workshop on Semantics and Services - Day 2</a><br><a  href="https://www.downes.ca/post/52701" style="text-decoration:none;">A Series of Questions</a><br><a  href="https://www.downes.ca/post/52819" style="text-decoration:none;">Having Reasons</a><br><a  href="https://www.downes.ca/post/53081" style="text-decoration:none;">The New Improved CChat</a><br><a  href="https://www.downes.ca/post/55403" style="text-decoration:none;">The OER Debate, In Full</a><br><a  href="https://www.downes.ca/post/55376" style="text-decoration:none;">Martin Dougiamas on Moodle</a><br><a  href="https://www.downes.ca/post/55639" style="text-decoration:none;">Setting Up Windows 7</a><br><a  href="https://www.downes.ca/post/56022" style="text-decoration:none;">Review: The Edupunks' Guide, by Anya Kamenetz</a><br><a  href="https://www.downes.ca/post/56474" style="text-decoration:none;">Czech Course Followup Questions </a><br><a  href="https://www.downes.ca/post/55882" style="text-decoration:none;">Open Educational Resources: A Definition</a><br><a  href="https://www.downes.ca/post/55836" style="text-decoration:none;">The Google Plus Ecosystem</a><br><a  href="https://www.downes.ca/post/56416" style="text-decoration:none;">A Conversation on Innovation</a><br><a  href="https://www.downes.ca/post/56241" style="text-decoration:none;">How to Participate in the MOOC - 2</a><br><a  href="https://www.downes.ca/post/56238" style="text-decoration:none;">How to Participate in the MOOC</a><br><a  href="https://www.downes.ca/post/56570" style="text-decoration:none;">The Metasociety</a><br><a  href="https://www.downes.ca/post/56656" style="text-decoration:none;">BlogForever Interview</a><br><a  href="https://www.downes.ca/post/56708" style="text-decoration:none;">How to Get the Most out of a Conference</a><br><a  href="https://www.downes.ca/post/56764" style="text-decoration:none;">Online Newspaper Software</a><br><a  href="https://www.downes.ca/post/56861" style="text-decoration:none;">Musability</a><br><a  href="https://www.downes.ca/post/57003" style="text-decoration:none;">Knowledge and Recognition</a><br><a  href="https://www.downes.ca/post/57444" style="text-decoration:none;">What a MOOC Does</a><br><a  href="https://www.downes.ca/post/57418" style="text-decoration:none;">Knowledge, Learning and Community </a><br><a  href="https://www.downes.ca/post/57603" style="text-decoration:none;">Education as Platform: The MOOC Experience and what we can do to make it better </a><br><a  href="https://www.downes.ca/post/58292" style="text-decoration:none;">Feelings of Science</a><br><a  href="https://www.downes.ca/post/58939" style="text-decoration:none;">New Forms of Assessment</a><br><a  href="https://www.downes.ca/post/58973" style="text-decoration:none;">The Robot Teachers</a><br><a  href="https://www.downes.ca/post/59080" style="text-decoration:none;">K-12 MOOCs and Communities</a><br><a  href="https://www.downes.ca/post/59153" style="text-decoration:none;">The 'Course' in MOOC </a><br><a  href="https://www.downes.ca/post/59377" style="text-decoration:none;">Learning in the Digital Age: The Reality and the Myth </a><br><a  href="https://www.downes.ca/post/59414" style="text-decoration:none;">Predators and Producers: Whither Flat World </a><br><a  href="https://www.downes.ca/post/59415" style="text-decoration:none;">The Paradox of Democracy</a><br><a  href="https://www.downes.ca/post/59417" style="text-decoration:none;">International MOOCs Past and Present</a><br><a  href="https://www.downes.ca/post/59690" style="text-decoration:none;">2012 in Words and Pictures </a></p>
+    </div>
+
+
+</div><!-- Template: static_footer -->
+  <div class="row" style="padding:0"><!-- Footer -->
+    <div class="grid_12" style="line-height:4px;margin-bottom:4px;"><hr size=1></div></div>  
+
+<div class="row" style=padding:0"><!-- Footer -->
+    <div class="grid_5">
+
+<p class="h-card"><span style="float:left;margin-right:10px;margin-top:5px;">
+<a href="https://www.downes.ca/me/index.htm" style="text-decoration:none;"><img  class="u-photo" src="https://www.downes.ca/assets/images/stephen-small.PNG" width="100px" title="Stephen Downes" alt="Stephen Downes" border=0></a></span>
+<a class="p-name u-url" href="https://www.downes.ca">Stephen Downes</a>,   <span class="p-locality">Casselman</span>, <span class="p-country-name">Canada</span><br>
+
+
+  <a class="u-email" href="mailto:stephen@downes.ca">stephen@downes.ca</a> 
+
+</div>
+
+    <div class="grid_4">
+Copyright 2026 <br />
+Last Updated: Feb 04, 2026 11:22 a.m. <br />
+</div>
+
+<div class="grid_3"> 
+
+
+<p>
+<span style="float:right;">
+<img src="https://www.downes.ca/assets/images/canada tiny.PNG" alt="Canadian Flag" style="height:31px;">
+<a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/3.0/" alt="Canadian Flag"><img alt="Creative Commons License" style="border-width:0" src="https://www.downes.ca/files/images/88x31.png" /></a>.
+</span>
+</div>
+
+    
+    
+  </div>
+</div>
+</body>
+</html><!-- #end footer area --> 
+<!-- /Template: static_footer -->

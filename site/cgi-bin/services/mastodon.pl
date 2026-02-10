@@ -30,8 +30,7 @@ sub mastodon_post {
 
 
     my $status = &compose_microcontent($dbh,$table,$id,$tweet,500);
-
-
+    
 
    my $uri = "https://mastodon.social/api/v1/statuses";
    my $visibility = "public";

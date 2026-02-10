@@ -445,7 +445,8 @@ sub advice_modal {
 		return if ($Site->{context} eq "cron");
 		my $assets = $Site->{st_url}."assets";
 		return qq|
-			<html>
+		<!DOCTYPE html>
+			<html lang="en">
 			<head>
 			    <meta charset="utf-8">
 				<title>Admin $vars->{action} </title>
@@ -458,9 +459,6 @@ sub advice_modal {
 				<script src="$assets/js/jquery-ui.min.js"></script>
 				<!-- JQuery ToggleButton -->
 				<script src="$assets/js/select-togglebutton.js"></script>
-				<!-- CK Editor -->
-				<script src="//cdn.ckeditor.com/4.7.0/standard/ckeditor.js"></script>
-				<script src="//cdn.ckeditor.com/4.7.0/basic/adapters/jquery.js"></script>
 				<!-- File Upload -->
 				<script src="https://hayageek.github.io/jQuery-Upload-File/4.0.11/jquery.uploadfile.min.js" defer></script>
 				<!-- DateTime Picker -->
@@ -468,6 +466,8 @@ sub advice_modal {
 				<!-- Font-Awesome -->
 				<script src="https://kit.fontawesome.com/bf62bb2348.js"crossorigin="anonymous"></script>
 				<script src="$assets/js/hub_admin.js"></script>
+				<script src="https://www.downes.ca/assets/tinymce/tinymce.min.js" referrerpolicy="origin"></script>
+
 			</head>
 			<body>
 			<div id="spinner-donut" class="spinner-donut"></div>

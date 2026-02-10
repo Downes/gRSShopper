@@ -1,0 +1,185 @@
+<!-- Template: static_header -->
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!-->
+<html style="" class=" js flexbox canvas canvastext webgl touch geolocation postmessage no-websqldatabase indexeddb hashchange history draganddrop websockets rgba hsla multiplebgs backgroundsize borderimage borderradius boxshadow textshadow opacity cssanimations csscolumns cssgradients no-cssreflections csstransforms csstransforms3d csstransitions fontface generatedcontent video audio localstorage sessionstorage webworkers applicationcache svg inlinesvg smil svgclippaths"><!--<![endif]--><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="google-site-verification" content="JpKCsE4k0qiGU4zw7TcoNCrbvqAwdxygaBU-rVu_Xig" />
+
+<title>Downes.ca ~ Are marketing orthodoxies limiting online student recruitment? </title>
+<meta name="description" content="Commentary on Are marketing orthodoxies limiting online student recruitment?  by Stephen Downes. Online learning, e-learning, new media, connectivism, MOOCs, personal learning environments, new literacy, and more">
+<meta name="keywords" content="">
+
+<link rel="alternate" title="OLDaily JSON" type="application/json" href="https://www.downes.ca/news/OLDaily.json" />
+<link rel="alternate" title="OLDaily RSS" type="application/rss" href="https://www.downes.ca/news/OLDaily.xml" />
+<link rel="share-url" href="https://www.downes.ca/post/78805?text=Are marketing orthodoxies limiting online student recruitment? ">
+
+<!-- Metadata -->
+<link rel="schema.DC" href="https://purl.org/dc/elements/1.1/">
+<meta name="DC.title" content="Are marketing orthodoxies limiting online student recruitment? ">
+<meta name="DC.description" content="Commentary on Are marketing orthodoxies limiting online student recruitment?  by Stephen Downes">
+<meta name="DC.creator" content="Stephen Downes">
+<meta name="DC.date" content="2026-02-04T11:22:00">
+<meta name="DC.identifier" content="https://www.downes.ca/post/78805">
+<meta name="fediverse:creator" content="@Downes@mastodon.social" />
+<meta name="fediverse:creator" content="@Downes@cosocial.ca" />
+<meta property="og:title" content="Are marketing orthodoxies limiting online student recruitment? " />
+<meta property="og:image" content="https://www.downes.ca/files/images/post_78805.jpg" />
+<meta property="og:image:secure_url" content="https://www.downes.ca/files/images/post_78805.jpg" />
+<meta property="og:image:type" content="image/jpeg" />
+<meta property="og:image:alt" content="Icon for Are marketing orthodoxies limiting online student recruitment? " />
+
+
+
+<!-- Mobile viewport -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<!-- icons -->
+<link rel="icon" href="https://www.downes.ca/assets/icons/favicon.ico" type="image/x-icon"/>
+<link rel="manifest" href="https://www.downes.ca/assets/icons/manifest.json">
+<meta name="msapplication-TileColor" content="#ffffff">
+<meta name="msapplication-TileImage" content="https://www.downes.ca/assets/icons/ms-icon-144x144.png">
+<meta name="theme-color" content="#ffffff"><!-- End Icons -->
+
+<!-- CSS-->
+
+<!-- link rel="stylesheet" href="https://www.downes.ca/assets/css/normalize.css" -->
+<!-- link rel="stylesheet" href="https://www.downes.ca/assets/js/flexslider/flexslider.css" -->
+<link rel="stylesheet" href="https://www.downes.ca/assets/css/basic-style.css">
+
+<!-- end CSS-->
+    
+<!-- JS-->
+<!--
+<script src="https://www.downes.ca/assets/js/libs/modernizr-2.6.2.min.js"></script>
+-->
+
+<!-- end JS-->
+
+
+
+
+</head>
+
+
+<body id="home">
+<!-- header area -->
+<div class="wrapper">
+
+
+   <div class="row"><!-- Header Row -->
+
+        <!-- Title -->
+        <div class="grid_12">
+
+        <!-- Sparrow -->
+<span style="float:left;max-width: 150px;  width:10%; height:auto;  display: inline-block; vertical-align: middle;><a  href="https://www.downes.ca/index.html" style="text-decoration:none;"><img src="https://www.downes.ca/assets/images/clear-sparrow.png" border=0 ></a></span>
+
+         <!-- Site Name -->
+          <span style="float:left; margin-left:10px;height:auto;"><a  href="https://www.downes.ca/index.html" style="text-decoration:none; margin-bttom:0pt;"><h1 style="margin-left:0px;">Stephen Downes</h1></a>Knowledge, Learning, Community</span>
+       
+     </div><!-- End Title -->
+     </div><!-- End Header Row -->
+
+     <!-- Navbar -->
+     <style>.navitems {margin-right:0.5em;float:left;}</style>
+     <div class="row"  style="clear:both;padding-bottom:10px;border-bottom:solid 1px black;margin-bottom:2px;"><div class="grid_12"><form action="https://www.downes.ca/cgi-bin/page.cgi" method="post" id="search-section-form" accept-charset="UTF-8" style="margin:0px;"><span class="navitems">[<a  href="https://www.downes.ca/me/mybooks.htm">Books</a>]</span><span  class="navitems">
+[<a  href="https://www.downes.ca/publications.htm">Publications</a>]</span><span  class="navitems">
+[<a  href="https://www.downes.ca/news/OLDaily.htm">Newsletter</a>]</span><span  class="navitems">
+[<a  href="https://www.downes.ca/cgi-bin/page.cgi?action=search">Posts</a>]</span><span  class="navitems">
+[<a  href="https://www.downes.ca/articles.htm">Articles</a>]</span><span  class="navitems">
+[<a  href="https://www.downes.ca/presentations.htm">Presentations</a>]</span><span  class="navitems">
+[<a  href="https://www.downes.ca/about.htm">About</a>]</span><span  class="navitems">
+[<a  href="https://docs.google.com/document/d/1HG3gUJlT8Wg-GvOL_FCCtUHVqSIYy6dZZ44FYdnq8AU/edit?usp=sharing">Now</a>]</span><span  class="navitems">
+       <input name="action" value="search" type="hidden">
+       <input type="text" placeholder="Search" id="edit-section-keys" name="q" value="" class="form-text"  style="padding:0px;margin:0px;"/></span>
+</div> </form><!-- End Navbar -->
+
+   </div>
+
+<!-- /Template: static_header --><!-- Begin Post -->
+<article class="h-entry">
+     <div class="row" style="height:1.5em;margin-right:1px;"><!-- Navbar -->
+      <div class="grid_12" style="background-color:#eeecec;height:1.5em;">
+<span style="float:left">[<a class="next" href="https://www.downes.ca/post/78804">Previous</a>]</span>
+<span style="float:right">[<a class="next" href="https://www.downes.ca/post/78806">Next</a>]</span>
+<center><a  href="https://www.downes.ca/subscribe.htm">Subscribe to OLDaily</a>
+</div></div>
+
+      <div class="row"><!-- Post -->
+      <div class="grid_12"><!-- Title and byline -->
+
+   <a  href="https://www.downes.ca/post/78805/rd"><h2 class="p-name">Are marketing orthodoxies limiting online student recruitment? </h2></a>
+   <p>
+   <a  href="https://www.downes.ca/author/25391" style="text-decoration:none;">Neil Mosley</a>, 
+   <a  href="https://www.downes.ca/feed/9503" style="text-decoration:none;">Neil Mosley Consulting</a>, 
+   Jan 30, 2026<br>
+   <time class="dt-published" datetime="Fri, 30 Jan 2026 15:46:00 -0400">
+   <i>Commentary by <a class="p-author h-card" href="https://www.downes.ca/">Stephen Downes</a></i>
+   </p>
+
+    </div>
+    </div>
+
+       <div class="row">
+       <div class="grid_12"><!-- Text -->
+  
+
+   <div style="width:49%;min-width:300px;float:left;">
+      <div class="e-content post_body"> <p>"I've begun to increasingly question whether the playbook for online student marketing and recruitment has become too formulaic and rigid," writes&nbsp; Neil Mosley. "I've also begun to speculate on whether this is limiting recruitment opportunities and, in some instances, constraining universities from being more competitive."</p> </div>
+      <div class="post_enclosures"></div>
+      <div class="post_services"><p><p style="font-size:9pt;">Today:  Total:   [<a class="u-in-reply-to" href="https://www.neilmosley.com/blog/are-marketing-orthodoxies-limiting-online-student-recruitment">Direct link</a>] [<a  href="https://shareopenly.org/share/?url=https://www.downes.ca/post/78805">Share</a>]</p></div>
+
+   </div>
+
+<div style="width:47%;min-width:300px;float:left;margin-left:4%">  
+<img src="https://www.downes.ca//files/images/post_78805.jpg" alt="Image from the website">
+ <br><span style="font-variant-caps: small-caps;font-size:8pt;"><p></span>
+</div>
+
+       </div>
+      </div>
+</article>  
+<!-- Template: static_footer -->
+  <div class="row" style="padding:0"><!-- Footer -->
+    <div class="grid_12" style="line-height:4px;margin-bottom:4px;"><hr size=1></div></div>  
+
+<div class="row" style=padding:0"><!-- Footer -->
+    <div class="grid_5">
+
+<p class="h-card"><span style="float:left;margin-right:10px;margin-top:5px;">
+<a href="https://www.downes.ca/me/index.htm" style="text-decoration:none;"><img  class="u-photo" src="https://www.downes.ca/assets/images/stephen-small.PNG" width="100px" title="Stephen Downes" alt="Stephen Downes" border=0></a></span>
+<a class="p-name u-url" href="https://www.downes.ca">Stephen Downes</a>,   <span class="p-locality">Casselman</span>, <span class="p-country-name">Canada</span><br>
+
+
+  <a class="u-email" href="mailto:stephen@downes.ca">stephen@downes.ca</a> 
+
+</div>
+
+    <div class="grid_4">
+Copyright 2026 <br />
+Last Updated: Feb 04, 2026 11:22 a.m. <br />
+</div>
+
+<div class="grid_3"> 
+
+
+<p>
+<span style="float:right;">
+<img src="https://www.downes.ca/assets/images/canada tiny.PNG" alt="Canadian Flag" style="height:31px;">
+<a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/3.0/" alt="Canadian Flag"><img alt="Creative Commons License" style="border-width:0" src="https://www.downes.ca/files/images/88x31.png" /></a>.
+</span>
+</div>
+
+    
+    
+  </div>
+</div>
+</body>
+</html><!-- #end footer area --> 
+<!-- /Template: static_footer -->

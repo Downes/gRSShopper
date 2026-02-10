@@ -1,7 +1,7 @@
 #/bin/bash
 set -e
 repository="https://github.com/Downes/gRSShopper"
-base="/var/www/$1/"
+base="/srv/www/$1/"
 echo "Base is ${base}"
 html="${base}html/"
 mkdir -p "${html}"

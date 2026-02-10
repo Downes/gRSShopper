@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"  xmlns:atom="http://www.w3.org/2005/Atom">
+   <channel>
+      <title>Stephen's Web ~ OLDaily</title>
+      <link>http://www.downes.ca/</link>
+      <description>News and opinions related to online learning and new media.</description>
+      <language>en-us</language>
+      <pubDate>Wed, 04 Feb 2026 19:37:00 -0400</pubDate>
+      <lastBuildDate>Wed, 04 Feb 2026 19:37:00 -0400</lastBuildDate>
+      <docs>http://blogs.law.harvard.edu/tech/rss</docs>
+      <generator>Edu_RSS</generator>
+      <managingEditor>stephen@downes.ca (Stephen Downes)</managingEditor>
+      <webMaster>stephen@downes.ca (Stephen Downes)</webMaster>
+      <atom:link href="https://www.downes.ca/news/OLDaily.xml" rel="self" type="application/rss+xml" />
+
+
+
+       <item>
+          <title>The rise of Moltbook suggests viral AI prompts may be the next big security threat</title>
+	  <link>http://www.downes.ca/post/78807/rd</link>
+<description>
+<![CDATA[ 
+<span class="postByline">
+<a  href="https://www.downes.ca/author/25682" style="text-decoration:none;">Benj Edwards</a>, 
+<a  href="https://www.downes.ca/feed/7204" style="text-decoration:none;">The Guardian</a>, 
+Feb 04, 2026</span>
+<span class="postBody">
+<p>
+Web: [<a  href="https://arstechnica.com/ai/2026/02/the-rise-of-moltbook-suggests-viral-ai-prompts-may-be-the-next-big-security-threat/">Direct Link</a>] [<a  href="https://www.downes.ca/post/78807">This Post</a>]<br/>
+</span>
+]]>
+</description>
+
+         <pubDate>Wed, 04 Feb 2026 19:37:00 -0400</pubDate>
+         <guid>http://www.downes.ca/cgi-bin/page.cgi?post=78807</guid>
+      </item>
+       <item>
+          <title>Test post</title>
+	  <link>http://www.downes.ca/post/78806/rd</link>
+<description>
+<![CDATA[ 
+<span class="postByline">
+<a  href="https://www.downes.ca/author/1" style="text-decoration:none;">Stephen Downes</a>, 
+<a  href="https://www.downes.ca/feed/173" style="text-decoration:none;">Half an Hour</a>, 
+Feb 04, 2026</span>
+<span class="postBody">
+<p><p>This is totally a test of gRSShopper</p>
+Web: [<a  href="https://www.downes.ca/">Direct Link</a>] [<a  href="https://www.downes.ca/post/78806">This Post</a>]<br/>
+</span>
+]]>
+</description>
+
+         <pubDate>Wed, 04 Feb 2026 19:37:00 -0400</pubDate>
+         <guid>http://www.downes.ca/cgi-bin/page.cgi?post=78806</guid>
+      </item>
+
+   </channel>
+</rss>

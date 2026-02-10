@@ -268,88 +268,93 @@ sub form_textarea {
 	# -------------------------------------------------------------------------
 sub form_wysihtml {
 	my ($table,$id,$col,$value,$size,$advice) = @_;
-  	my $url = $Site->{st_cgi}."api.cgi";
+  my $url = $Site->{st_cgi}."api.cgi";
+  unless ($size =~ /x/i) { $size = "50x".$size; }
 	my ($width,$height) = split 'x',$size;
 	$height ||= 10;
 	$width ||= 40;
-	$wwidth ||= '100%';
-	$ckheight = $height-3;  #Leaves room for toolbars
 
-
-	my $placeholder = ucfirst($col); $placeholder =~ s/_/ /g;
 	my $fieldlable = &fieldlable($col,$table);
-
-	$value ||= $placeholder;
+	my $placeholder = ucfirst($col); $placeholder =~ s/_/ /g;
+	#$value ||= $col;
 
 	# Old-Style Form Alternative
 	if (defined($vars->{raw_form})) { return qq|$col<br><textarea name="$col" cols="$width" rows="$height">$value</textarea>|; }
 
+
 	# Escape markup
-	$value =~ s/</&lt;/sig;
-	$value =~ s/>/&gt;/sig;
+#	$value =~ s/</&lt;/sig;
+#	$value =~ s/>/&gt;/sig;
+#	$value =~ s/&amp;/&/sig;
+	$value =~ s/&lt;/</sig;
+		$value =~ s/<p>//sig;
+		$value =~ s/<\/p>//sig;
+	$value =~ s/&gt;/>/sig;
+	$selector = $col.$id.time;  # Create a unique version of the editor each time we view this field
+								# because it loses track of the old ones, hpefully not a major memory leak
+# |.$col.qq| 
+# 	<div class='textareaqs' contenteditable="true" id="$selector">$value</div>
 
 	return qq|
+		<div class="text-input">
+		   <label for="$col">$fieldlable</label>$advice
+		   <div class="text-input-form">
+			
 
-		<!-- Integration based on instructions here http://docs.ckeditor.com/#!/guide/dev_jquery - Downes -->
-		<!-- CKEditor  width is sized using the div -->
-    	<div id="editordiv" class="text-input" style="width:|.$width.qq|em;">
-			<label for="$col">$fieldlable</label>
-			<div class="text-input-form">
-    			<textarea id="|.$col.qq|" contenteditable="true" class="text-input-textarea"
-					style="width:|.$width.qq|em;height:|.$height.qq|em;">$value</textarea>
-				<div id="|.$col.qq|_result"></div>$advice
-			</div>
-   		</div>
-		<script>
-   		\$( document ).ready(function() {
-			CKEDITOR.replace( '|.$col.qq|', {
-				width: '|.$wwidth.qq|',
-				height: '|.$ckheight.qq|em',
-				// Define the toolbar groups as it is a more accessible solution.
-				toolbarGroups: [
-					{"name":"basicstyles","groups":["basicstyles"]},
-					{"name":"links","groups":["links"]},
-					{"name":"insert","groups":["insert"]},
-					{"name":"paragraph","groups":["list","blocks"]},
-					{"name":"styles","groups":["styles"]},
-					{"name":"document","groups":["mode"]}
-				],
-				// Remove the redundant buttons from toolbar groups defined above.
-				removeButtons: 'Underline,Strike,Subscript,Superscript,Anchor,Styles,Specialchar'} 
-			);
+				<!-- Create the editor container -->
+				<textarea id="$selector" contenteditable="true" onClick="alert('click');" onChange="alert('change');">
+				$value
+				</textarea>
 
-			var editor = CKEDITOR.instances['|.$col.qq|'];
-			var timer_|.$col.qq|;
+				<div id="|.$col.qq|_result"></div> 
+		   </div>
+		</div>
 
-			editor.on('change',function(){
-				// do stuff only when user has been idle for 1 second
-				clearTimeout(timer_|.$col.qq|);
-				timer_|.$col.qq| = setTimeout(function() {
+		
+<!-- Initialize Quill editor -->
+<script>
+tinymce.init({
+ 	target: $selector,
+	menubar: false,
+	plugins: 'link image code',
+	toolbar: 'bold italic link image code',
+	relative_urls: false,
+    remove_script_host: false,
+    convert_urls: true,  
 
-					// Submit Changed Content
-					var url = "$url";
-					var editor = CKEDITOR.instances['|.$col.qq|'];
-					var content = editor.getData();
+	setup: function (editor) {
 
-					submitData(
-						{div:'|.$col.qq|_result',
-                                                formtype:'wysihtml',
-						cmd:'update',
-						table:'$table',
-						field:'$col',
-						id:'$id',
-						value: content, }
-					);
-					var previewUrl = url+"?cmd=show&table=$table&id=$id&format=summary";
-					\$('#Preview').load("previewUrl");
-				},1000);
-			});
+		editor.on('click', function () {
+			console.log('Editor was clicked');
+
 		});
-		</script>
+
+		editor.on('change', function () {
+			console.log('Editor was changed');
+			var content = editor.getContent();
+			document.getElementById('$selector').innerHTML = content;
+			var tempo = document.getElementById('$selector').innerHTML;
+console.log(tempo);
+
+			submitData(
+				{   div:'|.$col.qq|_result',
+					cmd:'update',
+					table:'$table',
+					field:'$col',
+					id:'$id',
+					value: content,
+				});
+
+
+
+
+			
+		});
+	}
+});
+</script>
 
 	|;
-
-
 }
 
 	# FORM ELEMENT ----------------------------------------------------------
@@ -1417,7 +1422,7 @@ sub form_publish {
 
 # Badges
   if ($table eq "badge") { @accounts = qw(Badgr); }
-  else {  @accounts = qw(Web Twitter Mastodon Facebook RSS JSON); }
+  else {  @accounts = qw(Web Twitter Mastodon Bluesky Facebook RSS JSON); }
 
 	# List of supported social media sites
 

@@ -12,6 +12,14 @@
 	#
 	# ---------------------------------------------------------------------------------------------------
 
+sub record_to_json {
+
+	my ($dbh,$table,$id_number) = @_;
+	my $record = &db_get_record($dbh,$table,{$table."_id"=>$id_number});
+	return &hash_to_json($record);
+
+}
+
 sub record_submit {
 
 	my ($dbh,$vars,$return) = @_;
@@ -107,6 +115,7 @@ sub record_graph {
 sub record_sanitize_input {
 
 
+
 	my ($vars,$opts) = @_;
 
 	 unless (ref($vars)) { 
@@ -114,20 +123,20 @@ sub record_sanitize_input {
 	}
 	while (my ($vkey,$vval) = each %$vars) {
 		$vars->{msg} .= "Received to sanitize: ".$vars->{$vkey}." --";
-		if ($vkey =~ /title/) {
-		#$vars->{$vkey} .= "Sanitized"; }
-		#$vars->{$vkey} = &sanitized($vars->{$vkey},$opts);
-		}
+		$vars->{$vkey} = &sanitized($vars->{$vkey},$opts);
+
 	}
 }
 
 sub sanitized {
 
 	my ($str,$opts) = @_;
+	$str =~ s/#!/hashbang/g;	# No programs!
+	$str =~ s/'/&apos;/g;		# No SQL injections
+	return $str;
 return;
 
-	$str =~ s/#!/hashbang/g;	# No programs!
-	$str =~ s/'/&apos;/g;	#     No SQL injections
+
 
 	# If it's not from a JS editor, auto-insert spaces
 		unless ($str =~ /^<p>/i) {
@@ -136,8 +145,12 @@ return;
 	#		$vars->{$vkey} =~ s/\n\n\n/\n\n/g; $vars->{$vkey} =~ s/\n/<br\/>/g;
 		}
 
+	use HTML::Entities;
+	use utf8;							# Turns out if you don't also use this, encode_entities doesn't work
+	$str = encode_entities($str);
+
 	#use HTML::Entities;
-	#$str = encode_entities($str);
+	#
 	$str =~ s/<(\/|)(scr|if|ob|e|t)(.*?)>//sig;	# No scripts, iframes, embeds, tables
 	if ($opts->{nolinks}) { $str =~ s/<(\/|)(a|img)(.*?)>//sig; }	# No links, images
 	

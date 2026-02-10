@@ -1,0 +1,252 @@
+<!-- Template: static_header -->
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!-->
+<html style="" class=" js flexbox canvas canvastext webgl touch geolocation postmessage no-websqldatabase indexeddb hashchange history draganddrop websockets rgba hsla multiplebgs backgroundsize borderimage borderradius boxshadow textshadow opacity cssanimations csscolumns cssgradients no-cssreflections csstransforms csstransforms3d csstransitions fontface generatedcontent video audio localstorage sessionstorage webworkers applicationcache svg inlinesvg smil svgclippaths"><!--<![endif]--><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="google-site-verification" content="JpKCsE4k0qiGU4zw7TcoNCrbvqAwdxygaBU-rVu_Xig" />
+
+<title>Downes.ca ~ The Guardian</title>
+<meta name="description" content="Commentary on The Guardian by Stephen Downes. Online learning, e-learning, new media, connectivism, MOOCs, personal learning environments, new literacy, and more">
+<meta name="keywords" content="">
+
+<link rel="alternate" title="OLDaily JSON" type="application/json" href="https://www.downes.ca/news/OLDaily.json" />
+<link rel="alternate" title="OLDaily RSS" type="application/rss" href="https://www.downes.ca/news/OLDaily.xml" />
+<link rel="share-url" href="https://www.downes.ca/post/?text=The Guardian">
+
+<!-- Metadata -->
+<link rel="schema.DC" href="https://purl.org/dc/elements/1.1/">
+<meta name="DC.title" content="The Guardian">
+<meta name="DC.description" content="Commentary on The Guardian by Stephen Downes">
+<meta name="DC.creator" content="Stephen Downes">
+<meta name="DC.date" content="2026-02-04T20:09:00">
+<meta name="DC.identifier" content="https://www.downes.ca/post/">
+<meta name="fediverse:creator" content="@Downes@mastodon.social" />
+<meta name="fediverse:creator" content="@Downes@cosocial.ca" />
+<meta property="og:title" content="The Guardian" />
+<meta property="og:image" content="https://www.downes.ca/files/images/post_.jpg" />
+<meta property="og:image:secure_url" content="https://www.downes.ca/files/images/post_.jpg" />
+<meta property="og:image:type" content="image/jpeg" />
+<meta property="og:image:alt" content="Icon for " />
+
+
+
+<!-- Mobile viewport -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<!-- icons -->
+<link rel="icon" href="https://www.downes.ca/assets/icons/favicon.ico" type="image/x-icon"/>
+<link rel="manifest" href="https://www.downes.ca/assets/icons/manifest.json">
+<meta name="msapplication-TileColor" content="#ffffff">
+<meta name="msapplication-TileImage" content="https://www.downes.ca/assets/icons/ms-icon-144x144.png">
+<meta name="theme-color" content="#ffffff"><!-- End Icons -->
+
+<!-- CSS-->
+
+<!-- link rel="stylesheet" href="https://www.downes.ca/assets/css/normalize.css" -->
+<!-- link rel="stylesheet" href="https://www.downes.ca/assets/js/flexslider/flexslider.css" -->
+<link rel="stylesheet" href="https://www.downes.ca/assets/css/basic-style.css">
+
+<!-- end CSS-->
+    
+<!-- JS-->
+<!--
+<script src="https://www.downes.ca/assets/js/libs/modernizr-2.6.2.min.js"></script>
+-->
+
+<!-- end JS-->
+
+
+
+
+</head>
+
+
+<body id="home">
+<!-- header area -->
+<div class="wrapper">
+
+
+   <div class="row"><!-- Header Row -->
+
+        <!-- Title -->
+        <div class="grid_12">
+
+        <!-- Sparrow -->
+<span style="float:left;max-width: 150px;  width:10%; height:auto;  display: inline-block; vertical-align: middle;><a  href="https://www.downes.ca/index.html" style="text-decoration:none;"><img src="https://www.downes.ca/assets/images/clear-sparrow.png" border=0 ></a></span>
+
+         <!-- Site Name -->
+          <span style="float:left; margin-left:10px;height:auto;"><a  href="https://www.downes.ca/index.html" style="text-decoration:none; margin-bttom:0pt;"><h1 style="margin-left:0px;">Stephen Downes</h1></a>Knowledge, Learning, Community</span>
+       
+     </div><!-- End Title -->
+     </div><!-- End Header Row -->
+
+     <!-- Navbar -->
+     <style>.navitems {margin-right:0.5em;float:left;}</style>
+     <div class="row"  style="clear:both;padding-bottom:10px;border-bottom:solid 1px black;margin-bottom:2px;"><div class="grid_12"><form action="https://www.downes.ca/cgi-bin/page.cgi" method="post" id="search-section-form" accept-charset="UTF-8" style="margin:0px;"><span class="navitems">[<a  href="https://www.downes.ca/me/mybooks.htm">Books</a>]</span><span  class="navitems">
+[<a  href="https://www.downes.ca/publications.htm">Publications</a>]</span><span  class="navitems">
+[<a  href="https://www.downes.ca/news/OLDaily.htm">Newsletter</a>]</span><span  class="navitems">
+[<a  href="https://www.downes.ca/cgi-bin/page.cgi?action=search">Posts</a>]</span><span  class="navitems">
+[<a  href="https://www.downes.ca/articles.htm">Articles</a>]</span><span  class="navitems">
+[<a  href="https://www.downes.ca/presentations.htm">Presentations</a>]</span><span  class="navitems">
+[<a  href="https://www.downes.ca/about.htm">About</a>]</span><span  class="navitems">
+[<a  href="https://docs.google.com/document/d/1HG3gUJlT8Wg-GvOL_FCCtUHVqSIYy6dZZ44FYdnq8AU/edit?usp=sharing">Now</a>]</span><span  class="navitems">
+       <input name="action" value="search" type="hidden">
+       <input type="text" placeholder="Search" id="edit-section-keys" name="q" value="" class="form-text"  style="padding:0px;margin:0px;"/></span>
+</div> </form><!-- End Navbar -->
+
+   </div>
+
+<!-- /Template: static_header --><div class="row">
+    <div class="col-sm-12">  
+    <h2>Feed Record: The Guardian</h2>
+    </div>
+
+</div>
+<div class="row">
+    <div class="col-sm-12 col-md-2 col-lg-2"> 
+    <p>This is information about one of the sources cited in the OLDaily newsletter.</p>
+<p>
+  <admin feed,7204></p>
+<p>Status: O</p>
+<p>Author: <span class="feed_author"></span><br />
+ <br>
+<table cellmargin=0 cellpadding=3 border=1>
+<tr><td>Language</td><td></td></tr>
+<tr><td>Copyright</td><td></td></tr>
+<tr><td>Last Updated</td><td>  </td></tr>
+<tr><td>Updates</td><td>  </td></tr>
+<tr><td>Generator</td><td>  </td></tr>
+</table>
+<p>Information about this feed is obtained from the    feed  source. Feed owners may supply additional information by updating their file or by sending email to <a  href="mailto:stephen@downes.ca">stephen@downes.ca</a>
+</p>
+   </div>
+    <div class="col-sm-12 col-md-3 col-lg-2" style="border:solid black 1px;"><h4>Contributors</h4>
+    <p><a  href="https://www.downes.ca/author/21554">Alex Beard</a><br>
+Attempting to format author but no record ID provided.<a  href="https://www.downes.ca/author/21728">Jim Waterson</a><br>
+<a  href="https://www.downes.ca/author/15390">Bonnie Malkin</a><br>
+<a  href="https://www.downes.ca/author/21946">Simon Parkin</a><br>
+<a  href="https://www.downes.ca/author/15643">Kwame Anthony Appiah</a><br>
+<a  href="https://www.downes.ca/author/21961">ZoÃ« Corbyn</a><br>
+<a  href="https://www.downes.ca/author/16590">Hannah Devlin</a><br>
+<a  href="https://www.downes.ca/author/16692">Charlotte Blease</a><br>
+<a  href="https://www.downes.ca/author/16740">Larry Elliott</a><br>
+<a  href="https://www.downes.ca/author/22006">Andrew Anthony</a><br>
+<a  href="https://www.downes.ca/author/17283">Jenny Rohn</a><br>
+<a  href="https://www.downes.ca/author/17484">Sam Levin</a><br>
+<a  href="https://www.downes.ca/author/4332">Agence France-Presse</a><br>
+<a  href="https://www.downes.ca/author/11813">Sally Weale</a><br>
+<a  href="https://www.downes.ca/author/10769">Alex Hern</a><br>
+<a  href="https://www.downes.ca/author/11632">Rebecca Ratcliffe</a><br>
+<a  href="https://www.downes.ca/author/20099">Stephen Buranyi</a><br>
+<a  href="https://www.downes.ca/author/10126">Ian Sample</a><br>
+<a  href="https://www.downes.ca/author/20309">Nick Srnicek</a><br>
+<a  href="https://www.downes.ca/author/20321">Matt Haig</a><br>
+<a  href="https://www.downes.ca/author/10820">Paul Lewis</a><br>
+<a  href="https://www.downes.ca/author/20549">Olivia Solon</a><br>
+<a  href="https://www.downes.ca/author/20768">John Harris</a><br>
+<a  href="https://www.downes.ca/author/6529">Julian Baggini</a><br>
+<a  href="https://www.downes.ca/author/10117">Oliver Burkeman</a><br>
+<a  href="https://www.downes.ca/author/22498">Rob Walker</a><br>
+<a  href="https://www.downes.ca/author/22500">Steven Poole</a><br>
+<a  href="https://www.downes.ca/author/22631">Stuart Heritage</a><br>
+<a  href="https://www.downes.ca/author/22645">Andrew Przybylski</a><br>
+<a  href="https://www.downes.ca/author/22646">Amy Orben</a><br>
+<a  href="https://www.downes.ca/author/22747">Simon Goodley</a><br>
+<a  href="https://www.downes.ca/author/22748">Rupert Neate</a><br>
+<a  href="https://www.downes.ca/author/11045">Leo Mirani</a><br>
+<a  href="https://www.downes.ca/author/24309">Sarah Maddison</a><br>
+<a  href="https://www.downes.ca/author/24341">Paul Vallely</a><br>
+<a  href="https://www.downes.ca/author/6533">Keith Stuart</a><br>
+<a  href="https://www.downes.ca/author/24639">Julian Coman</a><br>
+<a  href="https://www.downes.ca/author/9210">James Ball</a><br>
+<a  href="https://www.downes.ca/author/25257">Amelia Tait</a><br>
+<a  href="https://www.downes.ca/author/25279">Laura Snapes</a><br>
+<a  href="https://www.downes.ca/author/25534">Laura Spinney</a><br>
+<a  href="https://www.downes.ca/author/25943">Zoe Williams</a><br>
+<a  href="https://www.downes.ca/author/26081">Wil Crisp</a><br>
+<a  href="https://www.downes.ca/author/26082">Vikram Dodd</a><br>
+<a  href="https://www.downes.ca/author/26087">Richard Luscombe</a><br>
+<a  href="https://www.downes.ca/author/26129">Josh Taylor</a><br>
+<a  href="https://www.downes.ca/author/26203">Lucy Knight</a><br>
+<a  href="https://www.downes.ca/author/26336">Wilfred Chan</a><br>
+<a  href="https://www.downes.ca/author/1461">John Naughton</a><br>
+<a  href="https://www.downes.ca/author/26746">Maya Yang</a><br>
+<a  href="https://www.downes.ca/author/26752">Caitlin Cassidy</a><br>
+<a  href="https://www.downes.ca/author/26870">Rachel Signer</a><br>
+<a  href="https://www.downes.ca/author/26937">Anna Fazackerley</a><br>
+<a  href="https://www.downes.ca/author/27952">Simon Reynolds</a><br>
+<a  href="https://www.downes.ca/author/27972">Nancy Jo Sales</a><br>
+<a  href="https://www.downes.ca/author/28007">Guardian community team</a><br>
+<a  href="https://www.downes.ca/author/28022">Rachel Hall</a><br>
+<a  href="https://www.downes.ca/author/28130">Robin McKie</a><br>
+<a  href="https://www.downes.ca/author/28667">Alan Connor</a><br>
+<a  href="https://www.downes.ca/author/29592">Josh Taylor,Tamsin Rose</a><br>
+<a  href="https://www.downes.ca/author/30126">Arash Abizadeh</a><br>
+<a  href="https://www.downes.ca/author/30491">Sarah Manavis</a><br>
+<a  href="https://www.downes.ca/author/30898">Joel Snape</a><br>
+<a  href="https://www.downes.ca/author/31040">Allison Pugh</a><br>
+<a  href="https://www.downes.ca/author/31628">Tom Wall</a><br>
+<a  href="https://www.downes.ca/author/32207">Dharna Noor</a><br>
+<a  href="https://www.downes.ca/author/32212">Miranda Bryant</a><br>
+<a  href="https://www.downes.ca/author/2042">Tim Berners-Lee</a><br>
+<a  href="https://www.downes.ca/author/32472">Robert Booth</a><br>
+<a  href="https://www.downes.ca/author/32491">Eric Reinhart</a><br>
+<a  href="https://www.downes.ca/author/14151">Richard Adams</a><br>
+<a  href="https://www.downes.ca/author/25682">Benj Edwards</a><br>
+</p>    
+    </div>
+    <div class="class="col-sm-12 col-md-3 col-lg-2" style="border-top:solid black 1px;">  
+          <h4>Writes about</h4>
+
+    </div>
+    <div class="col-sm-12 col-md-4 col-lg-6" style="border:solid black 1px;">  
+         <h4>Recent Posts</h4>
+
+<p><a  href="https://www.downes.ca/post/67961" style="text-decoration:none;">How babies learn â€“ and why robots canâ€™t compete</a><br><a  href="https://www.downes.ca/post/68171" style="text-decoration:none;">Facebook scraps 'outdated' trending news section </a><br><a  href="https://www.downes.ca/post/68237" style="text-decoration:none;">Fears mount over WhatsApp's role in spreading fake news</a><br><a  href="https://www.downes.ca/post/65923" style="text-decoration:none;">English man spends 11 hours trying to make cup of tea with Wi-Fi kettle </a><br><a  href="https://www.downes.ca/post/68571" style="text-decoration:none;">The YouTube stars heading for burnout: â€˜The most fun job imaginable became deeply bleakâ€™ </a><br><a  href="https://www.downes.ca/post/66041" style="text-decoration:none;">There is no such thing as western civilisation</a><br><a  href="https://www.downes.ca/post/68589" style="text-decoration:none;">Decentralisation: the next big step for the world wide web</a><br><a  href="https://www.downes.ca/post/66206" style="text-decoration:none;">Could online tutors and artificial intelligence be the future of teaching? </a><br><a  href="https://www.downes.ca/post/66258" style="text-decoration:none;">Philosophy can teach children what Google canâ€™t </a><br><a  href="https://www.downes.ca/post/66282" style="text-decoration:none;">World's eight richest people have same wealth as poorest 50% </a><br><a  href="https://www.downes.ca/post/68660" style="text-decoration:none;">So is it nature not nurture after all?</a><br><a  href="https://www.downes.ca/post/66441" style="text-decoration:none;">Meet Afghanistan's female coders who are defying gender stereotypes </a><br><a  href="https://www.downes.ca/post/66507" style="text-decoration:none;">Teach schoolchildren how to spot fake news, says OECD </a><br><a  href="https://www.downes.ca/post/66560" style="text-decoration:none;">Can pre-school children learn to do science? </a><br><a  href="https://www.downes.ca/post/66719" style="text-decoration:none;">Facebook promised to tackle fake news. But the evidence shows it's not working</a><br><a  href="https://www.downes.ca/post/66722" style="text-decoration:none;">Boy, 11, hacks cyber-security audience to give lesson on 'weaponisation' of toys</a><br><a  href="https://www.downes.ca/post/66918" style="text-decoration:none;">Open University jobs at risk in Â£100m 'root and branch' overhaul</a><br><a  href="https://www.downes.ca/post/66926" style="text-decoration:none;">Facebook and Twitter are being used to manipulate public opinion â€“ report</a><br><a  href="https://www.downes.ca/post/66933" style="text-decoration:none;">Drive to get children back to school failing worldwide</a><br><a  href="https://www.downes.ca/post/66948" style="text-decoration:none;">Is the staggeringly profitable business of scientific publishing bad for science?</a><br><a  href="https://www.downes.ca/post/67811" style="text-decoration:none;">Bad News: the game researchers hope will 'vaccinate' public against fake news</a><br><a  href="https://www.downes.ca/post/68025" style="text-decoration:none;">Facebook moves 1.5bn users out of reach of new European privacy law</a><br><a  href="https://www.downes.ca/post/67100" style="text-decoration:none;">Rise of the racist robots â€“ how AI is learning all our worst impulses</a><br><a  href="https://www.downes.ca/post/67176" style="text-decoration:none;">We need to nationalise Google, Facebook and Amazon. Hereâ€™s why</a><br><a  href="https://www.downes.ca/post/67192" style="text-decoration:none;">I used to think social media was a force for good. Now the evidence says I was wrong</a><br><a  href="https://www.downes.ca/post/67308" style="text-decoration:none;">'Our minds can be hijacked': the tech insiders who fear a smartphone dystopia</a><br><a  href="https://www.downes.ca/post/67448" style="text-decoration:none;">Tim Berners-Lee on the future of the web: 'The system is failing'</a><br><a  href="https://www.downes.ca/post/67734" style="text-decoration:none;">The punk rock internet â€“ how DIY â€‹â€‹rebels â€‹are working to â€‹replace the tech giants </a><br><a  href="https://www.downes.ca/post/68973" style="text-decoration:none;">If universities sacrifice philosophy on the altar of profit, whatâ€™s next?</a><br><a  href="https://www.downes.ca/post/69090" style="text-decoration:none;">Why Canâ€™t the Worldâ€™s Greatest Minds Solve the Mystery of Consciousness?</a><br><a  href="https://www.downes.ca/post/69278" style="text-decoration:none;">UK online pornography age block triggers privacy fears</a><br><a  href="https://www.downes.ca/post/69486" style="text-decoration:none;">The art of noticing: five ways to experience a city differently</a><br><a  href="https://www.downes.ca/post/69489" style="text-decoration:none;">Who wins from public debate? Liars, bullies and trolls </a><br><a  href="https://www.downes.ca/post/69680" style="text-decoration:none;">Streaming TV is about to get very expensive â€“ here's why</a><br><a  href="https://www.downes.ca/post/69705" style="text-decoration:none;">Weâ€™re told that too much screen time hurts our kids. Whereâ€™s the evidence?</a><br><a  href="https://www.downes.ca/post/69847" style="text-decoration:none;">Leading US bosses drop shareholder-first principle </a><br><a  href="https://www.downes.ca/post/70399" style="text-decoration:none;"> Soros gives $1bn to fund universities 'and stop drift towards authoritarianism'</a><br><a  href="https://www.downes.ca/post/70966" style="text-decoration:none;">Microsoft sacks journalists to replace them with robots</a><br><a  href="https://www.downes.ca/post/71077" style="text-decoration:none;">No more going viral: why not apply social distancing to social media?</a><br><a  href="https://www.downes.ca/post/71294" style="text-decoration:none;">My university degree was life-changing. Putting them out of reach is elitist and wrong</a><br><a  href="https://www.downes.ca/post/71343" style="text-decoration:none;">How philanthropy benefits the super-rich</a><br><a  href="https://www.downes.ca/post/71347" style="text-decoration:none;">A robot wrote this entire article. Are you scared yet, human?</a><br><a  href="https://www.downes.ca/post/71723" style="text-decoration:none;">'There's a gaping hole in our knowledge': the scientists studying why gamers invert their controls</a><br><a  href="https://www.downes.ca/post/71800" style="text-decoration:none;">John Rawls: can liberalism's great philosopher come to the west's rescue again?</a><br><a  href="https://www.downes.ca/post/72315" style="text-decoration:none;">Substack: how the game-changer turned poacher</a><br><a  href="https://www.downes.ca/post/72657" style="text-decoration:none;">From Oslo pram guy to the teenage vacuum expert: inside the obsessive world of niche online reviewers</a><br><a  href="https://www.downes.ca/post/72678" style="text-decoration:none;">A moment that changed me: I realised I had become a masochist â€“ and quit Twitter</a><br><a  href="https://www.downes.ca/post/73036" style="text-decoration:none;">The big idea: Should we leave the classroom behind?</a><br><a  href="https://www.downes.ca/post/73097" style="text-decoration:none;">Ten tech predictions for 2022: whatâ€™s next for Twitter, Uber and NFTs</a><br><a  href="https://www.downes.ca/post/73258" style="text-decoration:none;">TechScape: everything you need to know about DAOs</a><br><a  href="https://www.downes.ca/post/73581" style="text-decoration:none;">â€˜The lunacy is getting more intenseâ€™: how Birds Arenâ€™t Real took on the conspiracy theorists</a><br><a  href="https://www.downes.ca/post/73612" style="text-decoration:none;">Children coming across far-right material when researching, teachers say</a><br><a  href="https://www.downes.ca/post/73794" style="text-decoration:none;">Met police profiling children â€˜on a large scaleâ€™, documents show</a><br><a  href="https://www.downes.ca/post/73805" style="text-decoration:none;">Google engineer put on leave after saying AI chatbot has become sentient</a><br><a  href="https://www.downes.ca/post/73848" style="text-decoration:none;">From Trump Nevermind babies to deep fakes: DALL-E and the ethics of AI art</a><br><a  href="https://www.downes.ca/post/73984" style="text-decoration:none;">Playing video games has no effect on wellbeing, study finds</a><br><a  href="https://www.downes.ca/post/73996" style="text-decoration:none;">Pearson plans to sell its textbooks as NFTs</a><br><a  href="https://www.downes.ca/post/74020" style="text-decoration:none;">"I'm afraid": critics of anti-cheating technology for students hit by lawsuits</a><br><a  href="https://www.downes.ca/post/74074" style="text-decoration:none;">The AI startup erasing call center worker accents: is it fighting bias â€“ or perpetuating it?</a><br><a  href="https://www.downes.ca/post/74156" style="text-decoration:none;">Adobe canâ€™t Photoshop out the fact its $20bn Figma deal is a naked land grab</a><br><a  href="https://www.downes.ca/post/74435" style="text-decoration:none;">Elon Musk claims he has acquired Twitter "to help humanity"</a><br><a  href="https://www.downes.ca/post/74730" style="text-decoration:none;">Seattle public schools sue social media platforms for youth 'mental health crisis'</a><br><a  href="https://www.downes.ca/post/74740" style="text-decoration:none;">Australian schools "flying blind" on use of ChatGPT and other learning technology</a><br><a  href="https://www.downes.ca/post/74900" style="text-decoration:none;">Broadcasting your breakfast: why TikTokers obsess over morning routines</a><br><a  href="https://www.downes.ca/post/75007" style="text-decoration:none;">AI makes plagiarism harder to detect, argue academics â€“ in paper written by chatbot</a><br><a  href="https://www.downes.ca/post/75421" style="text-decoration:none;">With 100 million users and counting, is Threads is on course to finish off Twitter?</a><br><a  href="https://www.downes.ca/post/75690" style="text-decoration:none;">TechScape: Threads and Bluesky need to figure out what they want to be</a><br><a  href="https://www.downes.ca/post/75954" style="text-decoration:none;">I'll never stop blogging: it's an itch I have to scratch â€“ and I don't care if it's an outdated format</a><br><a  href="https://www.downes.ca/post/75983" style="text-decoration:none;">A girl was allegedly raped in the metaverse. Is this the beginning of a dark new future?</a><br><a  href="https://www.downes.ca/post/76094" style="text-decoration:none;">Tell us: are you embracing analogue in everyday life?</a><br><a  href="https://www.downes.ca/post/76112" style="text-decoration:none;">Hologram lecturers thrill students at trailblazing UK university</a><br><a  href="https://www.downes.ca/post/76215" style="text-decoration:none;">‘The situation has become appalling’: fake scientific papers push research credibility to crisis point</a><br><a  href="https://www.downes.ca/post/76338" style="text-decoration:none;">Crosswords: the meow meow of the 1920s</a><br><a  href="https://www.downes.ca/post/76409" style="text-decoration:none;">How can Donald Trump’s loss-making Truth Social be worth $9bn?</a><br><a  href="https://www.downes.ca/post/76625" style="text-decoration:none;">'No country in the world has solved this problem': can Australia make age verification work for social media?</a><br><a  href="https://www.downes.ca/post/76827" style="text-decoration:none;">Academic journals are a lucrative scam &#8211; and we&#8217;re determined to change that</a><br><a  href="https://www.downes.ca/post/77142" style="text-decoration:none;">"I love the whole atmosphere and can spend hours browsing": how did bookshops suddenly become cool?</a><br><a  href="https://www.downes.ca/post/77453" style="text-decoration:none;">I was lost in the cesspit of social media. Then Jane Austen showed me the way out</a><br><a  href="https://www.downes.ca/post/77517" style="text-decoration:none;">Australian children who play Roblox spending average of 139 minutes a day on the gaming app, data shows</a><br><a  href="https://www.downes.ca/post/77520" style="text-decoration:none;">I set out to study which jobs should be done by AI – and found a very human answer</a><br><a  href="https://www.downes.ca/post/77719" style="text-decoration:none;">British Council accused of forcing gig economy teachers into 'feeding frenzy' for work</a><br><a  href="https://www.downes.ca/post/77843" style="text-decoration:none;">Older people who use smartphones 'have lower rates of cognitive decline'</a><br><a  href="https://www.downes.ca/post/78089" style="text-decoration:none;">Inside a plan to use AI to amplify doubts about the dangers of pollutants</a><br><a  href="https://www.downes.ca/post/78101" style="text-decoration:none;">Denmark to tackle deepfakes by giving people copyright to their own features</a><br><a  href="https://www.downes.ca/post/78185" style="text-decoration:none;">Set a two TikTok toilet limit to reduce haemorrhoid risk, doctors advise</a><br><a  href="https://www.downes.ca/post/78293" style="text-decoration:none;">Why I gave the world wide web away for free</a><br><a  href="https://www.downes.ca/post/78439" style="text-decoration:none;">AI firm wins high court ruling after photo agency’s copyright claim</a><br><a  href="https://www.downes.ca/post/78460" style="text-decoration:none;">What we lose when we surrender care to algorithms</a><br><a  href="https://www.downes.ca/post/78707" style="text-decoration:none;">Cambridge college to target elite private schools for student recruitment</a><br><a  href="https://www.downes.ca/post/78807" style="text-decoration:none;">The rise of Moltbook suggests viral AI prompts may be the next big security threat</a></p>
+    </div>
+
+
+</div><!-- Template: static_footer -->
+  <div class="row" style="padding:0"><!-- Footer -->
+    <div class="grid_12" style="line-height:4px;margin-bottom:4px;"><hr size=1></div></div>  
+
+<div class="row" style=padding:0"><!-- Footer -->
+    <div class="grid_5">
+
+<p class="h-card"><span style="float:left;margin-right:10px;margin-top:5px;">
+<a href="https://www.downes.ca/me/index.htm" style="text-decoration:none;"><img  class="u-photo" src="https://www.downes.ca/assets/images/stephen-small.PNG" width="100px" title="Stephen Downes" alt="Stephen Downes" border=0></a></span>
+<a class="p-name u-url" href="https://www.downes.ca">Stephen Downes</a>,   <span class="p-locality">Casselman</span>, <span class="p-country-name">Canada</span><br>
+
+
+  <a class="u-email" href="mailto:stephen@downes.ca">stephen@downes.ca</a> 
+
+</div>
+
+    <div class="grid_4">
+Copyright 2026 <br />
+Last Updated: Feb 04, 2026 8:09 p.m. <br />
+</div>
+
+<div class="grid_3"> 
+
+
+<p>
+<span style="float:right;">
+<img src="https://www.downes.ca/assets/images/canada tiny.PNG" alt="Canadian Flag" style="height:31px;">
+<a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/3.0/" alt="Canadian Flag"><img alt="Creative Commons License" style="border-width:0" src="https://www.downes.ca/files/images/88x31.png" /></a>.
+</span>
+</div>
+
+    
+    
+  </div>
+</div>
+</body>
+</html><!-- #end footer area --> 
+<!-- /Template: static_footer -->

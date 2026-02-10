@@ -44,13 +44,12 @@ sub make_pagedata {
 	my ($query,$input,$title) = @_;
 
 	return unless (defined $input);
-
 	my $vars = (); if (ref $query eq "CGI") { $vars = $query->Vars; }
 	return unless (defined $vars->{pagedata});
 	my @insertdata = split ",",$vars->{pagedata};
 
+
 	my $count;
-	$$input =~ s/&#60;pagedata (.*?)&#62;/<pagedata $1>/g;  # Restore formatting command	
 	while ($$input =~ /<pagedata (.*?)>/mig) {
 
 		my $autotext = $1;
@@ -136,7 +135,7 @@ sub make_site_hits_info {
 
 	my ($text_ptr) = @_;
 	return unless (defined $text_ptr);
-	$$text_ptr =~ s/&#60;site_hitsa (.*?)&#62;/<site_hits $1>/g;  # Restore formatting command	
+
 	while ($$text_ptr =~ /<site_hits>/sig) {
 
 						# Site Page Hit Totals
@@ -174,7 +173,7 @@ sub make_hits {
 	return unless (defined $text_ptr);
 
 	my $count=0;
-	$$text_ptr =~ s/&#60;hits&#62;/<hits>/g;  # Restore formatting command	
+
 	while ($$text_ptr =~ /<hits>/sig) {
 
 		my $autotext = $1;
@@ -201,7 +200,6 @@ sub make_grid {
 
 	
 	my $count=0;
-	$$input =~ s/&#60;grid (.*?)&#62;/<grid $1>/g;  # Restore formatting command	
 	while ($$input =~ /<grid(.*?)>/sig) {
 	
 		my $autotext = "<grid".$1.">";
@@ -241,7 +239,7 @@ sub make_status_buttons {
 			read => [ 'far fa-eye-slash', 'fa fa-eye', ],
   		star => [ 'far fa-star', 'fas fa-star'],
 	};
-	$$text_ptr =~ s/&#60;statusbutton (.*?)&#62;/<statusbutton $1>/g;  # Restore formatting command	
+
 	while ($$text_ptr =~ /<statusbutton (.*?)>/sig) {
 		my $autotext = $1;
 
@@ -283,7 +281,6 @@ sub make_badges {
 
 	#&admin_only();
 #print "Content-type: text/html\n\n";
-	$$text_ptr =~ s/&#60;badges&#62;/<badges>/g;  # Restore formatting command	
 	while ($$text_ptr =~ /<badges>/sig) {
 		my $autotext = $1;
 
@@ -444,7 +441,8 @@ return "$direction nn";
 	# -------  Make Next -------------------------------------------------------------
 	#
 sub make_next {
-
+return "Make Next";
+	my $diag = 0;
 	my ($dbh,$input,$table,$id_number,$filldata) = @_;
 	if ($diag>9) { print "Make Next<br>"; }
 
@@ -452,13 +450,7 @@ sub make_next {
 	unless (defined $input) { if ($diag>9) { print "/Make Next - input not defined<br>"; } return;	}
 
 	my @directions = qw(next previous first last);
-	$$input =~ s/&#60;next(.*?)&#62;/<next$1>/g;  # Restore formatting command	
-	$$input =~ s/&#60;previous(.*?)&#62;/<previous$1>/g;  # Restore formatting command	
-	$$input =~ s/&#60;first(.*?)&#62;/<first$1>/g;  # Restore formatting command	
-	$$input =~ s/&#60;last(.*?)&#62;/<last$1>/g;  # Restore formatting command	
-
 	foreach my $direction (@directions) {
-
 
 		my $count=0;
 		while ($$input =~ /<$direction(.*?)>/sig) {
@@ -489,7 +481,6 @@ sub make_next {
 
 			# How are we sorting the next, previous, etc
 			my $sort_by; my $search_value;
-			$script->{sortby} ||= "id";
 			if ($script->{sortby}) { 
 				$sort_by = "_".$script->{sortby}; 
 				$search_value = $filldata->{$table."_".$script->{sortby}}; 
@@ -517,7 +508,6 @@ sub make_next {
 			}
 
 			$$input =~ s/$autotext/$nexttext/;
-
 		}
 
 	}
@@ -530,7 +520,6 @@ sub make_counter {
 	my ($dbh,$input,$silent) = @_;
 
 	my @boxlist;
-	$$input =~ s/&#60;counter (.*?)&#62;/<counter $1>/g;  # Restore formatting command	
 	while ($$input =~ /<counter(.*?)>/sig) {
 
 		my $autotext = "<counter".$1.">";
@@ -553,8 +542,6 @@ sub make_boxes {
 	my ($dbh,$input,$silent) = @_;
 
 	my @boxlist;
-	$$input =~ s/&#60;box (.*?)&#62;/<box $1>/g;  # Restore formatting command
-
 	while ($$input =~ /<box (.*?)>/sig) {
 		my $autotext = $1;
 
@@ -574,8 +561,6 @@ sub make_escape {
 	return unless $$input =~ /<escape>/;
 	my $newinput = "";
 
-	$$input =~ s/&#60;escape&#62;/<escape>/g;  # Restore formatting command	
-	$$input =~ s/&#60;\/escape&#62;/<\/escape>/g;  # Restore formatting command	
 	my @elist = split /<escape>/,$$input;
 	foreach my $eitem (@elist) {
 		unless ($newinput) { $newinput = $eitem; next; }
@@ -590,7 +575,6 @@ sub make_tz {
 	my ($dbh,$input,$silent) = @_;
 	return unless $$input =~ /<timezone>/;
 	my $newinput = $Site->{st_timezone};
-	$$input =~ s/&#60;timezone&#62;/<timezone>/g;  # Restore formatting command	
 	$$input =~ s/<timezone>/$newinput/ig;
 }
 
@@ -610,7 +594,6 @@ sub make_conditionals {
    	my ($text_ptr,$table,$id,$filldata) = @_;
 
 	my $count = 0; 									# Look for conditional statements
-	$$input =~ s/&#60;if&#62;(.*?)&#60;then&#62;(.*?)&#60;endif&#62;/<if>$1<then>$2<endif>/g;  # Restore formatting command	
 	while ($$text_ptr =~ /<if>(.*?)<then>(.*?)<endif>/sig) {
 		$count++; last if ($count > 100);			# Prevent infinite loop
 		my $replace = "";							# Create an original empty replace string
@@ -642,24 +625,24 @@ sub make_conditionals {
 sub make_keylist {
 
 	my ($dbh,$query,$text_ptr) = @_;
+	my $text = $$text_ptr;
+	$text =~ s/\Q&#60;\E/</g;
+	$text =~ s/\Q&#62;\E/>/g;
+	
+	# print "Content-type:text/html\n\n";
+
+
+
 	my $diag = 0;
-	if ($diag>9) { print "<ul>Make Keylist <br>"; }
+	if ($diag>9) { print "<ul>Make Keylist $text<br>"; }
 
    	my $vars = ();
        	if (ref $query eq "CGI") { $vars = $query->Vars; }
 
-	$$text_ptr =~ s/&#60;keylist (.*?)&#62;/<keylist $1>/g;  # Restore formatting command
 
-	unless ($$text_ptr =~ /<keylist (.*?)>/i) {
-		if ($diag>9) { print "/Make Keylist - No content found, returning<p> </ul>"; }
-		return 1;
-	}
-
-	while ($$text_ptr =~ /<keylist (.*?)>/ig) {
+	while ($text =~ /<keylist (.*?)>/ig) {
 
 		my $autocontent = $1; my $replace = "";
-
-
 
 
 						# No endless loops, d'uh
@@ -778,7 +761,8 @@ sub make_keylist {
 
 		if ($replace && ($script->{prefix} || $script->{postfix})) { $replace = $script->{prefix} . $replace . $script->{postfix}; }
 
-		$$text_ptr =~ s/\Q<keylist $autocontent>\E/$replace/;
+		$text =~ s/\Q<keylist $autocontent>\E/$replace/;
+		$$text_ptr = $text;
 
 
 	}
@@ -802,7 +786,7 @@ sub make_author {
 
 	my ($text_ptr,$table,$id,$filldata) = @_;
 
-	$$text_ptr =~ s/&#60;author (.*?)&#62;/<author $1>/g;  # Restore formatting command
+	$$text_ptr =~ s/&#60author (.*?)&#62/<author $1>/g;  # Restore formatting command
 
    	return 1 unless ($$text_ptr =~ /<author (.*?)>/i);
 	while ($$text_ptr =~ /<author (.*?)>/ig) {
@@ -838,7 +822,7 @@ sub make_admin_nav {
 
 	my ($dbh,$text_ptr) = @_;
 
-	$$text_ptr =~ s/&#60;admin_nav (.*?)&#62;/<admin_nav $1>/g;  # Restore formatting command
+	$$text_ptr =~ s/&#60admin_nav (.*?)&#62/<admin_nav $1>/g;  # Restore formatting command
    	return 1 unless ($$text_ptr =~ /<admin_nav(.*?)>/i);
 
    	my @tables = $dbh->tables();
@@ -888,7 +872,7 @@ sub make_comment_form {
 		my ($dbh,$text_ptr) = @_;
 		return unless (defined $text_ptr);
 
-	$$text_ptr =~ s/&#60;CFORM&#62(.*?)&#60END_CFORM&#62;/<CFORM>$1<END_CFORM>/g;  # Restore formatting command
+	$$text_ptr =~ s/&#60CFORM&#62(.*?)&#60END_CFORM&#62/<CFORM>$1<END_CFORM>/g;  # Restore formatting command
 		while ($$text_ptr =~ /<CFORM>(.*?)<END_CFORM>/sg) {
 
 			my $autotext = $1; my ($cid,$ctitle) = split /,/,$autotext;
@@ -967,7 +951,7 @@ sub make_comment_form {
 sub make_enclosures {
 
 	my ($text_ptr,$table,$id,$filldata) = @_;
-	$$text_ptr =~ s/&#60;enclosures (.*?)&#62;/<enclosures $1>/g;  # Restore formatting command
+	$$text_ptr =~ s/&#60enclosures (.*?)&#62/<enclosures $1>/g;  # Restore formatting command
    	return 1 unless ($$text_ptr =~ /<enclosures (.*?)>/i);
 	while ($$text_ptr =~ /<enclosures (.*?)>/ig) {
 
@@ -1009,7 +993,7 @@ sub make_media {
 
 	my ($text_ptr,$table,$id,$filldata) = @_;
   #print "Making media<p>";
-	$$text_ptr =~ s/&#60;media (.*?)&#62;/<media $1>/g;  # Restore formatting command
+	$$text_ptr =~ s/&#60media (.*?)&#62/<media $1>/g;  # Restore formatting command
    	return 1 unless ($$text_ptr =~ /<media (.*?)>/i);
 	while ($$text_ptr =~ /<media (.*?)>/ig) {
 
@@ -1054,7 +1038,7 @@ sub make_media {
 sub make_associations {
 
 	my ($text_ptr,$table,$id,$filldata) = @_;
-	$$text_ptr =~ s/&#60;associate (.*?)&#62;/<associate $1>/g;  # Restore formatting command
+	$$text_ptr =~ s/&#60associate (.*?)&#62/<associate $1>/g;  # Restore formatting command
   	return 1 unless ($$text_ptr =~ /<associate (.*?)>/i);
 	while ($$text_ptr =~ /<associate (.*?)>/ig) {
 		my $autotext = $1;
@@ -1090,8 +1074,17 @@ sub make_associations {
 sub make_images {
 
 	my ($text_ptr,$table,$id,$filldata) = @_;
-	$$text_ptr =~ s/&#60;image (.*?)&#62;/<image $1>/g;  # Restore formatting command
-  return 1 unless ($$text_ptr =~ /<image (.*?)>/i);
+
+# &#60;image display&#62;
+#	$$text_ptr =~ s/&#60;image (.*?)&#62;/<image $1>/g;  # Restore formatting command
+	$$text_ptr =~ s/\Q&#60;\E/</g;
+	$$text_ptr =~ s/\Q&#62;\E/>/g;
+
+	unless ($$text_ptr =~ /<image (.*?)>/i) {
+		#die "ERROR $$text_ptr";
+		return 1;
+	};
+  	#die "$text_ptr,$table,$id,$filldata";
 	while ($$text_ptr =~ /<image (.*?)>/ig) {
 
 		my $autocontent = $1; my $replace = ""; my $style = "";
@@ -1176,16 +1169,20 @@ sub make_icon {
 
 	return "";
 }
+
+# Point to the 'display' image 
+
 sub make_display {
 
 	my ($table,$id,$autocontent,$style,$filldata) = @_;
 	my $replace = "";
 	my $imagefile = &item_images($table,$id,"largest");
-	my $imlink = $imagefile->{file_link} || $filldata->{$table."_link"};
+	my $imlink = $imagefile->{file_url} || $filldata->{$table."_link"};
 	my $width = 400;
 
 	if ($imagefile->{file_dirname}) {
-		$replace =  qq|<a href="$imlink"><img src="<st_url>$imagefile->{file_dirname}" $style alt="$imagefile->{file_dirname}"></a>|;
+		$replace = qq|<a href="|.$imagefile->{file_url}.qq|">View full size</a>|;
+	#	$replace =  qq|<a href="$imlink"><img src="<st_url>$imagefile->{file_dirname}" $style alt="$imagefile->{file_dirname}"></a>|;
 	}
 
 	return $replace;
@@ -1220,12 +1217,12 @@ sub item_images {
 		my $imagefile = &db_get_record($dbh,"file",{file_id=>$image_id});
 
 
-		if ($imagefile->{file_size} > $largest_size) {
+		if ($imagefile->{file_size} >= $largest_size) {
 
 			$largest_size = $imagefile->{file_size};
 			$largest_image = $imagefile;
 		}
-		if ($imagefile->{file_size} < $smallest_size) {
+		if ($imagefile->{file_size} <= $smallest_size) {
 
 			$smallest_size = $imagefile->{file_size};
 			$smallest_image = $imagefile;
@@ -1363,32 +1360,29 @@ sub make_keywords {
 
 	my ($dbh,$query,$text_ptr,$r) = @_;
 
-
-	if ($diag>9) { print "Make Keywords <br>"; }
+$diag=0;
+	if ($diag>9) { print "Make Keywords\n"; }
 
    	my $vars = (); my $results_count=0;
    	my $running_results_count;
-	$$textptr =~ s/&#60;keyword (.*?)&#62;/<keyword $1>/g;  # Restore formatting command	
+
 	return 1 unless ($$text_ptr =~ /<keyword (.*?)>/i);				# Return 1 if no keywords
 											# This allows static pages to be published
 											# Otherwise, if keyword returns 0 results,
 											# the page will not be published, email not sent
 
 
-    	if (ref $query eq "CGI") { $vars = $query->Vars; }
+    if (ref $query eq "CGI") { $vars = $query->Vars; }
 
 						# Substitute site tag (used to create filters)
 	$$text_ptr =~ s/<st_tag>/$Site->{st_tag}/g;
-
-
-
 
 						# For Each keyword Command
 	my $escape_hatch=0; my $page_format = "";
 	while ($$text_ptr =~ /<keyword (.*?)>/ig) {
 		my $autocontent = $1; my $replace = ""; my $grouptitle = "";
 
-
+		if ($diag>9) { print "Keyword Code: $autocontent\n"; }
 
 						# No endless loops, d'uh
 		$escape_hatch++; die "Endless keyword loop" if ($escape_hatch > 10000);
@@ -1402,11 +1396,12 @@ sub make_keywords {
 		next unless ($script->{db});
 
 		$script->{number} ||= 50;
-
+		if ($diag>9) { print "Number of respults to print:".$script->{number}."\n"; }
 						# Make SQL from Keyword Data
 
 						# Where
 		my $where = &make_where($dbh,$script);
+		if ($diag>9) { print "Search:".$where."\n"; }		
 
 						# Number / Limit
 		my $limit = "";
@@ -1425,26 +1420,32 @@ sub make_keywords {
 			}
 			$order = " ORDER BY " . $order;
 		}
-
-
-		my $sql = "SELECT * FROM $script->{db} $where$order$limit";
-#die $where;
-
-						# Permissions
-
+		if ($diag>9) { print "Sort:".$order."; Limit: $limit\n"; }	
+		
+								# Permissions
 		my $perm = "view_".$table;
 		if ((defined $Site->{perm}) && $Site->{$perm} eq "owner") {
 			$where .= " AND ".$table."_creator = '".$Person->{person_id}."'";
 		} else {
-			return unless (&is_allowed("view",$script->{db},"","make keywords"));
+			unless (&is_allowed("view",$script->{db},"","make keywords")) {
+				&status_error("Making keywords is not allowed $where");
+				return;
+			};
 		}
+
+		my $sql = "SELECT * FROM $script->{db} $where$order$limit";
+
+
+		if ($diag>9) { print "SQL: $sql\n"; }	
 
 		# get the list of coluns in this table (used by published_on_web()
 		my @pubcolumns = &db_columns($dbh,$script->{db});
 
   #print "Content-type: text/html\n\n";						# Get Records From DB
 
+		if ($diag>9) { print "Executing search\n"; }	
 		my $sth = $dbh -> prepare($sql) or die "Error in $sql: $!";
+die "Go away" if ($sql =~ /topic|journal|author/); 
 		$sth -> execute() or die "Error executing $sql: $!";
 		$results_count=0;
 		my $results_in = "";
@@ -1459,8 +1460,17 @@ if ($sql =~ /link/) {
 #die $sql.":-".$rest." - ".$record->{post_title}." Pub datew: ".$record->{post_pub_date}."\n";
 }
 $rest = "Skipping..";
+
+			if ($diag>9) { print "Found ".$script->{db}." ".$record->{$script->{db}."_id"}."\n"; }
+
 			# If we are publishing a page, skip items that have not been published
-			next unless (&published_on_web($dbh,$script->{db},$record,@pubcolumns));
+			if ($diag>9) { print "Publication status: ".$record->{$script->{db}."_social_media"}."\n"; }
+			#	&db_update($dbh,$tab,{$tab."_social_media"=>',web,'}, $id);
+			unless (&published_on_web($dbh,$script->{db},$record,@pubcolumns)) {
+				if ($diag>9) { print "This record is unpublished\n"; }
+				next;
+			};
+
 $rest = "Did not skip";
 			$Site->{keyword_counter}++;
 			$results_count++;
@@ -1571,7 +1581,7 @@ $rest = "Did not skip";
 	}
 
 
-	if ($diag>9) { print "/Make Keywords <br>"; }
+	if ($diag>9) { print "/Make Keywords \n"; }
 	return $running_results_count;
 }
 
@@ -1682,11 +1692,13 @@ sub make_where {
 			foreach my $ml (@matchlist) {
 				push @fid_list,$script->{db}."_".$ml." NOT REGEXP '".$tval."'";
 			}
-		} elsif ($cx =~ '~') {								# contains
+		} elsif ($cx =~ '~') {								# contains	
 			($flds,$tval) = split "~",$cx;
 			my @matchlist = split ",",$flds;
 			foreach my $ml (@matchlist) {
-				push @fid_list,$script->{db}."_".$ml." REGEXP '".$tval."'";
+				my $ddb = $script->{db};
+				unless ($ml =~ /^$ddb/) { $ml = $script->{db} . "_" . $ml; }  #prepent table name if necessary			
+				push @fid_list,$ml." REGEXP '".$tval."'";
 			}
 		} elsif ($cx =~ 'GT') {								# greater than
 			($flds,$tval) = split "GT",$cx;
@@ -1889,25 +1901,23 @@ sub make_search_forms() {
 
 	while (my($table,$ty) = each %$doptions){	# For each table
 
-		# Write the template
 		my $formname = $table."SearchForm";
 		my $panelname = $table."Panel";
-		$templ .= qq|
-	function |.$table.qq|SearchTemplate(request) {	
-		return `<button class="accordion" onClick="togglePanel(this.nextElementSibling);">Filter \${request.table}</button>
-		<div class="panel" id="$panelname">
+		my $subpanelname = $table."OptionsPanel";
 
-		<form method="post" action="#" id="$formname">
-		<input type="hidden" name="div" value="\${request.div}">
-		<input type="hidden" name="cmd" value="\${request.cmd}">
-		<input type="hidden" name="table" value="\${request.table}">		
+		# Search by Association
+
+		my $link_search_fields = qq|
+		<button class="accordion" onClick="togglePanel(document.getElementById('$subpanelname'));">Filter \${request.table}</button>
+		<div class="panel" id="$subpanelname">
 		|;
+
 
 		foreach my $column (sort keys %$ty) {
 			$cy = $ty->{$column};
 		#while (my($column,$cy) = each %$ty) {		# For each column
 			my $fieldname = $table."_".$column;
-			$templ .= sprintf(qq|
+			 $link_search_fields .= sprintf(qq|
 				<div class="table-list-search-form">%s <select name="%s" id="%s%s">
 				    <option value="all" selected>All</a>
 			|,ucfirst($column),$fieldname,$column,$table);
@@ -1915,29 +1925,28 @@ sub make_search_forms() {
 			foreach my $fname (sort keys %$cy) {
 				$fval = $cy->{$fname};
 			# while (my($fname,$fval) = each %$cy) {   #For each option
-				$templ .= sprintf(qq|<option value="%s">%s</a>|,$fval,ucfirst($fname));
+				 $link_search_fields .= sprintf(qq|<option value="%s">%s</a>|,$fval,ucfirst($fname));
 			}
 
-			$templ .= qq|
+			 $link_search_fields .= qq|
 							</select></div>|;
 
-
 		}
+		$link_search_fields .= qq|</div>|;
 
 		# Text search by fields
-		$templ .= qq|
+		my $text_search_fields = qq|
 		<div class="table-list-search-form">
 		<select name="qkey">
-		<option value="id"> ID</option>
 		<option value="title"> Title </option>
+		<option value="id"> ID</option>
 		<option value="description"> Description </option>
 		<option value="link"> Link </option>
 		</select>
-		<input type="text" name="qval" placeholder="search term" class="text-input-field"></div>|;
+		<input type="text" name="qval" placeholder="search term" class="text-input-field">|;
 
 		# Submit Button
-		$templ .= qq|
-		<div class="table-list-search-form">
+		my $submit_button = qq|
 		<input type="button" value="Submit" 
 			onClick="
 				\$('.list-result').remove();
@@ -1945,14 +1954,33 @@ sub make_search_forms() {
 				document.getElementById('$panelname').style.display = 'none';
 				return false;
 			"></div>
-			</div>`;
-	};
-
-	|;
+			</div>	|;
 
 
+		# Write the template
+
+		$templ .= qq|
+
+
+
+	function |.$table.qq|SearchTemplate(request) {	
+		return `
+		<form method="post" action="#" id="$formname">
+		<input type="hidden" name="div" value="\${request.div}">
+		<input type="hidden" name="cmd" value="\${request.cmd}">
+		<input type="hidden" name="table" value="\${request.table}">
+		$text_search_fields 
+		$submit_button
+		</form>`
+	}|;
 
 	}
+
+
+
+
+
+	
 #print qq|<textarea>$templ</textarea>|;
 	my $js_assets_dir = $Site->{st_urlf}."assets/js/";
 		my $filename = $js_assets_dir."gRSShopper_dataTemplates.js";

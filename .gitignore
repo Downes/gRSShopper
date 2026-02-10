@@ -4,3 +4,6 @@ db/
 # Perl local::lib artifacts
 site/cgi-bin/modules/
 site/cgi-bin/modules.bak-*
+
+# Allow a tracked placeholder inside `db/secrets/` so the directory can be present
+!db/secrets/.placeholder

@@ -1,10 +1,20 @@
 #!/usr/bin/perl -w
-use CGI;
-use CGI::Carp qw(fatalsToBrowser);
+
 use lib 'modules/lib/perl5';
 binmode STDOUT, ':utf8';
+our $mimetype = "application/json";
+# "image/jpeg";				# Default mimetype
+# 	#my $mimetype = "application/json";
 # binmode STDIN, ":encoding(UTF-8)";
 # Print OK for blank api request
+    use CGI;
+	use CGI::Carp qw(fatalsToBrowser);    
+			use JSON;
+			use JSON::Parse 'parse_json';
+use File::Path qw(make_path);
+use File::Spec;
+use Sys::Syslog qw(:standard :macros); 
+
 
 
 #    gRSShopper 0.7  API 0.01  -- gRSShopper api module
@@ -47,22 +57,49 @@ binmode STDOUT, ':utf8';
 	my $dirname = dirname(__FILE__);
 	require $dirname . "/grsshopper.pl";
 	require $dirname . "/api/metadata.pl";
-	use JSON;
+
+# Load modules and set query and vars
+
+	our ($query,$vars) = &load_modules("api");	
+
+# Load Site
+
+	our ($Site,$dbh) = &get_site("api");	
+
+# Load User
+
+	my ($session,$username) = &check_user("text/html");
+	our $Person = {}; bless $Person;
+
+	&get_person($Person,$username);
+
+	my $person_id = $Person->{person_id};
+	&show_login($session);
+
+
+	# If there is a file being uploaded, we have to handle the file before writing the session cookie
+	# So we'll do that here, leaving the uploaded file object location as the value of $vars->{file}
+
+
+	my $file;
+	if ($query->content_type() =~ 'multipart/form-data') {
+		my $session = new CGI::Session(undef, $query, {Directory=>'/tmp'});	# Must be logged in to upload
+		&status_error("No uploads unless logged in") unless ($session->param("~logged-in"));
+		$vars->{file} ||= "myfile";
+		$file = &upload_file($vars->{file});
+	}
+
+	our ($Site,$dbh) = &get_site("api");
+
+	my $mimetype = $mimetype;
+	if ($vars->{cmd} =~ /edit|autopost/) { $mimetype = "text/html"; }
 
 
 
-
-
-# Load modules
-
-	our ($query,$vars) = &load_modules("api");
- 	$vars->{db} ||= $vars->{table};
+ 	# Allow use of db and table interchangeably
+	if ($vars->{source} && $vars->{target}) { $vars->{cmd} = "webmention"; }
+	$vars->{db} ||= $vars->{table};
 	$vars->{table} ||= $vars->{db};
-  	if ($vars->{source} && $vars->{target}) { $vars->{cmd} = "webmention"; }
-
-
-
-
 
 # Get Post Data
   our $request_data; our $request_type;
@@ -101,7 +138,8 @@ binmode STDOUT, ':utf8';
 
 
 
-	our ($Site,$dbh) = &get_site("api");
+
+
 #my $output_format = 'text/html';
 #print $query->header(-Accept => "*/*",-type => $output_format,-charset => 'utf-8','-Access-Control-Allow-Origin' =>  => "*");
 #print "Test";
@@ -126,16 +164,114 @@ if ($vars->{hub} eq "yes") {
 #
 # -------------------------------------------------------------------------------------
 
+	# Zenodo
+	if ($vars->{cmd} eq "zenodo") {
+		use utf8;
+		use HTML::Entities;
+
+
+		# print "Zenodo";
+		my $report;
+		my $geturl = "https://zenodo.org/api/records?sort=mostrecent&q=%22education%20for%20democracy%22";
+				use HTML::TreeBuilder 5 -weak; # Ensure weak references in use
+			use LWP::UserAgent ();
+	#	my $output_format = 'text/plain';
+	#	print $query->header(-Accept => "*/*",-type => $output_format,-charset => 'utf-8','-Access-Control-Allow-Origin' =>  => "*");
+
+			my $ua = LWP::UserAgent->new;
+			$ua->timeout(10);
+			$ua->env_proxy;
+		$ua->agent('Mozilla/5.0');
+			$ua->ssl_opts({ verify_hostname => 0,SSL_verify_mode => 'SSL_VERIFY_NONE',SSL_version => 'SSLv3' });
+		my $tree = HTML::TreeBuilder->new();
+
+		my $response_text; my $curl_result;
+		my $response = $ua->get($geturl);
+		if ($response->is_success) { 
+			$tree->parse($response->decoded_content);
+		$report .= "LWP: success<br>";
+
+		} else {
+			print "Failed to get resource. ".$response->status_line."<br>"; 
+			print "Trying curl... ";
+			$curl_result = `curl $geturl`;
+			if ($curl_result) {
+				#utf8::decode($curl_result);
+				$tree->parse($curl_result);
+			} else {
+				print "Curl also failed.<br>";
+			}
+			$report .= "LWP: curl<br>";	
+		}
+
+	use JSON::XS;
+
+	# Extract search results from JSON - #sk_106d8475acaa57a53f51faa04dbceb41
+	my $perl_scalar = decode_json $response->decoded_content;
+	my $output = "";
+	while (my ($x,$y) = each %$perl_scalar) { 
+		#print "$x = $y <br>"; 
+		if ($x eq "hits") {
+			while (my ($xx,$yy) = each %$y) { 
+				# print "$xx = $yy <br>"; 
+				if ($xx eq "hits") {
+					my $hittext = "";
+					foreach my $hit (@$yy) {
+						my $authorstring = "";
+						my $authors = $hit->{metadata}->{creators};
+						foreach my $author (@$authors) {
+							my ($last,$first) = split /,/,$author->{name};
+							if ($authorstring) { $authorstring .= ", ";}
+							$authorstring .= "$first $last";
+							$authorstring = encode_entities($authorstring); # Encode  entities
+							while (my ($ax,$ay) = each %$author) {
+								# print "$ax = $ay <br>";
+
+							}
+						}
+						next unless ($hit->{doi_url} =~ /zenodo/i);
+						next if ($hit->{title} =~ /indian/i);
+						$hittext .= qq|<a href="|.$hit->{doi_url}.qq|" target="_new">|;
+						$hittext .= $hit->{title}."</a><br>";
+						$hittext .= $authorstring."<br>";
+						$hit->{metadata}->{description} =~ s/<br>//g;
+					
+						$hittext .= $hit->{metadata}->{description};
+						
+						while (my ($xxx,$yyy) = each %$hit) {
+							#print "$xxx = $yyy <br>"; 
+							if ($xxx eq "metadata") {
+								while (my ($xxxx,$yyyy) = each %$yyy) {
+									#print "$xxxx = $yyyy <br>";
+								} 
+							}
+
+						}
+					}
+					$output .= "<div>$hittext</div>";
+
+				}
+			}
+		}
+	}
+
+	print $output;
+		#print $response->decoded_content;
+	# print $report;
+		exit;
+	}
 
 
 	# Show
 	if ($vars->{cmd} eq "show" && ($vars->{table} eq "link" || $vars->{table} eq "feed")) {
 
-		print "Content-type: text/json\n\n";
    		$vars->{format} = "json";
 		my ($metadata,$data) = &list_records($vars->{table},{cmd=>"show",$vars->{table}."_id"=>$vars->{id}});
-   		my $json = encode_json $data;
-   		print $json;exit;
+		#print &hash_to_json($data);
+		my $json = to_json $data;
+   		# my $json = encode_json $data;
+   		print $json;
+		exit;
 	}
 
 	# List (is also search)
@@ -154,10 +290,9 @@ if ($vars->{hub} eq "yes") {
 		}
 
 		# for now...
-		print "Content-type: text/json\n\n";
    		$vars->{format} = "json";
 
-$listsearch->{$vars->{qkey}} = $vars->{qval};
+		$listsearch->{$vars->{qkey}} = $vars->{qval};
 																		# get search result
    		my ($metadata,$data) = &list_records($vars->{table},$listsearch);
 #use utf8;
@@ -171,16 +306,18 @@ $metadata->{testing} = "test";
 $metadata->{cat} = "Büster";
 #$metadata->{cat} = encode_utf8("Büster");
 		my $response = {
-			metadata => $metadata,
+			metadata => &hash_to_json($metadata),
 			data => $data
 		};
 		#my $datastring = join ",",@$data;
 			
 		#   $datastring = qq|{metadata:"$metadata",results:"$datastring"}|;	
 		#$response = encode_utf8( $response );														# Encode into JSON and print	
-   		my $json = encode_json $response;
+   		#my $json = encode_json $response;
 		#$json = encode_utf8($json);
-   		print $json;exit;
+   		#print $json;exit;
+		print &hash_to_json($response);
+		exit;
 
 	}
 
@@ -192,26 +329,29 @@ $metadata->{cat} = "Büster";
 	if ($vars->{cmd} eq "list" && $vars->{table}) {
 	unless ($vars->{table} eq "tables" || $vars->{table} eq "general") {
 
-		print "Content-type: text/json\n\n";
    		$vars->{format} = "json";
 
    		my ($metadata,$data) = &list_records($vars->{table},$listsearch);
 
-   		my $json = encode_json $data;
-   		print $json;exit;
+   		#my $json = encode_json $data;
+   		#print $json;exit;
+		print &hash_to_json($data);
+		exit;
 	} }
 
 
 	if ($vars->{cmd} eq "list" && $vars->{table} eq "media") {
 
-		print "Content-type: text/json\n\n";
    $vars->{format} = "json";
    my ($metadata,$data) = &list_records("media",{mimetype=>"audio/mpeg"});
    
-   my $json = encode_json $data;
-   print $json;exit;
+   #my $json = encode_json $data;
+   #print $json;
+   		print &hash_to_json($data);
+		exit;
 
 	}
+
 
 
   # LOGIN
@@ -276,16 +416,143 @@ $metadata->{cat} = "Büster";
 
 	# SHOW
   elsif ($vars->{cmd} eq "show") {
-	    print "Content-type: text/html\n\n";
+	    #print "Content-type: text/html\n\n";
 		print &api_show_record(); exit;
 	}
+
+# LINKEDIN
+elsif ($vars->{cmd} eq "linkedin") {
+
+	&linkedin_post();
+
+}
+
+# ----- Admin endpoint: build shards on demand -----
+# Example: /cgi-bin/api.cgi?build_shards=1&scheme=100&dry_run=0
+elsif ($vars->{cmd} eq "build_shards") {
+
+    my $docroot = $vars->{st_urlf};
+    # OPTIONAL: protect this endpoint!
+    # e.g., require a shared secret or limit by IP
+    # my $secret = $q->param('secret') // '';
+    # return send_error($q,"Unauthorized") unless $secret eq 'something-long-and-random';
+
+    my $rd_base = "$docroot/_rd";                # host-scoped shard base
+    my $scheme  = $vars->{scheme} // 100;    # 100 => 781/57 ; 1000 => 78/157
+    my $dry_run = ($vars->{dry_run} // 0) ? 1 : 0;
+
+    my $report = build_shards($dbh, rd_base => $rd_base, scheme => $scheme, dry_run => $dry_run);
+
+    # Return a plain-text report
+    print $query->header(-type => 'text/plain; charset=UTF-8');
+    print $report;
+    closelog();
+    exit 0;
+}
+elsif ($vars->{cmd} eq "print_all_records") {
+    my $itemlist = "";
+    my $table = $vars->{table} // 'post';
+    $table =~ m/^[a-z_]+$/i or die "Bad table name";
+    my $pk = "${table}_id";
+
+    my $start_id  = $vars->{start_id};
+    my $end_id    = $vars->{end_id};
+    $start_id = ($start_id && $start_id =~ /^\d+$/) ? 0 + $start_id : undef;
+    $end_id   = ($end_id   && $end_id   =~ /^\d+$/) ? 0 + $end_id   : undef;
+
+    my $batch_size = $vars->{batch_size};
+    $batch_size = (defined $batch_size && $batch_size =~ /^\d+$/) ? 0 + $batch_size : 500;
+    $batch_size = 1    if $batch_size < 1;
+    $batch_size = 5000 if $batch_size > 5000;
+
+    # RENAMED: use 'cursor' instead of 'after_id' to avoid matching 'id='
+    my $cursor = $vars->{cursor};
+    $cursor = (defined $cursor && $cursor =~ /^\d+$/) ? 0 + $cursor : 0;
+
+    my $auto = $vars->{auto};
+    $auto = (!defined $auto || $auto =~ /^[1y]/i) ? 1 : 0;  # default ON
+
+    # WHERE clause (range + cursor)
+    my @where; my @bind;
+    if (defined $start_id) { push @where, "$pk >= ?"; push @bind, $start_id; }
+    if (defined $end_id)   { push @where, "$pk <= ?"; push @bind, $end_id;   }
+    push @where, "$pk > ?"; push @bind, $cursor;
+
+    my $sql = "SELECT $pk FROM $table";
+    $sql .= " WHERE " . join(" AND ", @where) if @where;
+    $sql .= " ORDER BY $pk ASC LIMIT ?";
+    push @bind, $batch_size;
+
+    my $sth = $dbh->prepare($sql);
+    $sth->execute(@bind);
+
+    my (@ids, $last_id, $ok, $fail) = ((), $cursor, 0, 0);
+    while (my ($id) = $sth->fetchrow_array) { push @ids, 0 + $id; }
+    $sth->finish;
+
+    for my $id (@ids) {
+        $last_id = $id if $id > $last_id;
+        my $res;
+        my $ok_this = eval {
+            # ensure numeric
+            $res = print_record($table, 0 + $id, 'html', undef);
+            1;
+        };
+        if ($ok_this) {
+            $ok++;
+            $itemlist .= "$table, $id, $res\n";
+        } else {
+            $fail++;
+            # (optional) capture first few errors during troubleshooting
+            # my $e = $@ // 'unknown error'; ... print or collect if desired
+        }
+    }
+
+    my $done = 0;
+    $done = 1 if @ids < $batch_size;
+    $done = 1 if (defined $end_id && $last_id >= $end_id);
+
+    my $script = $ENV{SCRIPT_NAME} || '/cgi-bin/api.cgi';
+    my @qs = ("cmd=print_all_records", "table=$table", "batch_size=$batch_size", "cursor=$last_id", "auto=$auto");
+    push @qs, "start_id=$start_id" if defined $start_id;
+    push @qs, "end_id=$end_id"     if defined $end_id;
+    my $next_url = "$script?" . join("&", @qs);
+
+    print "Content-type: text/html; charset=UTF-8\n";
+    print "X-Accel-Buffering: no\n\n";
+    print "<!doctype html><meta charset='utf-8'>\n";
+    print "<title>print_all_records</title>\n";
+    print "<style>body{font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;margin:16px}pre{white-space:pre-wrap}</style>\n";
+    if ($auto && !$done) {
+        print "<meta http-equiv='refresh' content='0;url=$next_url'>\n";
+    }
+    print "<pre>\n";
+    print "print_all_records batch complete\n";
+    print "Table:       $table\n";
+    print "Range:       " . (defined $start_id && defined $end_id ? "$start_id..$end_id" : "ALL") . "\n";
+    print "Processed:   " . scalar(@ids) . " in this batch\n";
+    print "Succeeded:   $ok\n";
+    print "Failed:      $fail\n";
+    print "Last ID:     $last_id\n";
+    print "\nItems:\n$itemlist";
+    if ($done) {
+        print "\nALL DONE ✅\n";
+    } else {
+        print "\nNext URL:    $next_url\n";
+        print "Auto-advance: " . ($auto ? "ON" : "OFF") . "\n";
+        print "Click the link above to continue if auto is off.\n";
+    }
+    print "</pre>\n";
+    exit 0;
+}
+
 
 
   # WEBMENTION
 
   elsif ($vars->{cmd} eq "webmention") {
 
-    print "Content-type: text/html\n\n";
+
  		&record_sanitize_input($vars);
 		if ($vars->{source} =~ /$Site->{st_url}/) { print "Source domain the same as target."; exit;}
     unless ($vars->{source}) { print "Webmention request incomplete. Needs to specify source URL"; exit; }
@@ -337,7 +604,7 @@ $metadata->{cat} = "Büster";
 	}
 
 	elsif ($vars->{cmd} eq "harvester-commands") {
-		print "Content-type: text/html\n\n";
+
 		unless ($vars->{id}) { print "Need to provide a feed id."; exit;}
 		my $record = &db_get_record($dbh,"feed",{feed_id=>$vars->{id}});
 		my $table = "feed";
@@ -352,29 +619,6 @@ $metadata->{cat} = "Büster";
 
 
 
-	# If there is a file being uploaded, we have to handle the file before writing the session cookie
-	# So we'll do that here, leaving the uploaded file object location as the value of $vars->{file}
-
-
-	my $file;
-	if ($query->content_type() =~ 'multipart/form-data') {
-		my $session = new CGI::Session(undef, $query, {Directory=>'/tmp'});	# Must be logged in to upload
-		&status_error("No uploads unless logged in") unless ($session->param("~logged-in"));
-		$vars->{file} ||= "myfile";
-		$file = &upload_file($vars->{file});
-	}
-
-
-
-# Load User
-	#my ($session,$username) = &check_user();
-	my $mimetype = "application/json";
-	if ($vars->{cmd} =~ /edit|autopost/) { $mimetype = "text/html"; }
-	my ($session,$username) = &check_user($mimetype);
-	our $Person = {}; bless $Person;
-	&get_person($Person,$username);
-	my $person_id = $Person->{person_id};
-	# print &show_login($session);
 
 
 if ($vars->{cmd} eq "authenticate") {
@@ -395,6 +639,176 @@ if ($vars->{cmd} eq "authenticate") {
 	}
 
 
+
+
+# Done updating
+
+
+if ($vars->{cmd} eq "s3") {
+
+if ($vars->{opt} eq "up") {
+	my $metadata;
+	my $bucket_name = "downestester";
+	my $key_name = 'fffile.jpg';
+	s3_upload($bucket_name,$key_name,$metadata);
+	exit;
+}
+
+use Amazon::S3;
+ 
+
+
+my $s3 = Amazon::S3->new(
+    {   aws_access_key_id     => $Site->{s3_key},
+        aws_secret_access_key => $Site->{s3_secret},
+        retry                 => 1
+    }
+);
+#my $response = $s3->buckets;
+
+my $bucket_name = "downestester";
+my $bucket = $s3->bucket($bucket_name);
+
+if ($vars->{opt} eq "up") {
+	my $metadata;
+		my $key_name = 'zuck.jpg';
+	s3_upload($bucket_name,$key_name,$metadata);
+
+	# store a key with a content-type and some optional metadata
+	my $keyname = 'zuck.jpg';
+	
+	my $value   = 'T';
+	
+	$bucket->add_key(
+		$keyname, $value,
+		{   content_type        => 'image/jpg',
+			'x-amz-meta-colour' => 'orange',
+		}
+	);
+ 
+
+	$vars->{message}="ip";
+	status_ok();
+	exit;
+}
+# list files in the bucket
+my $images; my $webpage;
+my $response = $bucket->list_all
+    or die $s3->err . ": " . $s3->errstr;
+foreach my $key ( @{ $response->{keys} } ) {
+    my $key_name = $key->{key};
+    my $key_size = $key->{size};
+	my $target = "https://downestester.s3.amazonaws.com/zuck.jpg";
+	my $public_url   = "https://".$bucket_name.".s3.amazonaws.com/".$key->{key};
+	print "Public URL ".$target."<br>Public URL ".$public_url;
+	my ($url, undef) = split (/\?/, $public_url);
+    $images         .= "<img src=\"$url\"><br />";
+    #print "Bucket contains key '$key_name' of size $key_size\n";
+}
+
+($webpage =  <<"WEBPAGE");
+<html><body>Images:<p>$images</body></html>
+WEBPAGE
+
+print $webpage;
+exit;
+
+exit;
+
+
+#my $BUCKET   = "foobar";
+#my $response = $conn->list_bucket("$BUCKET");
+my $response = $bucket->list_all
+    or die $s3->err . ": " . $s3->errstr;
+my $webpage; my $images; 
+for my $key (@{$response->keys}) {
+    my $public_url   = $s3->get($bucket, $key->{Key});
+    my ($url, undef) = split (/\?/, $public_url);
+    $images         .= "<img src=\"$url\"><br />";
+}
+($webpage =  <<"WEBPAGE");
+<html><body>Images:<p>$images</body></html>
+WEBPAGE
+
+print $webpage;
+exit;
+
+
+
+# list files in the bucket
+my $response = $bucket->list_all
+    or die $s3->err . ": " . $s3->errstr;
+foreach my $key ( @{ $response->{keys} } ) {
+    my $key_name = $key->{key};
+    my $key_size = $key->{size};
+    print "Bucket contains key '$key_name' of size $key_size\n";
+}
+
+# fetch value from the bucket
+$response = $bucket->get_key('zuck.jpg')
+    or die $s3->err . ": " . $s3->errstr;
+
+print $response->{value};
+exit;
+print "reminder.txt:\n";
+print "  content length: " . $response->{content_length} . "\n";
+print "    content type: " . $response->{content_type} . "\n";
+print "            etag: " . $response->{content_type} . "\n";
+print "         content: " . $response->{value} . "\n";
+ 
+exit;
+
+# create a bucket
+my $bucket_name = "downestester";
+my $file_name = "zuck.jpg";
+
+my $error = ""; 
+#my $bucket = $s3->add_bucket( { bucket => $bucket_name } )
+#    or $error = $s3->err . ": " . $s3->errstr;
+
+my $bucket = $s3->bucket($bucket_name);  
+$bucket->add_key_filename(  
+  $file_name,  
+  $file_name,  
+  {  
+    content_type => "image/jpeg",  
+  }  
+);
+
+
+# list keys in the bucket
+my $response = $bucket->list
+    or die $s3->err . ": " . $s3->errstr;
+
+#my $BUCKET   = "foobar";
+#my $response = $conn->list_bucket("$BUCKET");
+my $webpage; my $images; 
+for my $entry (@{$response->entries}) {
+    my $public_url   = $s3->get($bucket, $entry->{Key});
+    my ($url, undef) = split (/\?/, $public_url);
+    $images         .= "<img src=\"$url\"><br />";
+}
+($webpage =  <<"WEBPAGE");
+<html><body>Images:<p>$images</body></html>
+WEBPAGE
+
+print $webpage;
+exit;
+
+#my $json = encode_json $response;
+#print $json;
+
+print $response->{bucket}."\n";
+ 
+for my $key (@{ $response->{keys} }) {
+      print "\t".$key->{key}."\n";  
+}
+exit;
+
+
+	print qq|{"msg":"S3","bucket":"$bucket_name","response":"$response","error":"$error"}|;
+	exit;
+}
 
 # -------------------------------------------------------------------------------------
 #          Create Functions
@@ -497,13 +911,16 @@ if ($vars->{cmd} eq "edit") {
 	if ($vars->{id} eq "new") {
 		$vars->{id} = &make_new_record($vars->{table});
 	}
-
+	my $report;
 	if ($vars->{hub} eq "yes") {				# Autopost from bookmarklet
-		&api_hub_bookmarklet($vars->{id},$vars->{url});
+		$report = &api_hub_bookmarklet($vars->{id},$vars->{url});
 	}
 
 	my $starting_tab = $vars->{starting_tab} || "Edit";	
 	print &main_window($tabs,$starting_tab,$vars->{table},"$vars->{id}",$vars);
+print qq|<textarea cols=80 rows=20>$report</textarea>|;
+print qq|OK THEN<div id="mySidenav"><div id="closeNav"></div></div>|;
+
 	exit;
 
 }
@@ -849,13 +1266,14 @@ if ($vars->{cmd}) {
 
 # testing
 if ($vars->{table} eq "media") {
-  # print "Content-type: text/json\n\n";
+
   
    $vars->{format} = "json";
    my ($metadata,$data) = &list_records("media",{mimetype=>"audio/mpeg"});
-   my $json = encode_json $data;
-   print $json;
-   exit;
+   # my $json = encode_json $data;
+   # print $json;
+   		print &hash_to_json($data);
+		exit;
 
 }
   #  print "Content-type: text/html\n\n";
@@ -1104,7 +1522,7 @@ if ($vars->{table} eq "media") {
 
 			print "Saved transaction number $index and will be added to blockchain.<br>";
 			# If index is high enough, mine a new block
-			print "Content-type: tet/html\n\n";
+
 			print "mining from api";		
 			if ($index>5) { $blockchain->mine(); print "New block mined.<br>"; }
 			&blockchain_close($blockchain);
@@ -1136,7 +1554,8 @@ if ($vars->{table} eq "media") {
 
 		&blockchain_close($blockchain);
 
-		print encode_json( $response );
+		# print encode_json( $response );
+		print &hash_to_json($response);
 		exit;
 	}
 
@@ -1166,7 +1585,8 @@ if ($vars->{table} eq "media") {
 		};
 
 		&blockchain_close($blockchain);
-		print encode_json( $response );
+		print &hash_to_json($response);
+				# print encode_json( $response );
 		exit;
 	}
 
@@ -1184,7 +1604,8 @@ if ($vars->{table} eq "media") {
     };
 
 		&blockchain_close($blockchain);
-		print encode_json( $response );
+		print &hash_to_json($response);
+		#		print encode_json( $response );
 		exit;
 	}
 
@@ -1209,7 +1630,8 @@ if ($vars->{table} eq "media") {
 	  };
 
 		&blockchain_close($blockchain);
-		print encode_json( $response );
+		print &hash_to_json($response);
+		#print encode_json( $response );
 	  exit;
 	}
 
@@ -1232,7 +1654,8 @@ if ($vars->{table} eq "media") {
         };
     }
 		&blockchain_close($blockchain);
-		print encode_json( $response );
+		print &hash_to_json($response);		
+		#print encode_json( $response );
 
     exit;
 
@@ -1251,8 +1674,9 @@ if ($vars->{table} eq "media") {
 
 				# Execute query and convert the result to JSON, then print
 				my $json->{entries} = $dbh->selectall_arrayref( $sql, {Slice => {} },$query,$query );
-				my $json_text = encode_json($json);
-				print $json_text;
+				#my $json_text = encode_json($json);
+				print &hash_to_json($json);		
+				#print $json_text;
 	      exit;
 
 	    }
@@ -1286,8 +1710,7 @@ if ($vars->{table} eq "media") {
 		$output->{chain} = $blockchain->{chain};
 		$output->{current_transactions} = $blockchain->{current_transactions};
 		$output->{nodes} = $blockchain->{nodes};
-		my $json_data = encode_json( $output );
-
+		my $json_data = &hash_to_json($output);
     # None of this worked
 		# our $JSON = JSON->new->utf8;
 		# $JSON->convert_blessed(1);
@@ -1351,12 +1774,14 @@ sub api_show_record {
 
 sub api_backup {
 
-	my $output = "Backing up $vars->{table}. ";
+	my $output = "Backing up $vars->{table} ";
 	if ($vars->{table} eq "all") {$output .= " tables"; }
+	$output .= "... ";
 	my $savefile = &db_backup($vars->{table});
 	my $saveurl = $savefile;
 	$saveurl =~ s/$Site->{st_urlf}/$Site->{st_url}/;
 	$output .= qq|Table '$vars->{table}' backed up to <a href="$saveurl">$savefile</a>|;
+	$output .= $vars->{backup_message};
   	return $output;
 
 }
@@ -1664,14 +2089,16 @@ sub api_keylist_update {
 	my $key = $vars->{key};
 	my $noedit = $vars->{noedit};
 
-	# Split list of input $value by ;
-	$value =~ s/&apos;|&#39;/'/g;   # ' Remove apostraphe escaping, just for the split
+	# Encode entities, then split list of input $value by ;
+	use HTML::Entities;
+	use utf8;							# Turns out if you don't also use this, encode_entities doesn't work
+	$value =~ s/&amp;/&/ig;				# To avoid &amp;apos;
+	$value = decode_entities($value);	# Decode entitiles so we can separate by semi-colons
 	my @keynamelist = split /;/,$value;
 
 	# For each member of the list...
 	foreach my $keyname (@keynamelist) {
-
-	  $keyname =~ s/'/&#39;/g;   # Replace apostraphe escaping
+		$keyname = encode_entities($keyname); # Encode previously decoded entities
 
 		# Trim leading, trailing white space
 		$keyname =~ s/^ | $//g;
@@ -1775,7 +2202,6 @@ sub api_textfield_update {
 	&status_error("Field $field does not exist") unless (&__check_field($vars->{table},$vars->{field}));
 	
 	# Check for duplicates
-	$vars->{col_name} ||= $vars->{field};
 	if ($vars->{value} && $vars->{col_name} =~ /_title|_name|_url|_link/) {
 		if (my $l = &db_locate($dbh,$vars->{table_name},{$vars->{col_name} => $vars->{value}})) {
 			&status_error(qq|<p>Duplicate Entry. This $vars->{col_name} will not be saved.<br/>
@@ -1807,7 +2233,9 @@ $vars->{message} .= " Updating search form";
 		# Update if already published to web
 		# Autopublishing author, feed
 		if ($published =~ /web/ || $vars->{table} =~ /author|feed|post/) { 
+		
 			&print_record($vars->{table},$vars->{id});
+		
 		}   
 		
 		return $id_number;
@@ -1848,7 +2276,7 @@ sub api_datetime_update {
 
 
 	unless (&__check_field($vars->{table_name},$vars->{col_name})) {
-		print "Content-type: text/html\n\n";
+
 		print "Field does not exist";
 	  die "Field does not exist";
 	}
@@ -1863,7 +2291,11 @@ sub api_datetime_update {
 		
 		&output_record($dbh,$query,$vars->{table_name},$vars->{table_id},"viewer");
 		my $published = &db_get_single_value($dbh,$vars->{table_name},$vars->{table_name}."_social_media",$vars->{table_id});
-		if ($published =~ /web/) { &print_record($vars->{table_name},$vars->{table_id}); }   # Update if alread published to web
+		if ($published =~ /web/) { 
+			
+			&print_record($vars->{table_name},$vars->{table_id}); 
+			
+		}   # Update if alread published to web
 
 		&api_ok();
 	} else { &api_error(); }
@@ -1894,8 +2326,10 @@ sub api_publish {
 $vars->{message} .= "api_publish(): $table $id <br>";
 
 
+
 	my $result;
 	# Don't publish if already published, except locally
+
 	if ($published =~ /$vars->{value}/ && $vars->{value} !~ /web|rss|atom|json/i) {	
 		$vars->{message} .= "Was already published";
 
@@ -1913,6 +2347,17 @@ $vars->{message} .= "api_publish(): $table $id <br>";
 			&status_ok();
 
 		}
+
+		elsif ($vars->{value} =~ /bluesky/i) {
+			my $bluesky = &bluesky_post($dbh,"post",$id);
+			$published .= ",bluesky";
+
+			my $result = &db_update($dbh,$table, {$col => $published}, $id); # Prevent publishing twice
+			$vars->{message} .= "Published to <a href='$bluesky' target='new'>$bluesky</a>";
+			&status_ok();
+
+		}
+
 
 		elsif ($vars->{value} =~ /mastodon/i) {
 
@@ -1990,7 +2435,7 @@ $vars->{message} .= "api_publish(): $table $id <br>";
 
 			$vars->{force} = "yes"; 							# Over-write cache
 			#&output_record($dbh,$query,$table,$id,"html","api");
-			
+
 			my $printed = &print_record($table,$id);					# Publish
 
 			&status_error("Printing error ,$table,$id  $? $!") unless ($printed);
@@ -2001,14 +2446,20 @@ $vars->{message} .= "api_publish(): $table $id <br>";
 			# Find the previous record, and print it (to create its 'next' link, which won't exist unless we do this)
 			my $nextsql ="SELECT ".$table."_id FROM $table WHERE ".$table."_id <'".$id."' ORDER BY ".$table."_id DESC  LIMIT 1";
 			my ($newprevid) = $dbh->selectrow_array($nextsql);
-			if ($newprevid) { &print_record($table,$newprevid); } 
+			if ($newprevid) {
+					
+				 &print_record($table,$newprevid); 
+
+			} 
 
 			# Publish feed and author records
-			foreach my $assoc_table ("author","feed") {
+			foreach my $assoc_table ("feed","author") {
 				my @assoc_graph = &find_graph_of($table,$id,$assoc_table);
 				if (@assoc_graph[0]) {
 					foreach my $assoc_item (@assoc_graph) { 
+						
 						&print_record($assoc_table,$assoc_item);
+
 					}
 				}
 			}
@@ -2055,7 +2506,7 @@ $vars->{message} .= "api_publish(): $table $id <br>";
 
 			}
 
-			my $result = &db_update($dbh,$table, {$table."_web" => 1}, $id); # Prevent publishing twice
+				
 			$vars->{message} .= qq|Published to <a href="$url" target="new">$url</a>|;
 			&status_ok();
 			exit;
@@ -2068,6 +2519,7 @@ $vars->{message} .= "api_publish(): $table $id <br>";
 
 
 			my $result = &db_update($dbh,$table, {$col => $published}, $id); # Prevent publishing twice
+			
 			print "Published to ".$vars->{value}."<p>";
 			exit;
 		}
@@ -2452,7 +2904,8 @@ sub api_save_file {
 	my ($file) = @_;
 
 	# Reject unless there's a full file name
-	return unless ($file && $file->{fullfilename});
+	&status_error("Can't find ".$file->{fullfilename}." file to save")
+		unless ($file && $file->{fullfilename});
 
 	$vars->{graph_table} ||= $vars->{table};
 	$vars->{graph_id} ||= $vars->{id};
@@ -2461,6 +2914,8 @@ sub api_save_file {
 
 	# Save the file
 	my $file_record = &save_file($file);
+
+
 	unless ($file_record) { &status_error("Error saving file $!"); }
 
 
@@ -2478,103 +2933,34 @@ sub api_save_file {
 		graph_tableone=>'file', graph_idone=>$file_record->{file_id}, graph_urlone=>$file_record->{file_url},
 		graph_tabletwo=>$vars->{graph_table}, graph_idtwo=>$vars->{graph_id}, graph_urltwo=>$urltwo,
 		graph_creator=>$Person->{person_id}, graph_crdate=>time, graph_type=>$file_record->{file_type}, graph_typeval=>$graph_typeval});
+	&status_error("Failed to save graph data : ".
+	"file ". $file_record->{file_id}.
+" ; ".$vars->{graph_table}." ". $vars->{graph_id}
+) unless $graphid;
+
+
 
 	# Make Icon (from smallest uploaded image thus far)
 
-	if ($file_record->{file_type} eq "Illustration") {
+	#if ($file_record->{file_type} eq "Illustration") {
 
-		my $icon_image = &item_images($vars->{graph_table},$vars->{graph_id},"smallest");
 
-		my $filename = $icon_image->{file_title};
-		my $filedir = $Site->{st_urlf}."files/images/";
+		my $filename = $file->{file_title};
+		my $filedir = $Site->{st_urlf}.$Site->{up_image};
+
 		my $icondir = $Site->{st_urlf}."files/icons/";
 		my $iconname = $vars->{graph_table}."_".$vars->{graph_id}.".jpg";
-
 		my $tmb = &make_thumbnail($filedir,$filename,$icondir,$iconname);
+		
 	#	print "Content-type: text/html\n\n";
 	# 	print "Thumbnail: $tmb <p>";
-	}
+	#}
 
 
 
 }
 
 # API UPDATE ----------------------------------------------------------
-# ------- Save File -----------------------------------------------------
-#
-# Save a file, get metadata, store a 'file' entry in the db, return the
-# new file record
-#
-# -------------------------------------------------------------------------
-#
-#   	Saves file
-#
-#   	Expects input from either upload_file() or upload_url()
-#       input hash $file needs:
-# 		$file->{fullfilename}   - full directory and file name of upload file
-
-
-sub save_file {
-
-	my ($file) = @_;
-
-	my ($ffdev,$ffino,$ffmode,$ffnlink,$ffuid,$ffgid,$ffrdev,$ffsize, $ffatime,$ffmtime,$ffctime,$ffblksize,$ffblocks)
-			= stat($file->{fullfilename});
-	my $ffwidth = "400";
-
-
-	my $mime;
-	if (&new_module_load($query,"MIME::Types")) {
-		use MIME::Types;
-		my MIME::Types $types = MIME::Types->new;
-			my MIME::Type  $m = $types->mimeTypeOf($file->{fullfilename});
-			$mime = $m;
-	} else {
-		$mime="Unknown; install MIME::Types module to decode upload file mime types";
-		$vars->{msg} .= "Could not determine mime type of upload file; install MIME::types module<br>";
-	}
-
-	my $file_type; if ($mime =~ /image/) {
-		$file_type = "Illustration";
-
-
-
-	} else { $file_type = "Enclosure"; }
-
-
-
-	my $file_record = gRSShopper::Record->new(
-		file_title => $file->{file_title},
-		file_dirname => $file->{file_dir}.$file->{file_title},
-		file_url => $Site->{st_url}.$file->{file_dir}.$file->{file_title},
-		file_dir => $file->{file_dir},
-		file_mime => $mime,
-		file_size => $ffsize,
-		file_crdate => time,
-		file_creator => $Person->{person_id},
-		file_type => $file_type,
-		file_width => $ffwidth,
-		file_align => "top");
-
-
-
-	# Create File Record
-	$file_record->{file_id} = &db_insert($dbh,$query,"file",$file_record);
-
-	if ($file_record->{file_id}) { return $file_record; }
-	else { &error($dbh,"","","File save failed: $! <br>"); }
-
-
-}
-
-sub __check_field {
-	my ($table,$field) = @_;
-	my @columns = &db_columns($dbh,$table);
-	return 1 if (&index_of($field,\@columns)>-1);
-	return 0;
-
-}
-
 
 # API HUB BOOKMARKLET -------------------------------------------------------
 
@@ -2585,8 +2971,15 @@ sub __check_field {
 
 sub api_hub_bookmarklet {
 
-	my ($id,$geturl) = @_;
+	use HTML::Entities;
+	use utf8;
 
+	my ($id,$geturl) = @_;
+	my $report = "";
+#print "Content-type:/text/html\n\n";
+#print qq|<!DOCTYPE html><html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8">|;
+
+#print "OK go";
 	# Check for duplicates
 	my $lid = &db_locate($dbh,"post",{post_link => $geturl});
 # if ($lid) { &status_error("Link already exists in db"); }
@@ -2607,18 +3000,20 @@ sub api_hub_bookmarklet {
     my $response = $ua->get($geturl);
 	if ($response->is_success) { 
 		$tree->parse($response->decoded_content);
-
+	$report .= "LWP: success<br>";
 
 	} else {
-		print "Failed to get resource. ".$response->status_line."<br>"; 
-		print "Trying curl... ";
+		$report .= "Failed to get resource. ".$response->status_line."<br>"; 
+		$report .= "Trying curl... ";
 		$curl_result = `curl $geturl`;
 		if ($curl_result) {
-			#utf8::decode($curl_result);
+			utf8::decode($curl_result);
+			#$report .= $curl_result;
 			$tree->parse($curl_result);
 		} else {
-			print "Curl also failed.<br>";
+			$report .= "Curl also failed.<br>";
 		}
+	$report .= "LWP: curl<br>";	
 	}
 	$response_text = $curl_result || $response->decoded_content;
 
@@ -2710,15 +3105,20 @@ sub api_hub_bookmarklet {
 	my $title; my $titletag =  $tree->find_by_tag_name('title');
 	if ($titletag) { $metadata->{title} ||= $titletag->as_text; }
 	unless ($title) { $title = "Untitled"; }
-print $metadata->{title};
+
+	#	$report .= "Title: ".$metadata->{title}."<br>";
+
    	&status_error("Failed Hub Title Update") 
 		unless (&api_textfield_update({table=>'post',field=>'post_title',value=>$metadata->{title},id=>$id}));
 
 	# Description
 	# Quoted text from Hub and completion of description
 	my $quote = $vars->{quote};
-	if ($quote) { $metadata->{description} .= " QUOTE: $quote"; }
+	if ($quote) { $metadata->{description} .= "QUOTE: $quote"; }
+	# $report .= "Description: ".$metadata->{description}."<br>";	
+
 	if ($metadata->{description}) {
+
    		&status_error("Failed Hub Description Update") unless (&api_textfield_update({table=>'post',field=>'post_description',value=>$metadata->{description},id=>$id}));
 	}
 
@@ -2736,11 +3136,12 @@ print $metadata->{title};
 
 	# Image
 	my $image = $metadata->{image} || $metadata->{source};
-	if ($image) { print "Found image $image <br>"; }
+	if ($image) {
+			$report .= "Image: ".$image."<br>"; }
 
     $tree->delete;
 
-
+	return $report;
 }
 
 
@@ -2919,8 +3320,62 @@ if ($vars->{search}) {
 
 }
 
+
+my ($will_change) = $dbh->selectrow_array(q{
+  SELECT COUNT(*) FROM presentation
+  WHERE presentation_audio REGEXP '^(https?://(www\.)?downes\.ca/files/audio/)'
+});
+$vars->{message} .= "Rows to update: $will_change\n";
+
+# Do the update (single statement)
+# --- Optional: see how many rows will change ---
+my ($will_change) = $dbh->selectrow_array(q{
+  SELECT COUNT(*)
+  FROM presentation
+  WHERE presentation_audio REGEXP '^(https?://(www\.)?downes\.ca/files/audio/)'
+});
+
+
+# --- Do the update with error checking ---
+local $dbh->{RaiseError} = 1;
+local $dbh->{PrintError} = 0;
+
+my $sql = q{
+  UPDATE presentation
+  SET presentation_audio =
+    REPLACE(
+      REPLACE(
+        REPLACE(
+          REPLACE(presentation_audio,
+                  'http://www.downes.ca/files/audio/',''),
+                  'https://www.downes.ca/files/audio/',''),
+                  'http://downes.ca/files/audio/',''),
+                  'https://downes.ca/files/audio/','')
+  WHERE presentation_audio REGEXP '^(https?://(www\.)?downes\.ca/files/audio/)'
+};
+
+my $rows = 0;
+eval {
+  $dbh->begin_work;
+  my $rv = $dbh->do($sql);            # undef on error; "0E0" if 0 rows
+  die "UPDATE returned undef\n" unless defined $rv;
+  $rows = ($rv eq '0E0') ? 0 : $rv;   # normalize "0E0" -> 0
+  $dbh->commit;
+  1;
+} or do {
+  my $err = $@ || $dbh->errstr || 'unknown error';
+  eval { $dbh->rollback };
+  die "Update failed: $err";
+};
+
+
+
+
+
+$vars->{message} .= "Updated $rows rows\n";
+
 # Print OK for blank api request
-#print "Content-type: text/json\n\n";
+
 $vars->{message} .= qq|No command submitted or executed|; 
 &status_ok();
 	
@@ -2928,3 +3383,121 @@ exit;
 
 # API OK & error responses are in grsshopper.pl
 # see status+ok() and status_error()
+
+sub build_shards {
+    my ($dbh, %opt) = @_;
+
+    my $rd_base = $opt{rd_base} // die "rd_base required";
+    my $scheme  = $opt{scheme}  // 100;   # 100 or 1000
+    my $dry     = $opt{dry_run} // 0;
+
+    die "rd_base must be absolute\n" unless $rd_base =~ m{^/};
+
+    # Ensure the base exists (unless dry_run)
+    if (!$dry && !-d $rd_base) {
+        make_path($rd_base, { mode => 0755 }) or die "make_path($rd_base): $!";
+    }
+
+    # Query: only posts that actually have an external link
+    my $sql = q{
+        SELECT post_id, post_link
+        FROM post
+        WHERE post_type = 'link'
+          AND post_link IS NOT NULL
+          AND post_link <> ''
+    };
+
+    my $sth = $dbh->prepare($sql);
+    $sth->execute;
+
+    my ($n_total, $n_created, $n_updated, $n_unchanged, $n_skipped) = (0,0,0,0,0);
+
+    while (my ($id, $link) = $sth->fetchrow_array) {
+        ++$n_total;
+
+        my $post_id = int($id || 0);
+        my $url     = defined($link) ? $link : '';
+        $url =~ s/^\s+|\s+$//g;
+
+        # only http/https redirects
+        unless ($post_id > 0 && $url =~ m{^https?://}i) {
+            ++$n_skipped;
+            next;
+        }
+
+        # compute shard path
+        my ($parent, $leaf);
+        if ($scheme == 100) {
+            $leaf   = $post_id % 100;          # 57
+            $parent = int($post_id / 100);     # 781   → 781/57
+        } elsif ($scheme == 1000) {
+            $leaf   = $post_id % 1000;         # 157
+            $parent = int($post_id / 1000);    # 78    → 78/157
+        } else {
+            die "Unsupported scheme: $scheme (use 100 or 1000)";
+        }
+
+        my $dir  = File::Spec->catdir($rd_base, $parent);
+        my $file = File::Spec->catfile($dir, $leaf);
+
+        # ensure dir exists
+        if (!$dry && !-d $dir) {
+            make_path($dir, { mode => 0755 }) or die "make_path($dir): $!";
+        }
+
+        # if file exists and identical, skip
+        my $current = '';
+        if (-e $file) {
+            if (open my $rfh, '<', $file) {
+                local $/ = undef;
+                $current = <$rfh>;
+                close $rfh;
+                $current //= '';
+                $current =~ s/^\s+|\s+$//g;
+            }
+            if ($current eq $url) {
+                ++$n_unchanged;
+                next;
+            }
+        }
+
+        if ($dry) {
+            if (-e $file) { ++$n_updated } else { ++$n_created }
+            next;
+        }
+
+        # atomic write: tmp → rename
+        my $tmp = "$file.tmp.$$";
+        open my $wfh, '>', $tmp or die "open($tmp): $!";
+        binmode $wfh;
+        print {$wfh} $url, "\n";
+        close $wfh or die "close($tmp): $!";
+        chmod 0644, $tmp;
+        rename $tmp, $file or die "rename($tmp => $file): $!";
+
+        if (defined $current && length $current) { ++$n_updated } else { ++$n_created }
+    }
+
+    $sth->finish;
+
+    my $report_counts = sprintf <<"TXT",
+Total rows:       %d
+Created files:    %d
+Updated files:    %d
+Unchanged files:  %d
+Skipped (bad):    %d
+TXT
+    $n_total, $n_created, $n_updated, $n_unchanged, $n_skipped;
+
+syslog(LOG_INFO,
+    "build_shards done base=%s scheme=%d dry=%d totals: rows=%d created=%d updated=%d unchanged=%d skipped=%d",
+    $rd_base, $scheme, $dry, $n_total, $n_created, $n_updated, $n_unchanged, $n_skipped
+);
+
+return "[UTC " . (scalar gmtime) . "] build_shards complete\n" .
+       "Base directory:   $rd_base\n" .
+       "Scheme:           $scheme (100 => 781/57; 1000 => 78/157)\n" .
+       "Dry run:          $dry\n" .
+       $report_counts;
+
+}

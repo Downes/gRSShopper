@@ -25,43 +25,66 @@ sub log_status {
 	&db_insert($dbh,$query,"log",$lvals);
 
 }
+
+# -------  Cron Log -------------------------------------------------------
+#
+# Cron log is a simple text file, with newest entries at the top. It is written to by the cron process, and can be viewed by admins. It is not intended to be a general log of all events, but rather a log of cron activity and errors. It is intended to be simple and lightweight, and to be easily viewable by admins without needing to access the server directly.
+#
+
 sub log_cron {
 
-	my ($level,$log) = @_;
+    my ($level,$log) = @_;
 
-	return unless ($level <= $Site->{st_log_level});
+    return unless ($level <= $Site->{st_log_level});
 
+    my $MAX_LINES     = 20000;  # trigger point
+    my $REWRITE_LINES = 15000;  # keep this many (most recent)
 
- 	return unless ($Site->{context} eq "cron");
-  	my $entry = sprintf("%s ", $Site->{context});
+    return unless ($Site->{context} eq "cron");
+    my $entry = sprintf("%s ", $Site->{context});
 
-	# Get the time
-	my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime(time);
-	my @wdays = qw|Sunday Monday Tuesday Wednesday Thursday Friday Saturday|;
-	my $weekday = @wdays[$wday];
-	if ($min < 10) { $min = "0".$min; }
-	if ($mday < 10) { $mday = "0".$mday; }
-	my $logtime="$mon/$mday $hour:$min ";
-	$entry .= "$logtime $log\n";
+    # Get the time
+    my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime(time);
+    my @wdays = qw|Sunday Monday Tuesday Wednesday Thursday Friday Saturday|;
+    my $weekday = @wdays[$wday];
+    $mon++;
+    if ($min < 10)  { $min  = "0".$min; }
+    if ($mday < 10) { $mday = "0".$mday; }
+    my $logtime="$mon/$mday $hour:$min ";
+    $entry .= "$logtime $log\n";
 
-  	# Define Cron Log Location
-	my $cronfile = &get_cookie_base("b");
-	$cronfile =~ s/\./_/g;
-	my $cronlog = $Site->{data_dir} . $cronfile. "_cron.log";
+    # Define Cron Log Location
+    my $cronfile = &get_cookie_base("b");
+    $cronfile =~ s/\./_/g;
+    my $cronlog = $Site->{data_dir} . $cronfile. "_cron.log";
 
-	# Print Cron Jobs Log
-	open CRONLOG,">>$cronlog" or die "Error opening Cron Logfile\n $cronlog: $!";
-  	print CRONLOG $entry  or die "Error printing Cron Log $cronlog : $! \nLog: $log";
-  	close CRONLOG;
-	return 1;
+    # Read existing log (if any), then write newest at top
+    my @lines;
+    if (-e $cronlog) {
+        open my $fh, '<', $cronlog or die "Error opening Cron Logfile\n $cronlog: $!";
+        @lines = <$fh>;
+        close $fh;
+    }
 
+    unshift @lines, $entry;  # newest first
+
+    # If too big, keep only the most recent REWRITE_LINES (top of file)
+    if (@lines >= $MAX_LINES) {
+        $#lines = $REWRITE_LINES - 1 if @lines > $REWRITE_LINES;
+    }
+
+    # Rewrite file
+    open my $out, '>', $cronlog or die "Error opening Cron Logfile\n $cronlog: $!";
+    print $out @lines or die "Error printing Cron Log $cronlog : $! \nLog: $log";
+    close $out;
+
+    return 1;
 }
-
 
 
 sub log_view {
 	my ($dbh,$query,$logfile,$format) = @_;
-
+print "Logview<br>";
 
 						# Table View Defaults
 	my $vars = $query->Vars;
@@ -71,9 +94,7 @@ sub log_view {
 	my $padding = $vars->{padding} || 3;
 	my $spacing = $vars->{spacing} || 0;
 
-
-	print "Content-type:text/html\n\n";
-	print "Retrieving $logfile <br>";
+	# print "Retrieving $logfile <br>";
 	if ($logfile eq "cronlog") {
 		my $cronfile = &get_cookie_base("d");
 		$cronfile =~ s/\./_/g;
@@ -84,7 +105,7 @@ sub log_view {
 				or die "could not start tail on SampleLog.log: $!";
 			print while <$pipe>;
 		}
-		print "Opening $cronlog <br>";
+		print "Opening $cronlog <br><br>";
 		open CRONLOG,"$cronlog" or &error($dbh,"","","Error opening cron log: $!");
 		while (<CRONLOG>) { print $_ . "<br>"; }
 		close CRONLOG;
@@ -127,7 +148,7 @@ sub log_view {
 						# Print Output
 
 	if ($format eq "table") { print qq|<table border="$border" cellspacing="$spacing" cellpadding="$padding">|; }
-	print $headers;
+	#print $headers;
 	print $body;
 	if ($format eq "table") { print "</table>"; }
 	exit;

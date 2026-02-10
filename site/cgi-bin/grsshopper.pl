@@ -40,12 +40,15 @@ require $dirname . "/services/bigbluebutton.pl";
 require $dirname . "/services/email.pl";
 require $dirname . "/services/facebook.pl";
 require $dirname . "/services/mastodon.pl";
+require $dirname . "/services/blsky.pl";
 require $dirname . "/services/twitter.pl";
 require $dirname . "/services/realfavicongenerator.pl";
 require $dirname . "/services/webmentions.pl";
 require $dirname . "/services/wikipedia.pl";
 require $dirname . "/services/mailchimp.pl";
 require $dirname . "/services/mailgun.pl";
+require $dirname . "/services/s3.pl";
+require $dirname . "/services/linkedin.pl";
 
 # API
 require $dirname . "/api/subscribe.pl";
@@ -204,11 +207,11 @@ sub filter_input {
 	#-------------------------------------------------------------------------------
 sub get_site {
 
-	# print "Content-type: text/html\n\n";
+#	print "Content-type: text/html\n\n";
 	my ($context) = @_;
 
 
-	if ($ARGV[1]) { $context = "cron"; }					# Set cron context, as appropriate
+	if ($ARGV[1] ||  $vars->{context} eq "cron") { $context = "cron"; }					# Set cron context, as appropriate
 	if ($vars->{action} eq "cron") { 					# Note that a cron key is required to execute
 		$context = "cron"; 						# from the command line
 		$vars->{cronuser} = "web";
@@ -223,9 +226,8 @@ sub get_site {
 
 	});
 
-	# Open Site Database
+    # Open Site Database
 	my $dbh = $Site->{dbh};
-
 
 	# Get Site Info From Database
 	&get_config($dbh);
@@ -283,6 +285,7 @@ sub get_person {
 	my ($Person,$username,$pstatus) = @_;
 
 
+
 	if ($Site->{context} eq "cron") { 			# Create cron person, if applicable,
 								# and exit
 
@@ -306,12 +309,12 @@ sub get_person {
 	$Site->{context} ||= "page";
 
 	if (($Site->{context} eq "page")||($Site->{context} eq "admin")) {
-		$Site->{header} = &get_template($Site->{context}."_header");
-		$Site->{footer} = &get_template($Site->{context}."_footer");
+		#$Site->{header} = &get_template($Site->{context}."_header");
+		#$Site->{footer} = &get_template($Site->{context}."_footer");
 
-		for ($Site->{header},$Site->{footer}) {
-			$_ =~ s/\Q[*page_crdate*]\E|\Q[*page_update*]\E/$nowstr/sig;
-		}
+		#for ($Site->{header},$Site->{footer}) {
+		#	$_ =~ s/\Q[*page_crdate*]\E|\Q[*page_update*]\E/$nowstr/sig;
+		#}
 	}
 
 	unless ($username) {		# No Person Info - Return anonymous User
@@ -676,6 +679,7 @@ sub printlang {						# Print in current language
 	}
 }
 
+
 sub load_dictionary {
 	my ($dictionary,$langstring) = @_;
 
@@ -714,6 +718,26 @@ sub dictionary_help {
 
 
 }
+
+	# ----------------- Hash to JSON ---------------------
+	#
+	# Encodes a hash to JSON, taking care to use HTML entities to encode wide utf8 characters.
+	# removes empty keys. 
+	# Assumes we use utf8, HTML::Entitites, JSON
+	#
+sub hash_to_json {
+	use utf8;
+	my ($record) = @_;
+	while (my ($jx,$jy) = each %$record) {
+		unless ($jy) { delete $record->{$jx}; next; };
+		$record->{$jx} = encode_entities($jy,'^\n\x20-\x7e'); # encode only wide utf8
+	}
+	delete @h{ grep { not defined $record{$_} } keys %$record };
+	my $json =  to_json($record,{utf8 => 1, pretty => 1});
+	#$json = encode_entities($json,'^\n\x20-\x7e');
+	return $json;
+}
+
 	#-------------------------------------------------------------------------------
 sub isint{						# Is it an integer?
   my $val = shift;
@@ -725,14 +749,17 @@ sub isint{						# Is it an integer?
 sub status_error {
 
 	my ($message) = @_;
+	unless ($Person->{person_id}) { print "Content-type: text/json\n\n"; } 
+
 	my $errorResponse = {
 		status => "Error",
 		response => "Error",
-		message => $message
+		message => "Status error: ".$message
 	};
-	my $json = encode_json $errorResponse;
+	#my $json = encode_json $errorResponse;
 	#unless ($Person->{person_id}) { print "Content-type: text/json\n\n"; } 
-	print $json;
+	#print $json;
+	print &hash_to_json($errorResponse);	
 	exit;
 
 }
@@ -740,19 +767,31 @@ sub status_error {
 sub status_ok {
 
 	my ($div,$contents) = @_;		# Information to reload a div for a status update
-	my $json_text = encode_json ($contents);
-
 	unless ($Person->{person_id}) { print "Content-type: text/json\n\n"; } 
-	print "{";
-	print sprintf(qq|"response":"OK"|);
-	print sprintf(qq|,"status":"OK"|);
-	if ($div && $contents) {
-		print sprintf(qq|,"div":"$div"|);
-		print sprintf(qq|,"contents":$json_text|);
-	}
-	my $json = encode_json $vars->{message};
-	print sprintf(qq|,"message":%s|,$json) if ($vars->{message}); 
-	print "}";
+
+	my $status = {
+		content => $content,
+		response => "OK",
+		status => "OK",
+		div => $div,
+		message => $vars->{message}
+	};
+
+	print &hash_to_json($status);
+
+	#my $json_text = encode_json ($contents);
+
+	#unless ($Person->{person_id}) { print "Content-type: text/json\n\n"; } 
+	#print "{";
+	#print sprintf(qq|"response":"OK"|);
+	#print sprintf(qq|,"status":"OK"|);
+	#if ($div && $contents) {
+	#	print sprintf(qq|,"div":"$div"|);
+	#	print sprintf(qq|,"contents":$json_text|);
+	#}
+	#my $json = encode_json $vars->{message};
+	#print sprintf(qq|,"message":%s|,$json) if ($vars->{message}); 
+	#print "}";
 	exit;
 
 }
@@ -830,7 +869,7 @@ sub error_inline {
 	print "Content-type: text/html\n\n";
 	print qq|<h2>@{[&printlang("Error")]}</h2>|;
 	print "<div id='notice_box'>";
-	print "<p>$msg</p></div>";
+	print "<p>Error_Inline 872 $msg</p></div>";
 
 	if ($dbh) { $dbh->disconnect; }
 	exit unless ($supl eq "nonterminal");
@@ -958,15 +997,15 @@ package gRSShopper::Site;
   #  __home()  - assigns core directory and database names and data
   #  	- Determines site URL based on CGI or Cron request
 
+    #  __home()  - assigns core directory and database names and data
+  #  	- Determines site URL based on CGI or Cron request
+
   sub __home {
 
-  	my($self, $args) = @_;
+    my($self, $args) = @_;
 
   	# Check whether URLs are https or http
-  	my $http;
-  	if ($self->{st_secure} || $self->{secure}) { $http = "https://" } else { $http = "http://"; }
-
-	# Assumes directory structure is /var/www/$host/html/cgi-dir/data/multisite.txt
+  	my $http = "https://";
 
   	# Determine site host for HTTP or Cron
 	my $numArgs = $#ARGV + 1;  
@@ -974,19 +1013,11 @@ package gRSShopper::Site;
   	elsif ($numArgs > 1) { $self->{context} = "cron"; $self->{st_host} = $ARGV[0]; }		 # Cron
 	else { die "Cannot find website host from HTTP or Cron input."; }
 
-	# Set Up Site Variables
-	my $host = $self->{st_host}; my $hostdir;
-
-
-
-        # Multisite in this deployment: single shared docroot (no per-domain /var/www layout)
-        $hostdir = "/usr/local/apache2/htdocs/";
-
-
-	$self->{script} = $0; 
-	$self->{data_dir} = $hostdir."cgi-bin/data/";
-	$self->{st_urlf} = $hostdir;
-	$self->{st_cgif} = $hostdir."cgi-bin/";		
+	# Set Up Site File Directories
+  	$self->{script} = $0; 
+	$self->{st_urlf} = "/srv/www/".$self->{st_host}."/";
+	$self->{st_cgif} = "/usr/local/apache2/htdocs/cgi-bin/";		
+	$self->{data_dir} = $self->{st_cgif}."data/";
 
   	# Set derived URLs based on st_host
    	$self->{st_url} = $http . $self->{st_host} . "/";
@@ -1000,7 +1031,6 @@ package gRSShopper::Site;
 	$self->{site_language}  ||= 'en';
 
   }
-
 
 
 
@@ -1018,7 +1048,8 @@ package gRSShopper::Site;
 	# Open the multisite configuration file,
 	# Initialize if file can't be found or opened
 
-        my $data_file = "./data/multisite.txt";
+  	my $data_file = $self->{st_cgif}."data/multisite.txt";
+	#print "<p>",$data_file,"<p>";
 	open IN,"$data_file" or die qq|Cannot find $data_file|; 
 
 	
@@ -1034,21 +1065,9 @@ package gRSShopper::Site;
 	my $url_located = 0; my $count=0;
   	while (<IN>) {
 		my $line = $_; $line =~ s/(\s|\r|\n)$//g;
+#		print $line;
 
-# Using first line as default; if it doesn't match the domain, it isn't used
-
-		if ($line && $count==0) { # Assign defualts with first line
-			( $self->{st_home},
-			$self->{database}->{name},
-			$self->{database}->{loc},
-			$self->{database}->{usr},
-			$self->{database}->{pwd},
-			$self->{site_language},
-			$self->{urlf},
-			$self->{cgif} ) = split "\t",$line;   
-		}
-
-                if ($line =~ /^\Q$self->{st_host}\E/) {
+		if ($line =~ /^$self->{st_host}/) {
 			( $self->{st_home},
 			  $self->{database}->{name},
 			  $self->{database}->{loc},
@@ -1056,15 +1075,15 @@ package gRSShopper::Site;
 			  $self->{database}->{pwd},
 			  $self->{site_language} ) = split "\t",$line;
 			$url_located = 1;
-                        last;
-                }
-                $count++;
+			last;
+		}
+		$count++;
 	}
 	close IN;
 
 	# Initialize if line beginning with site URL can't be found
 	unless ($self->{database}->{name}) { 
-			die "Cannot determine the name of the database to use. Please initialize site at ".$self->{st_cgi}."server_test.cgi"; 
+		die "Cannot determine the name of the database to use. Please initialize site at ".$self->{st_cgi}."server_test.cgi"; 
 	} 
 	
 	return;
@@ -1086,16 +1105,29 @@ package gRSShopper::Site;
     	my $pwd = $self->{database}->{pwd};
 
 	# Connect to the Database
-  	$self->{dbh} = DBI->connect("DBI:mysql:database=$dbname;host=$dbhost;port=3306",$usr,$pwd);
 
-	# Catch connection error
+#DBI->trace(3);
+
+my $dsn = "DBI:mysql:database=$dbname;host=$dbhost;port=3306";
+my $dbh = DBI->connect(
+  $dsn, $usr, $pwd,
+  {
+    mysql_enable_utf8mb4 => 1,
+    mysql_connect_timeout => 5,   # seconds
+    RaiseError => 0,
+    PrintError => 0,
+  }
+) or die $DBI::errstr;
+
+    $self->{dbh} = $dbh;
+
+    # Catch connection error
 	if( ! $self->{dbh} ) {
 		die qq|Database connection error for db '$dbname' on '$dbhost'. 
 			Please contact the site administrator.\n
 			Error String Reported: $DBI::errstr \n|; 
 	}
-        $self->{database}->{pwd} = "";
-        $self->{database}->{usr} = "";
+
   }
 
   sub __load_languages {
@@ -2307,7 +2339,8 @@ package gRSShopper::Person;
 package CGI::as_utf8;  # add UTF-8 decode capability to CGI.pm
 BEGIN {
   use strict;
-  use warnings;
+no warnings;
+no warnings 'all';
   use CGI 3.47;  # earlier versions have a UTF-8 double-decoding bug
   {   no warnings 'redefine';
       my $param_org = \&CGI::param;
@@ -2318,15 +2351,18 @@ BEGIN {
           utf8::decode($p);  # may fail, but only logs an error
           $p
       };
-      *CGI::param = sub {
-          # setting a param goes through the original interface
-          goto &$param_org if scalar @_ != 2;
-          my $q = $_[0];    # assume object calls always
-          my $p = $_[1];
-          return wantarray
-              ? map { $might_decode->($_) } $q->$param_org($p)
-              : $might_decode->( $q->$param_org($p) );
-      }
+	*CGI::param = sub {
+		no warnings; # Temporarily suppress warning
+		goto &$param_org if scalar @_ != 2;
+		my $q = $_[0];
+		my $p = $_[1];
+		if (wantarray) {
+			my @values = $q->$param_org($p); # Explicitly retrieve all values
+			return map { $might_decode->($_) } @values;
+		} else {
+			return $might_decode->(scalar $q->$param_org($p));
+		}
+	};
   }
 }
 
@@ -2833,5 +2869,3 @@ print $response->as_string;
 
 
  1;
-
-

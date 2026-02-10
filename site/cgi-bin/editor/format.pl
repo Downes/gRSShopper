@@ -200,9 +200,9 @@ sub format_record {
 	my $view_text = "";								# Get the code and add header and footer for Page
 	if (!$keyflag && $table eq "page" && ($record_format ne "page_list" && $record_format ne "summary")) {
 		
-			$view_text .= &db_get_template($dbh,$filldata->{page_header}) .
+			$view_text .= &db_get_template($dbh,$filldata->{responsive_header}) .
 			$filldata->{page_code}.
-			&db_get_template($dbh,$filldata->{page_footer});
+			&db_get_template($dbh,$filldata->{responsive_footer});
 	} else {
 
 									# Or Get the Template (aka View)

@@ -74,46 +74,45 @@ sub twitter_post {
 
 sub compose_microcontent {
 
-   my ($dbh,$table,$id,$tweet,$length) = @_;
+	my ($dbh,$table,$id,$tweet,$length) = @_;
 
-  $tweet  =~ s/<(.*?)>//g;
+	$tweet = _clean_text($tweet);
 	my $record = &db_get_record($dbh,$table,{$table."_id"=>$id});
-
 
 										# Create Array of Post Sentences
 	my $post_description; my @sentences;
-  if ($table eq "post") {
+	if ($table eq "post") {
 		$post_description = $record->{$table."_description"};
-		$post_description =~ s/<(.*?)>//g;
+		$post_description = _clean_text($post_description);
 		@sentences = split /\. /,$post_description;
-  }
-
+  	}
 
 										# Compose Title and URL
-  my $tw_url;
-  if ($table eq "chat") {      # Special URL for chat
-     $tw_url = "";
+	my $tw_url;
+	if ($table eq "chat") {      # Special URL for chat
+    	$tw_url = "";
 	} else {
-     $tw_url = $Site->{st_url}.$table."/".$id;
-  }
+    	$tw_url = $Site->{st_url}.$table."/".$id;
+  	}
 
-  # Tag
-  unless ($vars->{chat_tag}  =~ /#/) { $vars->{chat_tag} = "#".$vars->{chat_tag};}
-  if ($table eq "chat") { $tw_url = $vars->{chat_tag}." ".$tw_url; }
+	# Tag
+	unless ($vars->{chat_tag}  =~ /#/) { $vars->{chat_tag} = "#".$vars->{chat_tag};}
+	if ($table eq "chat") { $tw_url = $vars->{chat_tag}." ".$tw_url; }
 	elsif ($Site->{tw_use_tag}) { $tw_url = $Site->{st_tag}." ".$tw_url; }
 
-
 	my $url_length = length($tw_url)+1;
-	if ($table eq "post") { $tweet ||= $record->{$table."_title"}; }     # Place title for post
-	$tweet =~ s/&#39;/'/g;
-	$tweet =~ s/&#38;/'/g;
-	$tweet =~ s/&quot;/"/g;
+	if ($table eq "post") { 
+		my $title = _clean_text($record->{$table."_title"}); # Place title for post
+		$tweet ||= $title; 
+	}     
+	
+
 	my $tweet_length = length($tweet);
 
 										# Create Initial Tweet (Abbreviating title if necessaey)
 	if (($url_length + $tweet_length) > ($length-3)) {
 		my $etc = "...";
-		my $trunc_length = 277 - $url_length;
+		my $trunc_length = ($length - 3) - $url_length;
 		$tweet = substr($tweet,0,$trunc_length);
 		$tweet =~ s/(\w+)[.!?]?\s*$//;
 		$tweet.=$etc;
@@ -122,26 +121,32 @@ sub compose_microcontent {
 	$tweet = $tweet . " " . $tw_url;
 
 	foreach my $sentence (@sentences) {					# Add sentences to tweet if they fit
-		$sentence =~ s/&#39;/'/g;
-		$sentence =~ s/&#38;/'/g;
-		$sentence =~ s/&quot;/"/g;
+		$sentence = _clean_text($sentence);   # <-- important
 		last if (length($tweet)+length($sentence)+2 > $length);
-
 		$tweet = $tweet ." ". $sentence .".";
 	}
 
+	return $tweet;
+}
 
+use HTML::Entities qw(decode_entities);
 
-	$tweet =~ s/\xe2\x80\x99/\'/gs;						# Convert smartquotes
-	$tweet =~ s/\xe2\x80\x98/\'/gs;						# No doubt more UTF8 stuff needs to be fixed
-	$tweet =~ s/\xe2\x80\x9c/\"/gs;
-	$tweet =~ s/\xe2\x80\x9d/\"/gs;
+sub _clean_text {
+    my ($s) = @_;
+    return "" unless defined $s;
 
+    # Decode ALL HTML entities: &amp; &#39; &#x2019; etc.
+    decode_entities($s);
 
+    # Remove tags
+    $s =~ s/<[^>]*>//g;
 
+    # Normalize whitespace 
+    $s =~ s/\x{00A0}/ /g;     # nbsp -> space
+    $s =~ s/\s+/ /g;
+    $s =~ s/^\s+|\s+$//g;
 
-   return $tweet;
-
+    return $s;
 }
 
 1;

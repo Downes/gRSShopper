@@ -2,6 +2,106 @@
 
 #           UPLOAD
 #-------------------------------------------------------------------------------
+
+
+# ------- Save File -----------------------------------------------------
+#
+# Save a file, get metadata, store a 'file' entry in the db, return the
+# new file record
+#
+# -------------------------------------------------------------------------
+#
+#   	Saves file
+#
+#   	Expects input from either upload_file() or upload_url()
+#       input hash $file needs:
+# 		$file->{fullfilename}   - full directory and file name of upload file
+
+
+sub save_file {
+
+	my ($file) = @_;
+
+	my ($ffdev,$ffino,$ffmode,$ffnlink,$ffuid,$ffgid,$ffrdev,$ffsize, $ffatime,$ffmtime,$ffctime,$ffblksize,$ffblocks)
+			= stat($file->{fullfilename});
+	my $ffwidth = "400";
+
+
+	my $mime;
+	if (&new_module_load($query,"MIME::Types")) {
+		use MIME::Types;
+		my MIME::Types $types = MIME::Types->new;
+			my MIME::Type  $m = $types->mimeTypeOf($file->{fullfilename});
+			$mime = $m;
+	} else {
+		$mime="Unknown; install MIME::Types module to decode upload file mime types";
+		$vars->{msg} .= "Could not determine mime type of upload file; install MIME::types module<br>";
+	}
+
+	my $file_type; if ($mime =~ /image/) { $file_type = "Illustration";} else { $file_type = "Enclosure"; }
+
+	# Save to Cloud Storage?
+	my $file_dir_name;
+	my $file_url;
+			$vars->{message} .= "API File dir is ".$file->{file_dir};
+	my $key_name = $file->{file_title};
+
+	# Set S3 Key Name based on mime type
+	if ($mime =~ "audio") { $key_name = "audio/" . $key_name; }
+	if ($mime =~ "powerpoint" || $mime =~ "presentation") { $key_name = "slides/" . $key_name; }
+	if ($mime =~ "pdf") { $key_name = "pdf/" . $key_name; }
+	if ($mime =~ "video") { $key_name = "video/" . $key_name; }
+
+	
+	if ($file->{file_dir} eq 's3/') {
+		$file_url = &s3_upload($Site->{s3_bucket},$key_name,$file->{fullfilename},$mime);
+	} elsif ($file->{file_dir} eq 's3files/') {
+		$file_url = &s3_upload($Site->{s3f_bucket},$key_name,$file->{fullfilename},$mime);
+	} else {
+		$file_dir_name = $file->{file_dir}.$file->{file_title};
+		$file_url = $Site->{st_url}.$file->{file_dir}.$file->{file_title};
+	}
+	$vars->{message} .= "API File storage is ".$file_url;
+
+	my $file_record = gRSShopper::Record->new(
+		file_title => $file->{file_title},
+		file_dirname => $file->{file_dir}.$file->{file_title},
+		file_url => $file_url,
+		file_dir => $file->{file_dir},
+		file_mime => $mime,
+		file_size => $ffsize,
+		file_crdate => time,
+		file_creator => $Person->{person_id},
+		file_type => $file_type,
+		file_width => $ffwidth,
+		file_align => "top");
+
+
+
+	# Create File Record
+	$file_record->{file_id} = &db_insert($dbh,$query,"file",$file_record);
+
+	if ($file_record->{file_id}) { return $file_record; }
+	else { &error($dbh,"","","File save failed: $! <br>"); }
+
+
+}
+
+sub __check_field {
+	my ($table,$field) = @_;
+	my @columns = &db_columns($dbh,$table);
+	return 1 if (&index_of($field,\@columns)>-1);
+	return 0;
+
+}
+
+
+
+
+
+
+
+
 	# -------   Upload File --------------------------------------------------------------
 	#
 	#
@@ -14,11 +114,13 @@ sub upload_file {
 	# Assumes global input variable $query from CGI
 	# Name of input field:  myfile
 	my ($upload_file_name) = @_;
+	$vars->{message} .= "Uploading $upload_file_name... <br>";
 	my $filen = $vars->{file};
 	$upload_file_name ||= "myfile";
 	my $file = gRSShopper::File->new();
 	#my $file;
 	$file->{file_title} = $query->param($upload_file_name);
+	$vars->{message} .= "Uploading ".$file->{file_title}."<br>";
 
 	$file->{file_dir} = $Site->{st_urlf} . "uploads";
 	unless (-d $file->{file_dir}) { mkdir $file->{file_dir}, 0755 or die "Error 3857 creating upload directory $file->{file_dir} $!"; }
@@ -43,6 +145,12 @@ sub upload_file {
 		or &error($dbh,"","","Failed to upload $upload_fullfilename $!");
 	$upload_filedirname = $file->{file_dir}.$file->{file_title};
 	$upload_fullfilename = $Site->{st_urlf}.$upload_filedirname;
+	$vars->{message} .= 
+		"Stored in <a href=\"".
+		$Site->{st_url}.$upload_filedirname.
+		"\">".
+		$upload_fullfilename.
+		"</a><br>";
 
 	# Prevent Duplicate File Names  (creates filename.n.ext where n is the increment number)
 
@@ -60,6 +168,9 @@ sub upload_file {
 
 
 }
+
+
+
 
 	# -------   Upload URL ---------------------------------------------------------------
 	#
@@ -106,11 +217,28 @@ sub upload_url {
 
 	# Get and Store the File
 
-	my $result = getstore($url,$file->{fullfilename});
-	unless ($result eq "200") {
-		&status_error(qq|\n
-			<br>Error $result while trying to download<br><a href="$url">$url</a> <br>
-			Try saving manually and uploading from your computer|);
+	# my $result = getstore($url,$file->{fullfilename});
+
+	my $ua = LWP::UserAgent->new;
+	$ua->env_proxy;	 # Specify that we want to follow redirects
+	$ua->max_redirect(5);
+
+	my $req = HTTP::Request->new(GET => $url); # Set up the request
+	$req->header('User-Agent' => 'Mozilla/5.0');
+	$req->header('Accept' => '*/*');
+	my $result = $ua->request($req);
+
+#	my $result = $ua->get($url);
+	if ($result->is_success) {
+		# Save the content to the specified output file
+		open my $fh, '>', $file->{fullfilename} or 
+			&status_error("Cannot open ".$file->{fullfilename} ." for writing: $!\n");
+		print $fh $result->decoded_content;
+		close $fh;
+	} else {
+		# Print an error message if the request was not successful
+		&status_error(qq|\n"<br>Error retrieving <a href="$url">$url</a>:<br>| . $result->status_line . 
+				qq|<br>Try saving manually and uploading from your computer|);
 		$file->{fullfilename} = ""; $file->{file_title} = "";
 		return 0;
 	}
@@ -199,6 +327,8 @@ sub file_upload_dir {
 	return ($filetype,$dir);
 }
 
+
+
 	# -------  Auto Make Icon  --------------------------------------------------------
 	#
 	#
@@ -273,27 +403,42 @@ sub make_thumbnail {
 
 	my ($dir,$img,$icondir,$iconname) = @_;
 
+	# Default thumbnails for various non-image media
+	if ($img =~ /\.pdf/i) { return $Site->{st_icon}."pdf.jpg";}
+	if ($img =~ /\.mp3/i) { return $Site->{st_icon}."pmp3.jpg";}
 
 	return "Error: need both directory and file" unless ($img && $dir);
 	my $tmb = $img;
 	if ($iconname) { $tmb = $iconname; }
 	else { $tmb =~ s/\.(.*?)$/_tmb\.$1/; }
-
+	$dir .= "/" unless ($dir =~ /\/$/);  # Make sure directories end in /
+	$icondir .= "/" unless ($dir =~ /\/$/);
 	my $dimf = $dir . $img;			# Full filename of original
 	my $domf = $icondir . $tmb;		# Full filename of new icon
+	&status_error("Make_thumbnail failed, can't find original file $dimf") unless
+		(-e $dimf);
 
 	unless (-d $icondir) { 
 		system "mkdir -p $icondir"; 
 		system "chmod 0755 $icondir";
-		&error($dbh,"","","Error 4053 Failed to create upload directory") unless (-d $icondir);
+		&status_error("Error 4053 Failed to create upload directory") unless (-d $icondir);
 	}
 
-  my $image = Image::Resize->new($dimf);
+
+	# Make an Icon
+	my $image = Image::Resize->new($dimf) or &status_error("Image resize failed: $? $! ");
 	my $gd = $image->resize(100, 100);
 	open(FH, '>'.$domf);
-	print FH $gd->jpeg() or return "Error: writing $domf image file: $error";
+	print FH $gd->jpeg() or &status_error("Error: writing $domf image file: $error");
 	close(FH);
 
+	# Make a display image
+	my $display = Image::Resize->new($dimf) or &status_error("Image resize failed: $? $! ");
+	my $gd = $image->resize(400, 400);
+	my $displayOutFile = $Site->{st_urlf}."files/images/".$iconname; # Need to set files/images dir in admin General
+	open(FH, '>'.$displayOutFile);
+	print FH $gd->jpeg() or &status_error("Error: writing $displayOutFile image file: $error");
+	close(FH);
 
   return $tmb;   # Return full filename of icon
 }
@@ -346,6 +491,7 @@ sub get_url {
 
 
 	my $ua = LWP::UserAgent->new;
+	$ENV{PERL_LWP_SSL_VERIFY_HOSTNAME} = 0;
 	$ua->agent("Mozilla/8.0");
 	$ua->ssl_opts( verify_hostname => 0 ,SSL_verify_mode => 0x00);
 
