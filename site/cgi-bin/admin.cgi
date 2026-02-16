@@ -3268,7 +3268,7 @@ exit;
 		elsif ($loglevel > 0) { $log .= "$hour:$min - "; }
 
         # Republish  - Runs a batch every cron cycle (so as not to overload the whole system publishing 30K+ posts)
-		my $republish = 1;
+		my $republish = 0;
 		foreach my $rtable ("feed","author","post","presentation") {
 		    if ($republish == 1) { &republish($rtable,15); }
 		}
@@ -3313,7 +3313,7 @@ exit;
 		$sth -> execute($hour,$min,'%'.$weekday.'%','%'.$mday.'%') or 
 			&log_cron(0,sprintf("Newsletter Error: %s",$dbh->errstr()));;
 		
-		&log_cron(5,"$sql");
+		&log_cron(5,"$sql,$hour,$min,'%'.$weekday.'%','%'.$mday.'%'");
 
 		while (my $npage = $sth -> fetchrow_hashref()) {
 			my $report = &send_nl($dbh,$query,$npage->{page_id},"subscribers",0);
