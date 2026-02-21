@@ -8,6 +8,7 @@ services:
     volumes:
       - ./site:/usr/local/apache2/htdocs
       - /srv/www:/srv/www:rw
+    command: ["/bin/sh", "-lc", "cron && exec /usr/local/apache2/bin/httpd -DFOREGROUND"]
 
 networks:
   web:

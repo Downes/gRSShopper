@@ -1,0 +1,1 @@
+* * * * * flock -n /tmp/grsshopper-cron.lock /usr/local/apache2/htdocs/cgi-bin/admin.cgi www.downes.ca cron >> /var/log/grsshopper/www.log 2>&1
