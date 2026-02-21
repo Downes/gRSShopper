@@ -1,3 +1,5 @@
+FROM httpd:2.4
+
 # Use our Apache config (enables CGI)
 COPY apache/httpd.conf /usr/local/apache2/conf/httpd.conf
 
@@ -26,7 +28,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     liburi-encode-perl \
     libwww-mechanize-perl \
     libxml-opml-perl \
-    libdbd-mysql-perl \
     libamazon-s3-perl \
     cron \
     nano \
@@ -38,4 +39,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Start cron + Apache
 CMD cron && httpd-foreground
+
+COPY cron/grsshopper-cron /tmp/grsshopper-cron
+RUN crontab /tmp/grsshopper-cron && rm /tmp/grsshopper-cron
+
 

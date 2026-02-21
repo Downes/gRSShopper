@@ -44,8 +44,32 @@ use lib 'modules/lib/perl5';
 
 
 # Forbid bots
+	# Check for cron
+	my $is_cli_cron = (!defined $ENV{'GATEWAY_INTERFACE'} && defined $ARGV[1] && $ARGV[1] eq 'cron');
+	unless ($is_cli_cron) {
+		# Reject bad user agents (bots)
+		my $ua = $ENV{'HTTP_USER_AGENT'} // '';
+		if ($ua =~ /(bot|slurp|spider)/i) {
+			print "Status: 403 Forbidden\r\nContent-Type: text/plain\r\n\r\nForbidden\n";
+			exit;
+		}
+	
 
-	die "HTTP/1.1 403 Forbidden\n\n403 Forbidden\n" if ($ENV{'HTTP_USER_AGENT'} =~ /bot|slurp|spider/);
+		use CGI;
+		use CGI::Cookie;
+		my $q = CGI->new;
+
+		my %cookies = CGI::Cookie->fetch;
+		my $sid = $cookies{CGISESSID} ? $cookies{CGISESSID}->value : '';
+
+		# If no session id, bail fast (no DB)
+		if (!$sid) {
+			print $q->header(-status => 403, -type => 'text/plain');
+			print "Forbidden\n";
+			exit;
+		}
+	}
+
 
 # Load gRSShopper
 
@@ -3544,6 +3568,7 @@ $Site->{st_stale_expire} = (72 * 60 * 60);
 			my $listid;
 			if ($send_list =~ /admin/i) { $listid = $Person->{person_email} || $Site->{st_email}; }  # Test
 			else { $listid = $record->{page_listid} || $record->{page_title}; }                      # Send
+			print "Sending $pgtitle to list $listid \n";
 			my $result = &send_mailgun_email($pgcontent,$pgtitle,$listid);
 		} else {						# send to email subscription list
 

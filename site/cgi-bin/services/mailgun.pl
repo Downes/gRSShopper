@@ -5,6 +5,7 @@ sub send_mailgun_email {
 	my $response;
 
     my $mailgun = &set_up_mailgun();
+	
     my $res = &mailgun_message($mailgun,$recipient,$pgtitle,$pgcontent);
 
     return $res;
@@ -41,13 +42,22 @@ sub set_up_mailgun {
         &status_error("Please define Mailgun API key and domain in Social:Accounts."); 
     }
     $Site->{mailgun_locale} ||= "US";
-    my $mailgun = WebService::Mailgun->new(
+    my $res = WebService::Mailgun->new(
         api_key => $Site->{mailgun_apikey},
         domain => $Site->{mailgun_domain},
         region => $Site->{mailgun_locale},
         RaiseError => 1,
     );
-    return $mailgun;
+
+	if ($res) {
+		print "Mailgun ok: $res->{message}\n";
+		print "Mailgun id: $res->{id}\n";
+	} else {
+		print "Mailgun failed: " . $mailgun->error . "\n";
+		print "HTTP status: " . $mailgun->error_status . "\n";
+	}
+
+    return $res;
 
 }
 
@@ -73,6 +83,10 @@ sub mailgun_message {
     # Body
     unless ($pgcontent) { &status_error("Email doesn't contain any content"); }
 
+    # Edit to avoide wide chars being sent to Mailgun client, which causes an error.
+	use Encode qw(encode);
+	$pgtitle = encode('UTF-8', $pgtitle);
+	$pgcontent = encode('UTF-8', $pgcontent);
 
     my $res = $mailgun->message({
         from    => $from,
@@ -80,6 +94,7 @@ sub mailgun_message {
         subject => $pgtitle,
         html    => $pgcontent,
     });
+	print $res;
     return $res;
 }
 1;
