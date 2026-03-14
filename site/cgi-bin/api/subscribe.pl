@@ -13,7 +13,7 @@
 sub api_subscription_form {
 
 	# Get the list of pages to which you can subscribe by email
-	my @page_list = &db_get_record_list($dbh,"page",{page_type => "mailgun"});
+	my @page_list = &db_get_record_list($dbh,"page",{page_sub => "yes"});
 	my $page_selection;
 	foreach my $page_id (@page_list) {
 		my $page = &db_get_record($dbh,"page",{page_id=>$page_id});
@@ -48,11 +48,13 @@ print qq|
 			border: 3px solid #333;
 			background-color: #2fcc71;
 		}
+		.hp { position: absolute; left: -5000px; }
 	</style>
 	<p><form class="listform" method="post" action="|.$Site->{st_cgi}.qq|api.cgi">
 	<input type="hidden" name="cmd" value="subscribe">
 	$page_selection
-	Email: <input type="email" name="email" style="width:15em;">|.
+	Email: <input type="email" name="email" style="width:15em;">
+	<div class="hp"><label for="website">Leave this field empty</label><input type="text" name="website" id="website" value="" autocomplete="off" tabindex="-1"></div>|.
 	qq|<input type="submit" class="button" value="Subscribe">
 	</form></p>
 |;
@@ -126,11 +128,40 @@ sub get_captcha_table {
 
 sub api_subscribe {
 
+	# Honeypot: bots fill in the website field; real users never see it
+	if ($vars->{website}) {
+		my $logfile = $Site->{data_dir} . "honeypot.log";
+		if (open my $log, '>>', $logfile) {
+			printf $log "%s\t%s\t%s\t%s\n",
+				scalar localtime, $ENV{REMOTE_ADDR}, $vars->{email}, $vars->{page_id};
+			close $log;
+		}
+		print "<p>Thank you for subscribing.</p>";
+		exit;
+	}
+
   	# Verify Input
 	my $email = $vars->{email};
 	my $page_id = $vars->{page_id};
   	unless ($email) { &status_error("No email address provided to subscribe"); };
-	unless ($vars->{page_id}) { &status_error("No page id provided to subscribe"); }
+	unless ($vars->{page_id}) {
+		# No newsletter selected — show a picker with the email pre-filled
+		my $sth = $dbh->prepare(qq|SELECT page_id, page_title FROM page WHERE page_sub='yes' ORDER BY page_title|);
+		$sth->execute();
+		my $buttons = '';
+		while (my ($pid, $ptitle) = $sth->fetchrow_array()) {
+			$buttons .= qq|<p><button type="submit" name="page_id" value="$pid" class="button">$ptitle</button></p>\n|;
+		}
+		print qq|<p>Please select a newsletter to subscribe <b>$email</b> to:</p>
+<form method="post" action="$Site->{st_cgi}api.cgi">
+<input type="hidden" name="cmd" value="subscribe">
+<input type="hidden" name="email" value="$email">
+<div style="position:absolute;left:-5000px"><input type="text" name="website" value="" autocomplete="off" tabindex="-1"></div>
+$buttons
+</form>
+<p><a href="$Site->{st_url}">Cancel</a></p>|;
+		exit;
+	}
   	my $page = &db_get_record($dbh,"page",{page_id=>$page_id});
 	unless ($page) { &status_error("Mailing list page does not exist."); }
 
@@ -174,6 +205,9 @@ sub api_subscribe {
 		if ($page->{page_type} eq "mailchimp")	{&status_error("Mailchimp not currently supported");exit;}
 		elsif ($page->{page_type} eq "mailgun")	{
 			$res = &send_mailgun_email($pgcontent,$pgtitle,$email);	# send using mailgun
+		}
+		elsif ($page->{page_type} eq "ses")	{
+			$res = &send_ses_email($pgcontent,$pgtitle,$email);		# send using Amazon SES
 		}
 		else { 	&status_error("You can't subscribe to this page");	}
 
@@ -292,6 +326,7 @@ sub api_confirm {
 	my $res;
 	if ($page->{page_type} eq "mailchimp")	{&status_error("Mailchimp not currently supported");exit;}
 	elsif ($page->{page_type} eq "mailgun")	{ $res = &mailgun_subscribe_confirm($email,$listid); }
+	elsif ($page->{page_type} eq "ses")	{ $res = &ses_subscribe_confirm($email,$page_id); }
 	else { 	&status_error("You can't subscribe to this page");	}
 
 	# Print landing page

@@ -47,11 +47,14 @@ require $dirname . "/services/webmentions.pl";
 require $dirname . "/services/wikipedia.pl";
 require $dirname . "/services/mailchimp.pl";
 require $dirname . "/services/mailgun.pl";
+require $dirname . "/services/amazonses.pl";
+require $dirname . "/services/sns.pl";
 require $dirname . "/services/s3.pl";
 require $dirname . "/services/linkedin.pl";
 
 # API
 require $dirname . "/api/subscribe.pl";
+require $dirname . "/api/ses_bounce.pl";
 
 our $gRSShopper_version = &read_text_file($dirname."/version.txt");
 our $diag = 0;

@@ -126,6 +126,8 @@ use Sys::Syslog qw(:standard :macros);
     			&status_error("parse_json failed, invalid json. error:$@\n");
 			}
 			#$vars = parse_json($postdata);
+			# CGI.pm doesn't parse query string for application/json POSTs — read it directly
+		$vars->{cmd} ||= $1 if $ENV{QUERY_STRING} =~ /(?:^|&)cmd=([^&]+)(?:&|$)/;
 			$request_data = $vars;
 
 			#exit;
@@ -397,6 +399,13 @@ $metadata->{cat} = "Büster";
 		print "Content-type: text/html\n\n";
 		 print &api_confirm();
 		 exit;
+	}
+
+	# SES BOUNCE/COMPLAINT WEBHOOK
+	elsif ($vars->{cmd} eq 'ses_bounce') {
+		print "Content-type: application/json\n\n";
+		&api_ses_bounce($query);
+		exit;
 	}
 
 	#################################################

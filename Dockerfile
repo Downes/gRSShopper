@@ -17,6 +17,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libdbi-perl \
     libdbd-mysql-perl \
     libemail-stuffer-perl \
+    libio-socket-ssl-perl \
     libfile-slurp-perl \
     libjson-perl \
     libjson-parse-perl \
@@ -31,7 +32,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libamazon-s3-perl \
     cron \
     nano \
- && cpanm --notest WebService::Mailgun MIME::Lite::TT::HTML \
+ && cpanm --notest WebService::Mailgun MIME::Lite::TT::HTML Authen::SASL Crypt::OpenSSL::RSA Crypt::OpenSSL::X509 \
  && mkdir -p /var/log/grsshopper \
  && rm -rf /var/lib/apt/lists/*
 

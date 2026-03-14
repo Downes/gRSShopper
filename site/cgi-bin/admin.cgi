@@ -644,6 +644,26 @@ my $uploaded=0;
 			("API Key:mailgun_apikey","Domain:mailgun_domain","Locale:mailgun_locale"));
 		$content .= qq|<a href="https://www.mailgun.com/">MailGun</a> (Locale is either EU or US)|;
 
+		$content .= &admin_configtable($dbh,$query,"Amazon SES",
+			("SMTP User:ses_smtp_user","SMTP Password:ses_smtp_password","SMTP Server:ses_smtp_server"));
+		$content .= qq|<a href="https://us-east-1.console.aws.amazon.com/ses/">Amazon SES console</a>
+			(Server defaults to email-smtp.us-east-1.amazonaws.com if left blank)<br>
+			<b>Bounce/complaint notifications:</b> After setting up SES, you must configure SNS to forward
+			bounces and complaints to this server. In the SES console go to
+			<i>Verified identities &rarr; your domain &rarr; Notifications</i> and set both Bounce and Complaint
+			topics to an SNS topic that has an HTTPS subscription pointing to
+			<tt>$Site->{st_cgi}api.cgi?cmd=ses_bounce</tt>.
+			This is required to suppress bad addresses and stay compliant with anti-spam rules.|;
+			
+		$content .= &admin_configtable($dbh,$query,"LinkedIn Publisher",
+			("Publisher URL:li_publisher_url","Publish Token:li_publisher_token",
+			 "LinkedIn Email:li_email","LinkedIn Password:li_password",
+			 "Newsletter Name:li_newsletter_name"));
+		$content .= qq|Triggers a LinkedIn newsletter post after each real OLDaily send.
+			Set Publisher URL to <tt>http://linkedin_publisher:5000/publish</tt> when the container is running.
+			Leave blank to disable. (Credentials currently read from container .env; these fields are for future use.)|;
+
+
 		$content .= &admin_configtable($dbh,$query,"Badgr",
 			("Badgr API base URL:badgr_url","Badgr Account ID (email):badgr_account","Badgr Account Password:badgr_password","Access Key:badgr_cckey","Issuer ID:badgr_issuerid"));
     $content .= sprintf(qq|To create and award badges, <a href="https://badgr.io/auth/login">create a Badgr account</a> and input email address and password above. The Base URL is usually https://api.badgr.io and the Access key is automatically generated.
@@ -1090,12 +1110,14 @@ my $uploaded=0;
 			[<a href="|.$Site->{st_cgi}.qq|admin.cgi?action=verify_email">Click here</a>]</p></div>
 		|;
 
-		# Get list of eligible newsletters in dropdown form
+		# Get list of eligible newsletters with sent/unsent subscriber counts
 		my $npageoptionlist = "<option>Select a newsletter</option>\n";
 		my $stmt = qq|SELECT * FROM page WHERE page_sub='yes'|;
 		my $sthl = $dbh->prepare($stmt);
 		$sthl->execute();
-		while (my $s = $sthl -> fetchrow_hashref()) {
+		my @newsletters;
+		while (my $s = $sthl->fetchrow_hashref()) {
+			push @newsletters, $s;
 			$npageoptionlist .= qq|<option value="$s->{page_id}">$s->{page_title}</option>\n|;
 		}
 
@@ -1105,23 +1127,44 @@ my $uploaded=0;
 			<option value="on">Select an action</option>
 			<option value="admin">To Yourself Only</option>
 			<option value="subscribers">To All Subscribers</option>
+			<option value="resend">Resend (skip already sent)</option>
 			</select>
 
 		|;
+
+		# Build per-newsletter subscriber stats table
+		my $stats_rows = '';
+		for my $nl (@newsletters) {
+			my ($sent, $unsent) = $dbh->selectrow_array(qq|
+				SELECT
+					COUNT(CASE WHEN subscriber_lastsent IS NOT NULL THEN 1 END),
+					COUNT(CASE WHEN subscriber_lastsent IS NULL THEN 1 END)
+				FROM subscriber
+				WHERE subscriber_list = ? AND subscriber_status = 'active'
+			|, undef, $nl->{page_id});
+			my $total = ($sent || 0) + ($unsent || 0);
+			$stats_rows .= qq|<tr><td>$nl->{page_title}</td><td>$total</td>|
+				. qq|<td>$sent</td><td>$unsent</td></tr>\n|;
+		}
+		my $stats_table = $stats_rows ? qq|
+			<table border="1" cellpadding="4" style="margin-top:0.5em;border-collapse:collapse">
+			<tr><th>Newsletter</th><th>Total</th><th>Sent</th><th>Not yet sent</th></tr>
+			$stats_rows
+			</table>| : '';
 
 
 		$content .= qq|
 			<div class="menubox"><h3>Send Newsletter</h3>
 			<form method="post" action="$Site->{st_cgi}admin.cgi">
-			<input type="hidden" name="admin_pane" value="$Site->{admin_pane}">			
+			<input type="hidden" name="admin_pane" value="$Site->{admin_pane}">
 			<input type="hidden" name="action" value="send_nl">
 			<input type="hidden" name="verbose" value="1">
 
-			<div style="display:inline;margin:1em;">Page: 
+			<div style="display:inline;margin:1em;">Page:
 			<select name="page_id">$npageoptionlist</select>
 			</div>
 
-			<div style="display:inline;margin:1em;">Recipients: 
+			<div style="display:inline;margin:1em;">Recipients:
 			$npagerecipientlist
 			</div>
 
@@ -1130,6 +1173,7 @@ my $uploaded=0;
 			</div>
 
 			</form>
+			$stats_table
 			</div>
 		|;
 
@@ -3570,6 +3614,39 @@ $Site->{st_stale_expire} = (72 * 60 * 60);
 			else { $listid = $record->{page_listid} || $record->{page_title}; }                      # Send
 			print "Sending $pgtitle to list $listid \n";
 			my $result = &send_mailgun_email($pgcontent,$pgtitle,$listid);
+		}
+		elsif ($record->{page_type} eq "ses") {		# send via Amazon SES to subscriber table
+			my $since;
+			if ($send_list eq 'resend') {
+				# Find when the most recent send batch started — skip anyone sent at or after that time
+				($since) = $dbh->selectrow_array(qq|
+					SELECT MIN(subscriber_lastsent) FROM subscriber
+					WHERE subscriber_list = ? AND subscriber_lastsent IS NOT NULL
+				|, undef, $page_id);
+				print "Resending $pgtitle via SES (skipping already sent since " . localtime($since) . ") \n" if $since;
+				print "Resending $pgtitle via SES (no previous sends recorded) \n" unless $since;
+			} else {
+				print "Sending $pgtitle via SES \n";
+			}
+			my $count = &ses_send_newsletter($pgcontent, $pgtitle, $page_id, $send_list, $since);
+
+			# Trigger LinkedIn publisher (fire-and-forget) after a real send
+			if ($count > 0 && $send_list !~ /admin/i && $Site->{li_publisher_url}) {
+				eval {
+					use LWP::UserAgent;
+					my $ua = LWP::UserAgent->new(timeout => 5);
+					$ua->post($Site->{li_publisher_url},
+						[ token => $Site->{li_publisher_token} || '' ]);
+				};
+				# Ignore errors — LinkedIn publishing must never block the newsletter send
+			}
+
+			my $cmg = ($count == 1) ? "1 newsletter sent." : "$count newsletters sent.";
+			print "<hr><p>$cmg</p>" if ($verbose);
+			$report .= "Report for page $page_id: $pgtitle <br>\n$cmg.\n\n";
+			if ($dbh) { $dbh->disconnect; }
+			&send_email('stephen@downes.ca',$Site->{st_pub},"Send Report - $pgtitle",$report,'htm');
+			return $report;
 		} else {						# send to email subscription list
 
 

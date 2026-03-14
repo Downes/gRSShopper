@@ -111,7 +111,8 @@ $|++;
 my $missing = 0;
 my @lissing_list;
 my @modules = qw(CGI CGI::Carp CGI::Session Crypt::Eksblowfish::Bcrypt Cwd DateTime DateTime::TimeZone 
-DBI DBD::mysql Digest::MD5 Digest::SHA Email::Stuffer Email::Sender::Transport::SMTP Fcntl 
+DBI DBD::mysql Digest::MD5 Digest::SHA Email::Stuffer Email::Sender::Transport::SMTP Fcntl Net::SMTP IO::Socket::SSL Authen::SASL
+MIME::Base64 Crypt::OpenSSL::RSA Crypt::OpenSSL::X509
 File::Basename File::Slurp File::stat File::Find HTML::Entities HTTP::Request::Common
 Image::Resize JSON JSON::Parse JSON::XS Lingua::EN::Inflect LWP LWP::UserAgent LWP::Simple MIME::Types 
 Mastodon::Client MIME::Lite::TT::HTML REST::Client Scalar::Util 
