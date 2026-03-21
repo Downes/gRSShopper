@@ -74,7 +74,7 @@ sub set_up_ses {
 
 sub ses_message {
 
-	my ($smtp, $recipient, $pgtitle, $pgcontent) = @_;
+	my ($smtp, $recipient, $pgtitle, $pgcontent, $page_id) = @_;
 
 	# From
 	my $from = $Site->{st_email};
@@ -100,6 +100,12 @@ sub ses_message {
 	$smtp->datasend("Subject: $pgtitle\n");
 	$smtp->datasend("MIME-Version: 1.0\n");
 	$smtp->datasend("Content-Type: text/html; charset=UTF-8\n");
+	if ($page_id) {
+		(my $encoded_email = $recipient) =~ s/\+/%2B/g;
+		my $unsub_url = $Site->{st_cgi} . "api.cgi?cmd=unsubscribe&email=$encoded_email&page_id=$page_id";
+		$smtp->datasend("List-Unsubscribe: <$unsub_url>\n");
+		$smtp->datasend("List-Unsubscribe-Post: List-Unsubscribe=One-Click\n");
+	}
 	$smtp->datasend("\n");
 	$smtp->datasend($pgcontent);
 	$smtp->dataend();
@@ -142,7 +148,7 @@ sub ses_send_newsletter {
 			$smtp->quit();
 			$smtp = &set_up_ses();
 		}
-		&ses_message($smtp, $email, $pgtitle, $pgcontent);
+		&ses_message($smtp, $email, $pgtitle, $pgcontent, $page_id);
 		# Record send time so a partial send can be resumed without duplicates
 		$dbh->do("UPDATE subscriber SET subscriber_lastsent = ? WHERE subscriber_id = ?",
 			undef, time(), $id);

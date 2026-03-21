@@ -177,9 +177,13 @@ $buttons
 	}
 
 
-  	# Check email address
-	# use Mail::CheckUser qw(check_email);
-	#  my $is_valid = &check_email($vars->{email});
+  	# Check email address: reject multiple addresses and header injection attempts
+	if ($email =~ /[,;\r\n]/) {
+		&status_error("Please enter a single valid email address.");
+	}
+	unless ($email =~ /^[^\@\s,;]+\@[^\@\s,;]+\.[^\@\s,;]{2,}$/) {
+		&status_error("Please enter a valid email address.");
+	}
 	my $is_valid = 1;
 
   	# If email is valid
@@ -244,19 +248,23 @@ $buttons
 
 sub api_unsubscribe_form {
 
-print qq|
+    my @page_list = &db_get_record_list($dbh, "page", {page_sub => "yes"});
+    my $page_selection = '';
+    foreach my $pid (@page_list) {
+        my $page = &db_get_record($dbh, "page", {page_id => $pid});
+        $page_selection .= qq|<input type="radio" name="page_id" value="$pid"> $page->{page_title}<br>\n|;
+    }
+    my $email = $vars->{email} || '';
 
-	<p><form method="post" action="https://www.downes.ca/cgi-bin/api.cgi">
-	<input type="hidden" name="cmd" value="unsubscribe">
-	<input type="radio" name="page_id" value="2"> OLDaily<br>
-	<input type="radio" name="page_id" value="3"> OLWeekly<br>
-	<input type="text" name="email" size=60>
-	<input type="submit" value="Unubscribe">
-	</form>
+    print qq|
+<p><form method="post" action="$Site->{st_cgi}api.cgi">
+<input type="hidden" name="cmd" value="unsubscribe">
+$page_selection
+<input type="text" name="email" value="$email" size=60 placeholder="Your email address">
+<input type="submit" value="Unsubscribe">
+</form>
 |;
-exit;
-
-
+    exit;
 
 }
 
@@ -272,32 +280,31 @@ exit;
 
 sub api_unsubscribe {
 
-  # Verify Input
-  unless ($vars->{email}) { print "No email address provided to unsubscribe"; exit; };
-	unless ($vars->{page_id}) { print "No page id provided to unsubscribe" ; exit; }
+    # Verify input
+    unless ($vars->{email})   { print "No email address provided to unsubscribe"; exit; }
+    unless ($vars->{page_id}) { print "No page id provided to unsubscribe"; exit; }
 
-  my $page = &db_get_record($dbh,"page",{page_id=>$vars->{page_id}});
-	unless ($page) { print "Mailing list page does not exist." ; exit; }
+    my $email   = lc($vars->{email});
+    my $page_id = $vars->{page_id};
 
-  my $subscriber = &db_get_record($dbh,"person",{person_email=>$vars->{email}});
-	unless ($subscriber) { print "This email doesn't exist in our records."; exit; }
+    my $page = &db_get_record($dbh, "page", {page_id => $page_id});
+    unless ($page) { print "Mailing list page does not exist."; exit; }
 
-	my $result = &graph_delete("person",$subscriber->{person_id},"page",$vars->{page_id},"subscribe");
+    # Update subscriber table — handles both one-click POST and browser GET
+    $dbh->do(qq|
+        UPDATE subscriber SET subscriber_status = 'unsubscribed'
+        WHERE LOWER(subscriber_email) = ? AND subscriber_list = ?
+    |, undef, $email, $page_id);
 
-  # Print landing page
-	print "<p>Thank you. You have been unsubscribed. Sorry to see you go.";
+    # One-click POST (RFC 8058) — return 200 with no body
+    if ($ENV{REQUEST_METHOD} eq 'POST') {
+        exit;
+    }
 
-  # Generate email text
-	my $page = &db_get_record($dbh,"page",{page_id=>$vars->{page_id}});
-	my $admintext = "<p>Someone, probably you, has requested to unsubscribe to ".$page->{page_title}." on ".$Site->{st_name}.
-		   ". If this was in error you can subscribe again at ".$Site->{st_url}."subscribe.htm";
-	my $subject = $Site->{st_name}." Unsubscription verification";
-	$subject =~ s/&#39;/'/g;
-
-	# Send confirmation email
-	&send_email($vars->{email},$Site->{st_pub},$subject,$admintext,"htm");
-	&send_email('stephen@downes.ca',$Site->{st_pub},"Unsubscription",$vars->{email}.
-		" has unsubscribed from ".$page->{page_title},"htm");
+    # Browser GET — show confirmation page
+    my $listname = $page->{page_title} || "the mailing list";
+    print "<p>You have been unsubscribed from $listname. Sorry to see you go.</p>";
+    exit;
 
 }
 
