@@ -72,6 +72,14 @@ sub set_up_ses {
 }
 
 
+sub ses_email_date {
+	# Return current time as RFC 2822 date string with explicit UTC offset
+	# Prevents spam filters from flagging DATE_IN_PAST due to timezone ambiguity
+	use POSIX qw(strftime);
+	return strftime("%a, %d %b %Y %H:%M:%S +0000", gmtime());
+}
+
+
 sub ses_message {
 
 	my ($smtp, $recipient, $pgtitle, $pgcontent, $page_id) = @_;
@@ -86,10 +94,11 @@ sub ses_message {
 	# Body
 	unless ($pgcontent) { &status_error("Email doesn't contain any content"); }
 
-	# Encode to avoid wide character issues
+	# Encode to avoid wide character issues, then quoted-printable for safe transit
 	use Encode qw(encode);
+	use MIME::QuotedPrint qw(encode_qp);
 	$pgtitle   = encode('UTF-8', $pgtitle);
-	$pgcontent = encode('UTF-8', $pgcontent);
+	$pgcontent = encode_qp(encode('UTF-8', $pgcontent));
 
 	# Send via SMTP
 	$smtp->mail($from);
@@ -98,8 +107,11 @@ sub ses_message {
 	$smtp->datasend("From: $from\n");
 	$smtp->datasend("To: $recipient\n");
 	$smtp->datasend("Subject: $pgtitle\n");
+	$smtp->datasend("Date: " . &ses_email_date() . "\n");
+	$smtp->datasend("Message-ID: <" . time() . "." . int(rand(99999)) . "\@downes.ca>\n");
 	$smtp->datasend("MIME-Version: 1.0\n");
 	$smtp->datasend("Content-Type: text/html; charset=UTF-8\n");
+	$smtp->datasend("Content-Transfer-Encoding: quoted-printable\n");
 	if ($page_id) {
 		(my $encoded_email = $recipient) =~ s/\+/%2B/g;
 		my $unsub_url = $Site->{st_cgi} . "api.cgi?cmd=unsubscribe&email=$encoded_email&page_id=$page_id";
@@ -149,8 +161,8 @@ sub ses_send_newsletter {
 			$smtp = &set_up_ses();
 		}
 		&ses_message($smtp, $email, $pgtitle, $pgcontent, $page_id);
-		# Record send time so a partial send can be resumed without duplicates
-		$dbh->do("UPDATE subscriber SET subscriber_lastsent = ? WHERE subscriber_id = ?",
+		# Record send time and reset fail counter — successful delivery means the address is working
+		$dbh->do("UPDATE subscriber SET subscriber_lastsent = ?, subscriber_failcount = 0 WHERE subscriber_id = ?",
 			undef, time(), $id);
 		print ". ";
 		$count++;

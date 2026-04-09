@@ -3131,14 +3131,14 @@ sub api_hub_bookmarklet {
    		&status_error("Failed Hub Description Update") unless (&api_textfield_update({table=>'post',field=>'post_description',value=>$metadata->{description},id=>$id}));
 	}
 
-	# Feed
-	my $feed = $metadata->{site_name};
+	# Feed — use og:site_name from scraped page, falling back to feed name passed via URL param
+	my $feed = $metadata->{site_name} || $vars->{feed};
 	if ($feed) {
 		&status_error("Failed Hub Feed Update") unless (&api_keylist_update({table=>'post',id=>$id,key=>'feed',value=>$feed}));
 	}
 
-	# Author
-	my $author = $metadata->{author};
+	# Author — use scraped metadata, falling back to author name passed via URL param
+	my $author = $metadata->{author} || $vars->{author};
 	if ($author) {
 		&status_error("Failed Hub Author Update") unless (&api_keylist_update({table=>'post',id=>$id,key=>'author',value=>$author}));
 	}
