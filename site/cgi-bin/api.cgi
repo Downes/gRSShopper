@@ -61,6 +61,7 @@ use Sys::Syslog qw(:standard :macros);
 	require $dirname . "/api/update.pl";
 	require $dirname . "/api/files.pl";
 	require $dirname . "/api/hub_bookmarklet.pl";
+	require $dirname . "/api/list.pl";
 
 # Load modules and set query and vars
 
@@ -166,83 +167,8 @@ use Sys::Syslog qw(:standard :macros);
 		exit;
 	}
 
-	# List (is also search)
-	my $listsearch;
-	if ($vars->{cmd} eq "list") {
-
-		# Set up input parameters
-		
-		while (my($vx,$vy) = each %$vars) {
-		#	if ($vx =~ /category|genre|status|section|class|type/) {  	# Parameters for filter
-				$listsearch->{$vx} = $vy; 
-		#	}
-		}
-		if ($vars->{qkey} && $vars->{qval}) {						  	# Text search input
-			$listsearch->{$vars->{qkey}} = $vars->{qval};
-		}
-
-		# for now...
-   		$vars->{format} = "json";
-
-		$listsearch->{$vars->{qkey}} = $vars->{qval};
-																		# get search result
-   		my ($metadata,$data) = &list_records($vars->{table},$listsearch);
-#use utf8;
-#use Encode qw(encode_utf8);
-
-
-
-#die "Testing: ".$metadata->{testing}."\n";	
-$metadata->{$vars->{qkey}} = $vars->{qval};
-$metadata->{testing} = "test";
-$metadata->{cat} = "Büster";
-#$metadata->{cat} = encode_utf8("Büster");
-		my $response = {
-			metadata => &hash_to_json($metadata),
-			data => $data
-		};
-		#my $datastring = join ",",@$data;
-			
-		#   $datastring = qq|{metadata:"$metadata",results:"$datastring"}|;	
-		#$response = encode_utf8( $response );														# Encode into JSON and print	
-   		#my $json = encode_json $response;
-		#$json = encode_utf8($json);
-   		#print $json;exit;
-		print &hash_to_json($response);
-		exit;
-
-	}
-
-
-#	if ( ($vars->{cmd} eq "list" && $vars->{table} eq "link") ||
-#	   ( $vars->{cmd} eq "list" && $vars->{table} eq "feed" ) ) {
-
-	# these if statements are all temporary as I work to replace 'list'
-	if ($vars->{cmd} eq "list" && $vars->{table}) {
-	unless ($vars->{table} eq "tables" || $vars->{table} eq "general") {
-
-   		$vars->{format} = "json";
-
-   		my ($metadata,$data) = &list_records($vars->{table},$listsearch);
-
-   		#my $json = encode_json $data;
-   		#print $json;exit;
-		print &hash_to_json($data);
-		exit;
-	} }
-
-
-	if ($vars->{cmd} eq "list" && $vars->{table} eq "media") {
-
-   $vars->{format} = "json";
-   my ($metadata,$data) = &list_records("media",{mimetype=>"audio/mpeg"});
-   
-   #my $json = encode_json $data;
-   #print $json;
-   		print &hash_to_json($data);
-		exit;
-
-	}
+	# List / Search — delegates to api_list() in api/list.pl
+	if ($vars->{cmd} eq "list") { &api_list($vars->{table}); }
 
 
 
