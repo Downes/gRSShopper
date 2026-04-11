@@ -1,6 +1,7 @@
 #!/usr/bin/perl
 use CGI::Carp qw(fatalsToBrowser);
 use lib 'modules/lib/perl5';
+binmode STDOUT, ':utf8';
 
   #  use lib '/home/downesca/public_html/cgi-bin/modules/MailChimp/lib';
 	# use lib '/home/downesca/public_html/cgi-bin/modules/MailChimp/lib/MailChimp';

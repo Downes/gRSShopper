@@ -55,6 +55,13 @@ sub build_list_query {
 		$parms->{id} = &db_get_single_value($dbh, $table, $table."_id", "", $table."_crdate DESC");
 	}
 
+	# Search form convention: qkey=field_name + qval=search_term
+	# Translate into a direct field param so the filter loop below handles it normally.
+	# e.g. qkey=title, qval=foo  →  title=foo  →  post_title LIKE '%foo%'
+	if ($parms->{qkey} && defined($parms->{qval}) && $parms->{qval} ne "") {
+		$parms->{ $parms->{qkey} } = $parms->{qval};
+	}
+
 	# Sort, start, number, limit  (reuses existing sort_start_number helper)
 	my ($sort, $start, $number, $limit) = &sort_start_number($parms, $table);
 
@@ -221,7 +228,7 @@ sub api_list {
 	my $meta = &build_list_meta($table, $vars, $count, $start, $number);
 
 	# Template-based output (html, search, opml, rss, ...)
-	print "Content-type: text/html\n\n";
+	# (Content-type was already sent by check_user())
 
 	# Header: table-specific first, fall back to generic list_header
 	my $header_text = &db_get_template($dbh, $table."_list_header")
@@ -260,7 +267,8 @@ sub api_list_json {
 
 	my ($table, $sth, $count, $start, $number) = @_;
 
-	print "Content-type: application/json\n\n";
+	# Content-type header was already sent by check_user() — do not print it again here
+	# (printing it again would make it appear in the response body, breaking JSON.parse)
 
 	# end = offset of last record shown; used by the JS footer as next page's start
 	my $end = $start + $number;
@@ -291,7 +299,12 @@ sub api_list_json {
 		data => \@records,
 	};
 
-	print &hash_to_json($response);
+	# Use to_json WITHOUT utf8=>1 so the output is a Perl Unicode string.
+	# STDOUT has binmode :utf8 set in api.cgi, which encodes it correctly in one pass.
+	# Using utf8=>1 here would produce UTF-8 bytes that :utf8 then re-encodes,
+	# causing double-encoding (smart quotes etc. appear as â€™ instead of ').
+	use JSON;
+	print to_json($response, {pretty => 1});
 	exit;
 }
 

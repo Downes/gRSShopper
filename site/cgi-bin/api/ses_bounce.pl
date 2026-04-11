@@ -27,7 +27,8 @@ sub api_ses_bounce {
 		use LWP::UserAgent;
 		my $ua = LWP::UserAgent->new(timeout => 10);
 		$ua->get($msg->{SubscribeURL});
-		print &hash_to_json({ status => "OK", message => "SNS subscription confirmed" });
+		use JSON;
+		print to_json({ status => "OK", message => "SNS subscription confirmed" }, {pretty => 1});
 		exit;
 	}
 
@@ -72,7 +73,8 @@ sub api_ses_bounce {
 
 	}
 
-	print &hash_to_json({ status => "OK", message => "Notification processed" });
+	use JSON;
+	print to_json({ status => "OK", message => "Notification processed" }, {pretty => 1});
 	exit;
 
 }

@@ -16,7 +16,10 @@ sub record_to_json {
 
 	my ($dbh,$table,$id_number) = @_;
 	my $record = &db_get_record($dbh,$table,{$table."_id"=>$id_number});
-	return &hash_to_json($record);
+	# Use to_json without utf8=>1 so the result is a Perl Unicode string.
+	# STDOUT has binmode :utf8 in api.cgi; using utf8=>1 here would cause double-encoding.
+	use JSON;
+	return to_json($record, {pretty => 1});
 
 }
 

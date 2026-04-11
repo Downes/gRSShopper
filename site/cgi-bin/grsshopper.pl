@@ -722,25 +722,6 @@ sub dictionary_help {
 
 }
 
-	# ----------------- Hash to JSON ---------------------
-	#
-	# Encodes a hash to JSON, taking care to use HTML entities to encode wide utf8 characters.
-	# removes empty keys. 
-	# Assumes we use utf8, HTML::Entitites, JSON
-	#
-sub hash_to_json {
-	use utf8;
-	my ($record) = @_;
-	while (my ($jx,$jy) = each %$record) {
-		unless ($jy) { delete $record->{$jx}; next; };
-		$record->{$jx} = encode_entities($jy,'^\n\x20-\x7e'); # encode only wide utf8
-	}
-	delete @h{ grep { not defined $record{$_} } keys %$record };
-	my $json =  to_json($record,{utf8 => 1, pretty => 1});
-	#$json = encode_entities($json,'^\n\x20-\x7e');
-	return $json;
-}
-
 	#-------------------------------------------------------------------------------
 sub isint{						# Is it an integer?
   my $val = shift;
@@ -762,7 +743,8 @@ sub status_error {
 	#my $json = encode_json $errorResponse;
 	#unless ($Person->{person_id}) { print "Content-type: text/json\n\n"; } 
 	#print $json;
-	print &hash_to_json($errorResponse);	
+	use JSON;
+	print to_json($errorResponse, {pretty => 1});
 	exit;
 
 }
@@ -780,7 +762,8 @@ sub status_ok {
 		message => $vars->{message}
 	};
 
-	print &hash_to_json($status);
+	use JSON;
+	print to_json($status, {pretty => 1});
 
 	#my $json_text = encode_json ($contents);
 

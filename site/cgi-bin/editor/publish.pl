@@ -230,9 +230,9 @@ sub output_record {
 	unless ($table eq "page") { $record->{page_title} = $Site->{st_name} . " ~ " .
 		$record->{page_title}; }
 	
-	if ($format =~ /json/i) { 
-
-		return hash_to_json($record);
+	if ($format =~ /json/i) {
+		use JSON;
+		return to_json($record, {pretty => 1});
 	}
 
 	# Create Page Content (from formatted record)

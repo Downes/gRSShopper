@@ -160,7 +160,6 @@ use Sys::Syslog qw(:standard :macros);
 
    		$vars->{format} = "json";
 		my ($metadata,$data) = &list_records($vars->{table},{cmd=>"show",$vars->{table}."_id"=>$vars->{id}});
-		#print &hash_to_json($data);
 		my $json = to_json $data;
    		# my $json = encode_json $data;
    		print $json;

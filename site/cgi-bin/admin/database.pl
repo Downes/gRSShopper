@@ -210,10 +210,8 @@ exit;
 	    my $keyfield = $vars->{table}."_id";
 			#my $hash_ref = $dbh->selectall_hashref(qq|select * from $vars->{table}|,$keyfield);
 	    my $export->{$vars->{table}} = $dbh->selectall_hashref(qq|select * from $vars->{table}|,$keyfield);
-			use JSON::XS;
-			print &hash_to_json($export);
-	   		# my $utf8_encoded_json_text = encode_json $export;
-			# print "$utf8_encoded_json_text";
+			use JSON;
+			print to_json($export, {pretty => 1});
 			exit;
 		} else {
 
