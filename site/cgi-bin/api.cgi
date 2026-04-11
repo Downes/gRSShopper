@@ -1309,58 +1309,6 @@ if ($vars->{search}) {
 }
 
 
-my ($will_change) = $dbh->selectrow_array(q{
-  SELECT COUNT(*) FROM presentation
-  WHERE presentation_audio REGEXP '^(https?://(www\.)?downes\.ca/files/audio/)'
-});
-$vars->{message} .= "Rows to update: $will_change\n";
-
-# Do the update (single statement)
-# --- Optional: see how many rows will change ---
-my ($will_change) = $dbh->selectrow_array(q{
-  SELECT COUNT(*)
-  FROM presentation
-  WHERE presentation_audio REGEXP '^(https?://(www\.)?downes\.ca/files/audio/)'
-});
-
-
-# --- Do the update with error checking ---
-local $dbh->{RaiseError} = 1;
-local $dbh->{PrintError} = 0;
-
-my $sql = q{
-  UPDATE presentation
-  SET presentation_audio =
-    REPLACE(
-      REPLACE(
-        REPLACE(
-          REPLACE(presentation_audio,
-                  'http://www.downes.ca/files/audio/',''),
-                  'https://www.downes.ca/files/audio/',''),
-                  'http://downes.ca/files/audio/',''),
-                  'https://downes.ca/files/audio/','')
-  WHERE presentation_audio REGEXP '^(https?://(www\.)?downes\.ca/files/audio/)'
-};
-
-my $rows = 0;
-eval {
-  $dbh->begin_work;
-  my $rv = $dbh->do($sql);            # undef on error; "0E0" if 0 rows
-  die "UPDATE returned undef\n" unless defined $rv;
-  $rows = ($rv eq '0E0') ? 0 : $rv;   # normalize "0E0" -> 0
-  $dbh->commit;
-  1;
-} or do {
-  my $err = $@ || $dbh->errstr || 'unknown error';
-  eval { $dbh->rollback };
-  die "Update failed: $err";
-};
-
-
-
-
-
-$vars->{message} .= "Updated $rows rows\n";
 
 # Print OK for blank api request
 
