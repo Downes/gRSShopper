@@ -197,7 +197,10 @@ sub api_list {
 	$table ||= $vars->{table};
 	unless ($table) { &status_error("api_list: no table specified"); }
 
-	my $format = $vars->{format} || "html";
+	# Default to json for JSON POST requests (admin UI via loadData),
+	# html for everything else (public-facing URLs with explicit format param)
+	our $request_type;
+	my $format = $vars->{format} || ($request_type eq 'post' ? 'json' : 'html');
 
 	# Build and execute query
 	my ($where, $bind_vals, $sort, $limit, $count, $start, $number) =
@@ -259,19 +262,30 @@ sub api_list_json {
 
 	print "Content-type: application/json\n\n";
 
+	# end = offset of last record shown; used by the JS footer as next page's start
+	my $end = $start + $number;
+	$end = $count if $end > $count;
+
 	my @records;
 	while (my $record = $sth->fetchrow_hashref()) {
 		while (my ($k, $v) = each %$record) {
 			$record->{$k} =~ s/&amp;/&/g if defined $v;
 		}
-		push @records, $record;
+		# Return short field names (no table prefix) to match what the admin JS
+		# list templates expect: data[i].id, data[i].title, data[i].status, etc.
+		my $item = {};
+		for my $field (qw(id title name mimetype url link section genre category status type)) {
+			$item->{$field} = $record->{ $table."_".$field };
+		}
+		push @records, $item;
 	}
 
 	my $response = {
 		metadata => {
 			table  => $table,
-			count  => $count + 0,   # ensure numeric
-			start  => $start + 0,
+			count  => $count  + 0,
+			start  => $start  + 1,   # 1-based for display ("Listing 1 to 40 of 500")
+			end    => $end    + 0,   # used as start offset for next page load
 			number => $number + 0,
 		},
 		data => \@records,
