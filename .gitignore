@@ -15,3 +15,6 @@ site/news/*.htm
 site/news/*.rss
 site/news/*.xml
 *.tmp.*
+
+# Dead code archive — not executed, just kept for reference
+site/cgi-bin/dead-api.cgi
