@@ -7,15 +7,23 @@
 #   Reads filter/search/pagination parameters from $vars (global CGI params)
 #   Executes query, formats each record, wraps in header/footer, prints and exits
 #
-# Format is determined by $vars->{format} (e.g. "html", "json").
-#   - Template-based formats (html, opml, rss, ...): each record is passed to
-#     format_record(), which looks up the view in the 'view' table
-#     (e.g. format="html", table="post" → view "post_html" or "post_blog_html")
+# Format is determined by $vars->{format} (e.g. "html", "search", "json").
+#   - Template-based formats (html, search, opml, rss, ...): each record is
+#     passed to format_record(), which looks up the view in the 'view' table
+#     (e.g. format="search", table="post", post_type="link" → "post_link_search")
 #   - Special formats (json): handled by dedicated functions below
 #
-# List header/footer: fetched from the 'template' table by name, e.g.
-#   "${table}_list_header" and "${table}_list_footer"
-#   Silently omitted if no matching template exists.
+# Header/footer: fetched from the 'template' table, table-specific first with
+#   fallback to generic:  post_list_header → list_header  (same for footer)
+#   Placeholders available in header/footer templates:
+#     [*query*]      — search term or "All Posts" etc.
+#     [*table*]      — table name
+#     [*count*]      — total matching records
+#     [*start*]      — first record shown (1-based)
+#     [*end*]        — last record shown (1-based)
+#     [*number*]     — records per page
+#     [*prev_link*]  — <a href="..."> for previous page, or empty string
+#     [*next_link*]  — <a href="..."> for next page, or empty string
 #
 # Query parameters recognised (all optional):
 #   table   — which table to query (can also be passed as arg to api_list)
@@ -27,9 +35,6 @@
 #   Any other parameter whose name matches a column in the table is used as
 #   a filter: exact match for _id/_status/_type/_genre/_category/_section/_class,
 #   LIKE match for everything else.
-#
-# Replaces the multiple overlapping "list" handlers and the course-only search
-# block in api.cgi.
 
 
 # ---------------------------------------------------------------------------
@@ -112,6 +117,75 @@ sub build_list_query {
 
 
 # ---------------------------------------------------------------------------
+# build_list_meta($table, $vars, $count, $start, $number)
+#
+# Build the metadata hash passed to apply_list_template() for header/footer.
+# ---------------------------------------------------------------------------
+
+sub build_list_meta {
+
+	my ($table, $vars, $count, $start, $number) = @_;
+
+	# Heading: show search term if present, otherwise "All Posts" etc.
+	my $display = $vars->{query}
+		? "Search: $vars->{query}"
+		: "All " . ucfirst($table) . "s";
+
+	my $end = $start + $number;
+	$end = $count if $end > $count;
+
+	# Build base query string for pagination links (all current params except start)
+	my $base = $Site->{st_cgi} . "api.cgi?";
+	my @qs;
+	for my $key (sort keys %$vars) {
+		next if $key eq 'start';
+		my $val = $vars->{$key};
+		next unless defined($val) && $val ne '';
+		(my $safe_val = $val) =~ s/[^a-zA-Z0-9 ._-]//g;
+		push @qs, "$key=$safe_val";
+	}
+	my $base_qs = join("&amp;", @qs);
+
+	my $prev_link = "";
+	if ($start > 0) {
+		my $prev_start = ($start - $number > 0) ? $start - $number : 0;
+		$prev_link = qq|<a href="${base}${base_qs}&amp;start=${prev_start}">&larr; Previous</a>|;
+	}
+
+	my $next_link = "";
+	if ($start + $number < $count) {
+		my $next_start = $start + $number;
+		$next_link = qq|<a href="${base}${base_qs}&amp;start=${next_start}">Next &rarr;</a>|;
+	}
+
+	return {
+		query     => $display,
+		table     => $table,
+		count     => $count,
+		start     => $start + 1,    # 1-based for display
+		end       => $end,
+		number    => $number,
+		prev_link => $prev_link,
+		next_link => $next_link,
+	};
+}
+
+
+# ---------------------------------------------------------------------------
+# apply_list_template($text, $meta)
+#
+# Simple [*key*] substitution for list header/footer templates.
+# Unknown placeholders are replaced with an empty string.
+# ---------------------------------------------------------------------------
+
+sub apply_list_template {
+	my ($text, $meta) = @_;
+	$text =~ s/\[\*(\w+)\*\]/ defined($meta->{$1}) ? $meta->{$1} : "" /ge;
+	return $text;
+}
+
+
+# ---------------------------------------------------------------------------
 # api_list($table)
 #
 # Main entry point. Called from the "list" command handler in api.cgi.
@@ -140,12 +214,16 @@ sub api_list {
 		return &api_list_json($table, $sth, $count, $start, $number);
 	}
 
-	# Template-based output (html, opml, rss, ...)
+	# Build metadata for header/footer substitution
+	my $meta = &build_list_meta($table, $vars, $count, $start, $number);
+
+	# Template-based output (html, search, opml, rss, ...)
 	print "Content-type: text/html\n\n";
 
-	# Optional header from template table (e.g. "post_list_header")
-	my $header = &db_get_template($dbh, $table."_list_header");
-	print $header if $header;
+	# Header: table-specific first, fall back to generic list_header
+	my $header_text = &db_get_template($dbh, $table."_list_header")
+	               || &db_get_template($dbh, "list_header");
+	print &apply_list_template($header_text, $meta) if $header_text;
 
 	# Format each record via the view table
 	while (my $record = $sth->fetchrow_hashref()) {
@@ -159,9 +237,10 @@ sub api_list {
 		print $formatted if $formatted;
 	}
 
-	# Optional footer from template table (e.g. "post_list_footer")
-	my $footer = &db_get_template($dbh, $table."_list_footer");
-	print $footer if $footer;
+	# Footer: table-specific first, fall back to generic list_footer
+	my $footer_text = &db_get_template($dbh, $table."_list_footer")
+	               || &db_get_template($dbh, "list_footer");
+	print &apply_list_template($footer_text, $meta) if $footer_text;
 
 	exit;
 }
