@@ -304,9 +304,9 @@ sub find_graph_records_of {
 		if ($grfound) {
 			my @connections = &find_graph_of($tableone,$idone,$tabletwo,$type);  # Once we've stored the data, call the result from cache
 			return @connections;
-		} else { return qw(0 0); }
+		} else { return; }
 
-	}
+}
 
 }
 
@@ -370,8 +370,8 @@ sub find_graph_of {
 			push @{$Site->{$tableone}->{$idone}->{$c->{graph_tableone}}},$c->{graph_idone}
 				unless grep{$_ == $c->{graph_idone}} @{$Site->{$tableone}->{$idone}->{$c->{graph_tableone}}}; 
 
-			push @{$Site->{$c->{graph_tableone}}->{$c->{graph_idone}}->{$tabletwo}},$idtwo
-				unless grep{$_ == $idtwo} @{$Site->{$c->{graph_tableone}}->{$c->{graph_idone}}->{$tabletwo}};
+			push @{$Site->{$c->{graph_tableone}}->{$c->{graph_idone}}->{$tabletwo}},$idone
+				unless grep{$_ == $idone} @{$Site->{$c->{graph_tableone}}->{$c->{graph_idone}}->{$tabletwo}};
 
 			if ($c->{graph_type}) { push @{$Site->{$tabletwo}->{idtwo}->{$c->{graph_type}}},$c->{graph_idone}; }
 		} else {
@@ -385,9 +385,9 @@ sub find_graph_of {
 
 			my @connections = &find_graph_of($tableone,$idone,$tabletwo,$type);  # Once we've stored the data, call the result from cache
 			return @connections;
-		} else { return qw(0 0); }
+		} else { return; }
 
-	
+
 
 }
 

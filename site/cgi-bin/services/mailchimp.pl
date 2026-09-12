@@ -3,8 +3,8 @@ sub send_mailchimp_email {
 		my ($pgcontent,$pgtitle,$listid) = @_;
 		my $response;
 
-	    use lib $Site->{st_cgif}.'./modules/MailChimp/lib';
-		use lib $Site->{st_cgif}.'./modules/MailChimp/lib/MailChimp';
+	    use lib ($Site->{st_cgif} // '').'./modules/MailChimp/lib';
+		use lib ($Site->{st_cgif} // '').'./modules/MailChimp/lib/MailChimp';
 		eval("use MailChimp;");  # eval so it doesn't try to load before st_cgif is defined
 	
 		# Initialize account

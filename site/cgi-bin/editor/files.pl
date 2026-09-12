@@ -645,17 +645,7 @@ sub mime_type {
 
 }
 
-# Jusdt a quick and dirty read file
 
-sub read_text_file {
-
-   my ($file) = @_;
-	 open(FILE, $file) or return "Can't read file $file [$!]\n";
-	 $document = <FILE>;
-	 close (FILE);
-	 return $document;
-
-}
 
 # Just a quick and dirty save file
 

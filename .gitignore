@@ -18,3 +18,4 @@ site/news/*.xml
 
 # Dead code archive — not executed, just kept for reference
 site/cgi-bin/dead-api.cgi
+*.log

@@ -51,7 +51,7 @@ sub format_content {
 
 						# Comment Form
 
-	if ($vars->{comment} eq "no") {
+	if (($vars->{comment} // '') eq "no") {
 		$wp->{page_content} =~ s/<CFORM>(.*?)<END_CFORM>//g;
 	} else {
 
@@ -92,12 +92,12 @@ sub format_content {
 
 						# RSSify
 
-	if ($wp->{page_type} =~ /rss|xml|atom/i) {
+	if (($wp->{page_type} // '') =~ /rss|xml|atom/i) {
 		&format_rssify(\$wp->{page_content});
 	}
 
 						# ICSify
-	if ($wp->{page_type} =~ /ics/i) {
+	if (($wp->{page_type} // '') =~ /ics/i) {
 		my @lines = split /\n/,$wp->{page_content};	
 		my $newlines = "";
 		foreach my $l (@lines) {

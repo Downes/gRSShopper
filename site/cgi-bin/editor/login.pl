@@ -151,7 +151,7 @@ sub show_login {
   
   
 		# Count person records, if there are no person records, show option to create an admin
-		my $count = &db_count($dbh,"person"); my $extra;
+		my $count = &db_count($dbh,"person"); my $extra = '';
 		if ($count == 0) { $count = "Create an Admin Profile"; } 
 		elsif ($query->param("new")) { 
 			$query->param("new") = "";	# Clear param

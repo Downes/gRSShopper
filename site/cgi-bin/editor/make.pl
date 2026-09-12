@@ -658,7 +658,7 @@ sub make_keylist {
 		$script->{separator} = $script->{separator} || ", ";
 
 		for (qw(prefix postfix separator)) {
-			if ($script->{$_} =~ /(BR|HR|P)/i) {
+			if (($script->{$_} // '') =~ /(BR|HR|P)/i) {
 				$script->{$_} = "<".$script->{$_}.">";
 			}
 		}
@@ -679,7 +679,10 @@ sub make_keylist {
 									# numbers...
 			my $titfield = get_key_namefield($script->{keytable});
 			my $klid = $script->{keytable}."_id";
-			$script->{search} =~ s/'//; $connection =~ s/'//;
+			$script->{search} = '' unless defined $script->{search};
+			$script->{search} =~ s/'//;
+			$connection =~ s/'//;
+			delete $script->{search} unless length $script->{search};
 
 			# my $keylistsql = qq|SELECT * FROM $script->{keytable} WHERE $klid = '$connection'|;
 			my $keylistsql = qq|SELECT * FROM $script->{keytable}|;
@@ -714,7 +717,7 @@ sub make_keylist {
 				$results_count++;
 				my $kname = $c->{$titfield};
 				if ($replace) { $replace .= $script->{separator}; }
-				if ($script->{format} eq "text") { $replace .= qq|$kname|; }
+				if (($script->{format} // '') eq "text") { $replace .= qq|$kname|; }
 				elsif ($script->{format}) {
 					my $ftext = &format_record($dbh,$query,$script->{keytable},$script->{format},$c,1);
 					$replace .= $ftext; }
@@ -759,7 +762,7 @@ sub make_keylist {
 
 
 
-		if ($replace && ($script->{prefix} || $script->{postfix})) { $replace = $script->{prefix} . $replace . $script->{postfix}; }
+		if ($replace && ($script->{prefix} || $script->{postfix})) { $replace = ($script->{prefix} // '') . $replace . ($script->{postfix} // ''); }
 
 		$text =~ s/\Q<keylist $autocontent>\E/$replace/;
 		$$text_ptr = $text;

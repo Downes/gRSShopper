@@ -716,10 +716,10 @@ sub db_get_single_value {
 
   my $idfield = $table."_id";								# define id field name
   my $t = $table."_";unless ($field =~ /$t/) { $field = $t.$field; }	# Normalize field field name
-	if ($sort) { $sort = "ORDER BY $sort"; }
-	my $where; if ($idfield && $id) {
-		if ($cmp eq "lt" && $id>0) { $where = qq|WHERE $idfield<$id|; }
-		elsif ($cmp eq "gt" && $id>0) { $where = qq|WHERE $idfield>$id|; }
+	$sort = $sort ? "ORDER BY $sort" : '';
+	my $where = ''; if ($idfield && $id) {
+		if (($cmp // '') eq "lt" && $id>0) { $where = qq|WHERE $idfield<$id|; }
+		elsif (($cmp // '') eq "gt" && $id>0) { $where = qq|WHERE $idfield>$id|; }
 		else { $where = qq|WHERE $idfield='$id'|; }
 	}
 
@@ -1142,7 +1142,7 @@ sub db_count {
 
 	my ($dbh,$table,$where) = @_;
 
-	my $stmtc = "SELECT COUNT(*) AS items FROM $table $where";
+	my $stmtc = "SELECT COUNT(*) AS items FROM $table ".($where // '');
 
 	my $sthc = $dbh -> prepare($stmtc);
 	$sthc -> execute()  || die "Error: " . $dbh->errstr . " -- ".$stmtc;

@@ -22,7 +22,7 @@ sub api_textfield_update {
 	&status_error("Field $field does not exist") unless (&__check_field($vars->{table},$vars->{field}));
 	
 	# Check for duplicates
-	if ($vars->{value} && $vars->{col_name} =~ /_title|_name|_url|_link/) {
+	if ($vars->{value} && ($vars->{col_name} // '') =~ /_title|_name|_url|_link/) {
 		if (my $l = &db_locate($dbh,$vars->{table_name},{$vars->{col_name} => $vars->{value}})) {
 			&status_error(qq|<p>Duplicate Entry. This $vars->{col_name} will not be saved.<br/>
 			If you would like to edit the existing $vars->{table_name} then please
@@ -52,7 +52,7 @@ $vars->{message} .= " Updating search form";
 
 		# Update if already published to web
 		# Autopublishing author, feed
-		if ($published =~ /web/ || $vars->{table} =~ /author|feed|post/) { 
+		if (($published // '') =~ /web/ || $vars->{table} =~ /author|feed|post/) {
 		
 			&print_record($vars->{table},$vars->{id});
 		

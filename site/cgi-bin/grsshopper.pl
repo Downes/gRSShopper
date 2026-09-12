@@ -18,43 +18,6 @@
 
 my $dirname = dirname(__FILE__);
 
-# Editor
-require $dirname . "/editor/analyze.pl";
-require $dirname . "/editor/dates.pl";
-require $dirname . "/editor/db.pl";
-require $dirname . "/editor/editor.pl";
-require $dirname . "/editor/files.pl";
-require $dirname . "/editor/find.pl";
-require $dirname . "/editor/format.pl";
-require $dirname . "/editor/forms.pl";
-require $dirname . "/editor/graph.pl";
-require $dirname . "/editor/login.pl";
-require $dirname . "/editor/logs.pl";
-require $dirname . "/editor/make.pl";
-require $dirname . "/editor/publish.pl";
-require $dirname . "/editor/records.pl";
-require $dirname . "/editor/tabs.pl";
-
-# Services
-require $dirname . "/services/bigbluebutton.pl";
-require $dirname . "/services/email.pl";
-require $dirname . "/services/facebook.pl";
-require $dirname . "/services/mastodon.pl";
-require $dirname . "/services/blsky.pl";
-require $dirname . "/services/twitter.pl";
-require $dirname . "/services/realfavicongenerator.pl";
-require $dirname . "/services/webmentions.pl";
-require $dirname . "/services/wikipedia.pl";
-require $dirname . "/services/mailchimp.pl";
-require $dirname . "/services/mailgun.pl";
-require $dirname . "/services/amazonses.pl";
-require $dirname . "/services/sns.pl";
-require $dirname . "/services/s3.pl";
-require $dirname . "/services/linkedin.pl";
-
-# API
-require $dirname . "/api/subscribe.pl";
-require $dirname . "/api/ses_bounce.pl";
 
 our $gRSShopper_version = &read_text_file($dirname."/version.txt");
 our $diag = 0;
@@ -86,6 +49,7 @@ sub load_modules {
 	$query->charset('utf-8');
 	our $vars = $query->Vars;
 	&filter_input($vars);				#	- filter CGI input
+
 
 	# Required Modules
 	use DBI;
@@ -125,8 +89,58 @@ sub load_modules {
 	unless (&new_module_load($query,"Time::Local")) { $vars->{warnings} .= "Time::Local;"; }
 	unless (&new_module_load($query,"Digest::SHA1 qw/sha1 sha1_hex sha1_base64/")) { $vars->{warnings} .= "Digest::SHA1 qw/sha1 sha1_transform sha1_hex sha1_base64/"; }
 	unless (&new_module_load($query,"XML::OPML")) { $vars->{warnings} .= "XML::OPML;"; }
+
+	# Load sub-modules after CGI init so multipart uploads are handled correctly
+	require $dirname . "/editor/analyze.pl";
+	require $dirname . "/editor/dates.pl";
+	require $dirname . "/editor/db.pl";
+	require $dirname . "/editor/editor.pl";
+	require $dirname . "/editor/files.pl";
+	require $dirname . "/editor/find.pl";
+	require $dirname . "/editor/format.pl";
+	require $dirname . "/editor/forms.pl";
+	require $dirname . "/editor/graph.pl";
+	require $dirname . "/editor/login.pl";
+	require $dirname . "/editor/logs.pl";
+	require $dirname . "/editor/make.pl";
+	require $dirname . "/editor/publish.pl";
+	require $dirname . "/editor/records.pl";
+	require $dirname . "/editor/tabs.pl";
+
+	require $dirname . "/services/bigbluebutton.pl";
+	require $dirname . "/services/email.pl";
+	require $dirname . "/services/facebook.pl";
+	require $dirname . "/services/mastodon.pl";
+	require $dirname . "/services/blsky.pl";
+	require $dirname . "/services/twitter.pl";
+	require $dirname . "/services/realfavicongenerator.pl";
+	require $dirname . "/services/webmentions.pl";
+	require $dirname . "/services/wikipedia.pl";
+	require $dirname . "/services/mailchimp.pl";
+	require $dirname . "/services/mailgun.pl";
+	require $dirname . "/services/amazonses.pl";
+	require $dirname . "/services/sns.pl";
+	require $dirname . "/services/s3.pl";
+	require $dirname . "/services/linkedin.pl";
+
+	require $dirname . "/api/subscribe.pl";
+	require $dirname . "/api/ses_bounce.pl";
+
 	return ($query,$vars);
 }
+
+# Jusdt a quick and dirty read file
+
+sub read_text_file {
+
+   my ($file) = @_;
+	 open(FILE, $file) or return "Can't read file $file [$!]\n";
+	 $document = <FILE>;
+	 close (FILE);
+	 return $document;
+
+}
+
 	#-------------------------------------------------------------------------------
 	#
 	#		New Module Load
@@ -479,16 +493,16 @@ sub auto_post() {
 
 	$post->{type} = "post";			# Declare types for graphing
 	$link->{type} = "link";
-	&clone_graph($link,$post)		# Clone link graph items for post
+	&clone_graph($link,$post);		# Clone link graph items for post
 	&save_graph("posted",$link,$post);	# Create graph linking link, post
 
 
 									# Update link status
-	my $link = {
+	my $link_update = {
 		link_post => $post->{post_id},
 		link_status => "Posted"
 	};
-	&db_update($dbh,"link",$link,$linkid);
+	&db_update($dbh,"link",$link_update,$linkid);
 
 
 	my $file = &auto_make_icon("post",$post->{post_id});			# Make post icon
@@ -618,7 +632,7 @@ sub next_button {
 	#  Prevents endless loops
 	#
 sub escape_hatch {
-	$vars->{escape_hatch}++; die "Endless recursion keyword loop" if ($escape_hatch > 10000);
+	$vars->{escape_hatch}++; die "Endless recursion keyword loop" if ($vars->{escape_hatch} > 10000);
 
 }
 

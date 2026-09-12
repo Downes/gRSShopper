@@ -107,14 +107,14 @@ sub autodates {
 		if (lc($time) eq "now") { $time = time; }
 		my $tz = $script->{timezone} || $Site->{st_timezone};			# Allows input to specify timezone
 
-		if ($script->{input} eq "date") {												# Convert input-style date to epoch (for eg. post_pub_date)
+		if (($script->{input} // '') eq "date") {												# Convert input-style date to epoch (for eg. post_pub_date)
 			my ($y,$m,$d) = split /\//,$time;   # 2018/11/14
 			use DateTime;
 			my $dt = DateTime->new( year => $y, month => $m, day => $d, time_zone => $tz );
 			$time  = $dt->epoch;
     	}
 
-		elsif ($script->{input} eq "datetime") {
+		elsif (($script->{input} // '') eq "datetime") {
 			my ($dt,$t) = split / /,$time;												# Convert input-style date-time to epoch (for eg. post_pub_date)
 			my ($y,$m,$d) = split /\//,$dt;   # 2018/11/14
 			my ($hh,$mm,$ss) = split /:/,$t;   

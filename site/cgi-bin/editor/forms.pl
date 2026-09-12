@@ -1058,7 +1058,7 @@ sub form_optlist {
 		my ($oname,$ovalue) = split ",",$opt;
 		next unless ($oname && $ovalue);
 
-		my $selected;
+		my $selected = '';
 
 		if ($selected_value =~ /$ovalue/) { $selected = qq| selected="selected"|; }
 

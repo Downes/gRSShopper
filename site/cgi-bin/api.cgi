@@ -42,8 +42,12 @@ use Sys::Syslog qw(:standard :macros);
 
 # Forbid bots
 
-	die "HTTP/1.1 403 Forbidden\n\n403 Forbidden\n" if ($ENV{'HTTP_USER_AGENT'} =~ /bot|slurp|spider/);
-
+	if ($ENV{'HTTP_USER_AGENT'} =~ /bot|slurp|spider/) {
+		print "Status: 403 Forbidden\r\n";
+		print "Content-Type: text/plain\r\n\r\n";
+		print "403 Forbidden\n";
+		exit;
+	}
 
 # Load gRSShopper
   use strict;
@@ -61,15 +65,17 @@ use Sys::Syslog qw(:standard :macros);
 	require $dirname . "/api/update.pl";
 	require $dirname . "/api/files.pl";
 	require $dirname . "/api/hub_bookmarklet.pl";
+	require $dirname . "/api/hub_feed.pl";
+	require $dirname . "/api/hub_images.pl";
 	require $dirname . "/api/list.pl";
 
 # Load modules and set query and vars
 
-	our ($query,$vars) = &load_modules("api");	
+	our ($query,$vars) = &load_modules("api");
 
 # Load Site
 
-	our ($Site,$dbh) = &get_site("api");	
+	our ($Site,$dbh) = &get_site("api");
 
 # Load User
 
@@ -87,17 +93,14 @@ use Sys::Syslog qw(:standard :macros);
 
 
 	my $file;
-	if ($query->content_type() =~ 'multipart/form-data') {
+	if (($query->content_type() // '') =~ 'multipart/form-data') {
 		my $session = new CGI::Session(undef, $query, {Directory=>'/tmp'});	# Must be logged in to upload
 		&status_error("No uploads unless logged in") unless ($session->param("~logged-in"));
 		$vars->{file} ||= "myfile";
 		$file = &upload_file($vars->{file});
 	}
 
-	our ($Site,$dbh) = &get_site("api");
-
-	my $mimetype = $mimetype;
-	if ($vars->{cmd} =~ /edit|autopost/) { $mimetype = "text/html"; }
+	if (($vars->{cmd} // '') =~ /edit|autopost/) { $mimetype = "text/html"; }
 
 
 
@@ -232,7 +235,7 @@ use Sys::Syslog qw(:standard :macros);
 		my @tabs = split",",$vars->{tabs};
 		unless (@tabs) { @tabs = ('Database');}
 			 #{}print qq|<textarea cols=60 rows=60>|;
-			 print &main_window(\@tabs,@tabs[0]);
+			 print &main_window(\@tabs,$tabs[0]);
 			#{} print qq|</textarea>|;
 			 exit;
   }
@@ -569,13 +572,27 @@ if ($vars->{cmd} eq "edit") {
 	if ($vars->{id} eq "new") {
 		$vars->{id} = &make_new_record($vars->{table});
 	}
-	my $report;
-	if ($vars->{hub} eq "yes") {				# Autopost from bookmarklet
-		$report = &api_hub_bookmarklet($vars->{id},$vars->{url});
+	# Candidate images gathered client-side (bookmarklet DOM scan, feed
+	# thumbnail, or feed content HTML) - the bookmarklet scrape below may
+	# add its own og:image/twitter:image find to the same list.
+	my $images = [];
+	if ($vars->{images}) {
+		use JSON::Parse 'parse_json';
+		eval { $images = parse_json($vars->{images}); };
+		$images = [] unless (ref($images) eq 'ARRAY');
 	}
 
-	my $starting_tab = $vars->{starting_tab} || "Edit";	
+	my $report;
+	if ($vars->{hub} eq "yes") {				# Autopost from bookmarklet - scrape the source page
+		$report = &api_hub_bookmarklet($vars->{id},$vars->{url},$images);
+	} elsif ($vars->{hub} eq "feed") {			# Autopost from feed reader - use feed metadata, no page fetch
+		$report = &api_hub_feed($vars->{id});
+	}
+	$images = &sanitize_images($images);
+
+	my $starting_tab = $vars->{starting_tab} || "Edit";
 	print &main_window($tabs,$starting_tab,$vars->{table},"$vars->{id}",$vars);
+print &render_image_picker($vars->{id},$images);
 print qq|<textarea cols=80 rows=20>$report</textarea>|;
 print qq|OK THEN<div id="mySidenav"><div id="closeNav"></div></div>|;
 
@@ -609,7 +626,7 @@ if ($vars->{cmd} eq "newOption") {
 	unless ($vars->{table} && $vars->{id} && $vars->{col}) { &status_error("Missing table, id or column"); }
 	unless ($vars->{value}) { &status_error("Please create text for the new option");}
 	&status_error("Option name ".$vars->{value}." can only contain up to 30 alphanumeric characters") 
-		unless ($vars->{value} =~ /^[\p{Alnum}\s-_]{0,30}\z/ig);
+		unless ($vars->{value} =~ /^[\p{Alnum}\s_-]{0,30}\z/ig);
 
 	# Check for dumplicate and rewrite optlist list
 	my $opts = &db_get_record($dbh,"optlist",{optlist_title=>$vars->{col}});
@@ -646,10 +663,11 @@ if ($vars->{cmd} eq "update") {
 	&record_sanitize_input($vars);
 
 	# Identify update by type
-	if ($vars->{type} eq "text" || 
-		$vars->{type} eq "textarea"  || 
-		$vars->{type} eq "wysihtml5" || 
-		$vars->{type} eq "select") { 
+	my $type = $vars->{type} // '';
+	if ($type eq "text" ||
+		$type eq "textarea"  ||
+		$type eq "wysihtml5" ||
+		$type eq "select") {
 			&status_ok() if (&api_textfield_update($vars));
 		}
 

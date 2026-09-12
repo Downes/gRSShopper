@@ -14,7 +14,8 @@ sub api_hub_bookmarklet {
 	use HTML::Entities;
 	use utf8;
 
-	my ($id,$geturl) = @_;
+	my ($id,$geturl,$images) = @_;
+	$images ||= [];
 	my $report = "";
 #print "Content-type:/text/html\n\n";
 #print qq|<!DOCTYPE html><html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8">|;
@@ -75,8 +76,8 @@ sub api_hub_bookmarklet {
 		# Meta Tags
 		my @metatags = qw(description author);
 		foreach my $metatag (@metatags) {
-			if (($m->attr_get_i("name") eq $metatag) ||
-				($m->attr_get_i("property") eq $metatag)
+			if ((($m->attr_get_i("name") // '') eq $metatag) ||
+				(($m->attr_get_i("property") // '') eq $metatag)
 			) {
 				$metadata->{$metatag} ||= $m->attr_get_i("content"); 
 			}
@@ -88,7 +89,7 @@ sub api_hub_bookmarklet {
 			published_time modified_time image image:width image:height image:alt locale);
 		foreach my $ogtag (@ogtags) {
 			my $ogproperty = "og:".$ogtag;
-			if ($m->attr_get_i("property") eq $ogproperty) { 
+			if (($m->attr_get_i("property") // '') eq $ogproperty) {
 				$metadata->{$ogtag} ||= $m->attr_get_i("content"); 			
 			}			
 		}
@@ -97,7 +98,7 @@ sub api_hub_bookmarklet {
 		my @twtags = qw(card site title description image:src);
 		foreach my $twtag (@twtags) {
 			my $twname = "twitter:".$twtag;
-			if ($m->attr_get_i("name") eq $twtag) {
+			if (($m->attr_get_i("name") // '') eq $twtag) {
 				$metadata->{$twtag} ||= $m->attr_get_i("content");
 			}
 
@@ -105,7 +106,7 @@ sub api_hub_bookmarklet {
 
 
 		# Meta DC Tags
-		if ($m->attr_get_i("name") eq "DC.creator") { $metadata->{author} ||= $m->attr_get_i("content"); }
+		if (($m->attr_get_i("name") // '') eq "DC.creator") { $metadata->{author} ||= $m->attr_get_i("content"); }
 
 	}
 
@@ -148,8 +149,9 @@ sub api_hub_bookmarklet {
 
 	#	$report .= "Title: ".$metadata->{title}."<br>";
 
-   	&status_error("Failed Hub Title Update") 
-		unless (&api_textfield_update({table=>'post',field=>'post_title',value=>$metadata->{title},id=>$id}));
+	if ($metadata->{title}) {
+   		&api_textfield_update({table=>'post',field=>'post_title',value=>$metadata->{title},id=>$id});
+	}
 
 	# Description
 	# Quoted text from Hub and completion of description
@@ -158,26 +160,28 @@ sub api_hub_bookmarklet {
 	# $report .= "Description: ".$metadata->{description}."<br>";	
 
 	if ($metadata->{description}) {
-
-   		&status_error("Failed Hub Description Update") unless (&api_textfield_update({table=>'post',field=>'post_description',value=>$metadata->{description},id=>$id}));
+   		&api_textfield_update({table=>'post',field=>'post_description',value=>$metadata->{description},id=>$id});
 	}
 
 	# Feed — use og:site_name from scraped page, falling back to feed name passed via URL param
 	my $feed = $metadata->{site_name} || $vars->{feed};
 	if ($feed) {
-		&status_error("Failed Hub Feed Update") unless (&api_keylist_update({table=>'post',id=>$id,key=>'feed',value=>$feed}));
+		&api_keylist_update({table=>'post',id=>$id,key=>'feed',value=>$feed});
 	}
 
 	# Author — use scraped metadata, falling back to author name passed via URL param
 	my $author = $metadata->{author} || $vars->{author};
 	if ($author) {
-		&status_error("Failed Hub Author Update") unless (&api_keylist_update({table=>'post',id=>$id,key=>'author',value=>$author}));
+		&api_keylist_update({table=>'post',id=>$id,key=>'author',value=>$author});
 	}
 
-	# Image
-	my $image = $metadata->{image} || $metadata->{source};
+	# Image - fold the page's own og:image/twitter:image into the candidate
+	# list gathered client-side, so the picker shows both
+	my $image = $metadata->{image} || $metadata->{"twitter:image:src"} || $metadata->{source};
 	if ($image) {
-			$report .= "Image: ".$image."<br>"; }
+		unshift @$images, $image;
+		$report .= "Image: ".$image."<br>";
+	}
 
     $tree->delete;
 

@@ -234,7 +234,7 @@ $vars->{message} .= "api_publish(): $table $id <br>";
 			# Publish feed and author records
 			foreach my $assoc_table ("feed","author") {
 				my @assoc_graph = &find_graph_of($table,$id,$assoc_table);
-				if (@assoc_graph[0]) {
+				if ($assoc_graph[0]) {
 					foreach my $assoc_item (@assoc_graph) { 
 						
 						&print_record($assoc_table,$assoc_item);
