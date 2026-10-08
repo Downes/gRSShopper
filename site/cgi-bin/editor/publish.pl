@@ -523,7 +523,6 @@ sub publish_page {
 
 
 	$sth->finish(  );
-print $vars->{message};
 	unless ($opt eq "silent" || $opt eq "initialize") { # print $vars->{message};
 	 }
 	return ($pgcontent,$pgtitle,$pgformat,$archive_url,$wp->{page_linkcount},$wp->{page_location},$wp->{page_type});
