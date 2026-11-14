@@ -156,13 +156,25 @@ function submitData(request,host) {
         },
         body: JSON.stringify(request),
       })
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) { throw new Error('Server returned ' + response.status + ' ' + response.statusText); }
+            return response.json();
+          })
         .then(function (data) {  // api error
             showResponse(request,data);
             if (data.status == "error") { showResponse(request,data); }
+            if (typeof request.onSuccess === 'function') { request.onSuccess(data); }
           })
-        .catch((error) => { // server error
-            console.error('Error:', error);}
+        .catch((error) => { // server error, bad response, or network failure
+            console.error('Error:', error);
+            if (request.div) {
+                var errContainer = document.getElementById(request.div);
+                if (errContainer) {
+                    errContainer.innerHTML = 'Error: ' + error.message;
+                    errContainer.classList.add("error");
+                }
+            }
+          }
       );
       spin_off();
 
@@ -1140,9 +1152,52 @@ function remove_column(url,table,col_name,content) {
 //  Listeners
 //
 
-// 
+//
 //  Accordion
 //
+
+//
+//  Post Issue Rollup screen (admin.cgi?action=rollup): binds a jQuery UI datepicker to
+//  every .rollup-pubdate input. Called on page load, and again after the listing div is
+//  refreshed in place following a successful date change, since the picker has to be
+//  re-bound to the newly-inserted input elements.
+//
+function initRollupPubDateEditors() {
+    $(".rollup-pubdate").each(function() {
+        var input = $(this);
+        var domid = input.attr('id');
+        var id = input.data('id');
+        var orig = input.val();
+        input.datepicker({
+            dateFormat: "yy/mm/dd",
+            // onClose (not onSelect) so this also catches a date typed directly
+            // into the field, not just one picked from the calendar popup
+            onClose: function(date) {
+                if (date && date !== orig) {
+                    orig = date;
+                    submitData({
+                        host: location.origin + '/cgi-bin/api.cgi',
+                        div: domid + '_result',
+                        cmd: 'update',
+                        table: 'post',
+                        field: 'post_pub_date',
+                        id: id,
+                        value: date,
+                        onSuccess: function(data) {
+                            if (data.status != "error") {
+                                $("#rollup_listing").load(
+                                    location.origin + '/cgi-bin/admin.cgi?action=rollup #rollup_listing',
+                                    function() { initRollupPubDateEditors(); }
+                                );
+                            }
+                        }
+                    });
+                }
+            }
+        });
+    });
+}
+$(document).ready(function() { initRollupPubDateEditors(); });
 
 
 // Close out document.ready function

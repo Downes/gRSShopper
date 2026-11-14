@@ -122,9 +122,13 @@ sub print_record {
 
     # Ensure page dir exists
     unless (-d $page_dir) {
-		
-        make_path($page_dir, { mode => 0775 }) or die "make_path($page_dir) failed: $!";
-	
+        my $ok = eval { make_path($page_dir, { mode => 0775 }); 1 };
+        unless ($ok) {
+            # A single bad shard dir (e.g. blocked by a stale non-directory file)
+            # must not abort the whole cron run - log and skip this record instead.
+            &log_cron(0,sprintf("print_record: could not create %s for %s %s: %s",$page_dir,$table,$id_number,$@));
+            return "$id_number : ERROR - could not create $page_dir";
+        }
     }
 
     # Atomic write of the page (UTF-8)
@@ -151,7 +155,11 @@ sub print_record {
             my $rd_file = File::Spec->catfile($rd_dir, $leaf);
 
             unless (-d $rd_dir) {
-                make_path($rd_dir, { mode => 0755 }) or die "make_path($rd_dir) failed: $!";
+                my $rd_ok = eval { make_path($rd_dir, { mode => 0755 }); 1 };
+                unless ($rd_ok) {
+                    &log_cron(0,sprintf("print_record: could not create redirect shard dir %s for %s %s: %s",$rd_dir,$table,$id_number,$@));
+                    return "$id_number : ERROR - could not create $rd_dir";
+                }
             }
 
 

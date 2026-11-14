@@ -32,43 +32,25 @@ sub mastodon_post {
     my $status = &compose_microcontent($dbh,$table,$id,$tweet,500);
     
 
-   my $uri = "https://mastodon.social/api/v1/statuses";
+   my $uri = "https://".$Site->{mas_instance}."/api/v1/statuses";
    my $visibility = "public";
-   my $token = "6benDKVa828014pu7EyhMr2NYEFKemZGBx3RFx4-rMw";
    use HTTP::Tiny;
    my $response = HTTP::Tiny->new->post_form(
       $uri,
       { # form data
          status => $status,
          visibility => $visibility,
-	 username => 'oldaily',
-         password => 'mastodonD2vidhume'
       },
       { # options
-         headers => { Authorization => "Bearer $token" },
+         headers => { Authorization => "Bearer ".$Site->{mas_acc_token} },
       }
    );
 
    &status_error("Failed! $response->{status} $response->{reason}") unless $response->{success};
 
    use JSON::Parse 'parse_json';
-   my $response_content = parse_json ($response->{content}); 
+   my $response_content = parse_json ($response->{content});
    return $response_content->{url};
-
-   &status_error("$response->{content} $cc"); 	
-exit;
-    my $client = Mastodon::Client->new(
-      instance        => $Site->{mas_instance},
-      name            => 'gRSShopper',
-      client_id       => $Site->{mas_cli_id},
-      client_secret   => $Site->{mas_cli_secret},
-      access_token    => $Site->{mas_acc_token},
-      coerce_entities => 1,
-    );
-
-    my $result = $client->post_status($tweet);
-    if ($result) { return $result; } else { return "OK"; }
-
 
 }
 

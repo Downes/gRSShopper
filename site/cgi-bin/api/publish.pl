@@ -117,36 +117,34 @@ $vars->{message} .= "api_publish(): $table $id <br>";
 
 	# So now, ideally, I'd use the name of the social network service to pick a subroutine to actually do the publishing, but...
 
-		if ($vars->{value} =~ /twitter/i) {
+		if ($vars->{value} =~ /(twitter|bluesky|mastodon)/i) {
 
-			my $twitter = &twitter_post($dbh,"post",$id);
-			$published .= ",twitter";
-			my $result = &db_update($dbh,$table, {$col => $published}, $id); # Prevent publishing twice
-			$vars->{message} .= "Published to <a href='$twitter' target='new'>$twitter</a>";
-			&status_ok();
+			my $service = lc($1);
+			my $pub_date = &db_get_single_value($dbh,$table,$table."_pub_date",$id);
 
-		}
+			if (&should_publish_now($pub_date)) {
 
-		elsif ($vars->{value} =~ /bluesky/i) {
-			my $bluesky = &bluesky_post($dbh,"post",$id);
-			$published .= ",bluesky";
+				my ($success,$row) = &publish_now_with_retry($dbh,$table,$id,$service,$pub_date);
 
-			my $result = &db_update($dbh,$table, {$col => $published}, $id); # Prevent publishing twice
-			$vars->{message} .= "Published to <a href='$bluesky' target='new'>$bluesky</a>";
-			&status_ok();
+				if ($success) {
+					my $link = $row->{social_schedule_result};
+					$vars->{message} .= "Published to <a href='$link' target='new'>$link</a>";
+				} elsif ($row->{social_schedule_status} eq "pending") {
+					my $when = &tz_date($row->{social_schedule_time},"min");
+					$vars->{message} .= "Publish to ".ucfirst($service)." failed - will retry at $when";
+				} else {
+					$vars->{message} .= "Publish to ".ucfirst($service)." failed after several attempts - see cron log";
+				}
+				&status_ok();
 
-		}
+			} else {
 
+				my ($sid,$scheduled_time) = &schedule_social_post($dbh,$table,$id,$service,$pub_date);
+				my $when = &tz_date($scheduled_time,"min");
+				$vars->{message} .= "Post scheduled for ".ucfirst($service)." on $when";
+				&status_ok();
 
-		elsif ($vars->{value} =~ /mastodon/i) {
-
-
-			my $mastodon = &mastodon_post($dbh,"post",$id);
-			$published .= ",mastodon";
-			my $result = &db_update($dbh,$table, {$col => $published}, $id); # Prevent publishing twice
-			$vars->{message} .= "Published to <a href='$mastodon' target='new'>$mastodon</a>";
-			&status_ok();
-			exit;
+			}
 
 		}
 

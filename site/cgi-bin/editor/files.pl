@@ -74,7 +74,8 @@ sub save_file {
 		file_creator => $Person->{person_id},
 		file_type => $file_type,
 		file_width => $ffwidth,
-		file_align => "top");
+		file_align => "top",
+		file_source_url => $file->{file_source_url});
 
 
 
@@ -189,14 +190,55 @@ sub upload_url {
 	$ url =~ s/\?(.*?)$//;
 	$ url =~ s/#(.*?)$//;
 
+	# Reuse an existing local copy if this exact source URL has already been
+	# fetched before - harvested feed images in particular get reused across
+	# many posts (e.g. an author avatar embedded in every post from a feed),
+	# so re-downloading and re-storing a fresh copy each time just bloats
+	# disk usage for no benefit.
+	my $existing = &db_get_record($dbh,"file",{file_source_url=>$url});
+	if ($existing && $existing->{file_dirname}) {
+		my $file = gRSShopper::File->new();
+		$file->{file_title} = $existing->{file_title};
+		$file->{filetype} = $existing->{file_type};
+		$file->{file_dir} = $existing->{file_dir};
+		$file->{filedirname} = $existing->{file_dirname};
+		$file->{fullfilename} = $Site->{st_urlf}.$existing->{file_dirname};
+		$file->{file_source_url} = $url;
+		if (-e $file->{fullfilename}) {
+			$vars->{msg} .= "already have a local copy, reusing it.  ";
+			return $file;
+		}
+		# Local copy is gone (e.g. manually deleted) - fall through and re-fetch
+	}
+
 	my $file = gRSShopper::File->new();
 
+	# Fetch first, so the response Content-Type is available when naming the
+	# file (some image URLs, e.g. publisher cover images, have no extension)
+	my $ua = LWP::UserAgent->new;
+	$ua->env_proxy;	 # Specify that we want to follow redirects
+	$ua->max_redirect(5);
 
+	my $req = HTTP::Request->new(GET => $url); # Set up the request
+	$req->header('User-Agent' => 'Mozilla/5.0');
+	$req->header('Accept' => '*/*');
+	my $result = $ua->request($req);
 
 	# Prepare Filename
 	my @parts = split "/",$url;
 	$file->{file_title} = pop @parts;
 	$file->{file_title} = &sanitize_filename($dbh,$file->{file_title});
+
+	# If the URL gave no recognisable image extension but the server says it
+	# is an image, add the matching extension so the file is stored (and
+	# thumbnailed) as an image rather than as an anonymous "other" file
+	if ($result->is_success && $file->{file_title} !~ /\.(jpg|jpeg|jfif|gif|png|bmp|tif|tiff|webp|svg|ico|avif|heic|heif)$/i) {
+		my %image_ext = ('image/png' => 'png', 'image/jpeg' => 'jpg', 'image/gif' => 'gif',
+			'image/webp' => 'webp', 'image/svg+xml' => 'svg', 'image/avif' => 'avif',
+			'image/bmp' => 'bmp', 'image/x-icon' => 'ico', 'image/vnd.microsoft.icon' => 'ico');
+		my ($ctype) = ($result->header('Content-Type') || '') =~ /^\s*([^;\s]+)/;
+		if ($ctype && $image_ext{lc $ctype}) { $file->{file_title} .= "." . $image_ext{lc $ctype}; }
+	}
 
 	# Set File Upload Directory
 	my @pparts = split /\./,$file->{file_title};
@@ -219,14 +261,7 @@ sub upload_url {
 
 	# my $result = getstore($url,$file->{fullfilename});
 
-	my $ua = LWP::UserAgent->new;
-	$ua->env_proxy;	 # Specify that we want to follow redirects
-	$ua->max_redirect(5);
-
-	my $req = HTTP::Request->new(GET => $url); # Set up the request
-	$req->header('User-Agent' => 'Mozilla/5.0');
-	$req->header('Accept' => '*/*');
-	my $result = $ua->request($req);
+	# (the request itself was made above, before the file was named)
 
 #	my $result = $ua->get($url);
 	if ($result->is_success) {
@@ -243,6 +278,7 @@ sub upload_url {
 		return 0;
 	}
 
+	$file->{file_source_url} = $url;
 	return $file;
 
 }
@@ -307,15 +343,15 @@ sub file_upload_dir {
 	my $filetype = "";
 	my $dir = "";
 
-	if ($ff =~ /\.jpg|\.jpeg|\.gif|\.png|\.bmp|\.tif|\.tiff|\.webp/i) {
+	if ($ff =~ /\.(jpg|jpeg|jfif|gif|png|bmp|tif|tiff|webp|svg|ico|avif|heic|heif)$/i) {
 		$filetype = "image"; $dir = $Site->{up_image} || "files/images/";
-	} elsif ($ff =~ /\.doc|\.txt|\.pdf/i) {
+	} elsif ($ff =~ /\.(doc|txt|pdf)$/i) {
 		$filetype = "doc"; $dir = $Site->{up_docs} || "files/documents/";
-	} elsif ($ff =~ /\.ppt|\.pps/i) {
+	} elsif ($ff =~ /\.(ppt|pps)$/i) {
 		$filetype = "slides"; $dir = $Site->{up_slides} || "files/slides/";
-	} elsif ($ff =~ /\.mp3|\.wav/i) {
+	} elsif ($ff =~ /\.(mp3|wav)$/i) {
 		$filetype = "audio"; $dir = $Site->{up_audio} || "files/audio/";
-	} elsif ($ff =~ /\.flv|\.mp4|\.avi|\.mov|\.webm/i) {
+	} elsif ($ff =~ /\.(flv|mp4|avi|mov|webm)$/i) {
 		$filetype = "video"; $dir = $Site->{up_video} || "files/video/";
 	} else {
 		$filetype = "other"; $dir = $Site->{up_files} || "files/files/";
@@ -350,13 +386,10 @@ sub auto_make_icon {
 	if ($file =~ /Error:/) { return "Error uploading image"; }
 	$file->{file_id} =  &db_insert($dbh,$query,"file",$file);			# Save file record (for later graphing)
 
-	my $icondir = $Site->{st_icon} || $Site->{st_urlf}."files/icons/";		# Define (or make) icon directory
-	unless (-d $icondir) { mkdir $icondir, 0755 or die "Error creating icon directory $icondir $!"; }
-
-
 	my $filename = $file->{file_title};						# Set image and icon filenames and directories
 	my $filedir = $Site->{st_urlf}."files/images/";
 	my $icondir = $Site->{st_urlf}."files/icons/";
+	unless (-d $icondir) { mkdir $icondir, 0755 or die "Error creating icon directory $icondir $!"; }
 	my $iconname = $table."_".$id.".jpg";
 	my $icon = &make_thumbnail($filedir,$filename,$icondir,$iconname);		# make the icon
 
@@ -404,8 +437,13 @@ sub make_thumbnail {
 	my ($dir,$img,$icondir,$iconname) = @_;
 
 	# Default thumbnails for various non-image media
-	if ($img =~ /\.pdf/i) { return $Site->{st_icon}."pdf.jpg";}
-	if ($img =~ /\.mp3/i) { return $Site->{st_icon}."pmp3.jpg";}
+	if ($img =~ /\.pdf$/i) { return $icondir."pdf.jpg";}
+	if ($img =~ /\.mp3$/i) { return $icondir."pmp3.jpg";}
+
+	# SVG (vector) and ICO have no GD decoder at all - use a static icon
+	# instead of attempting to resize them
+	if ($img =~ /\.svg$/i) { return $icondir."svg.jpg";}
+	if ($img =~ /\.ico$/i) { return $icondir."ico.jpg";}
 
 	return "Error: need both directory and file" unless ($img && $dir);
 	my $tmb = $img;
@@ -418,22 +456,30 @@ sub make_thumbnail {
 	&status_error("Make_thumbnail failed, can't find original file $dimf") unless
 		(-e $dimf);
 
-	unless (-d $icondir) { 
-		system "mkdir -p $icondir"; 
+	unless (-d $icondir) {
+		system "mkdir -p $icondir";
 		system "chmod 0755 $icondir";
 		&status_error("Error 4053 Failed to create upload directory") unless (-d $icondir);
 	}
 
+	# GD::Image->new()'s generic format-sniffing doesn't recognize BMP, even
+	# though GD can decode it fine via the explicit newFromBmp() constructor.
+	# Pre-load BMP files that way and hand Image::Resize the GD::Image object
+	# directly (it accepts either a filename or a GD::Image).
+	my $src = $dimf;
+	if ($dimf =~ /\.bmp$/i) {
+		$src = GD::Image->newFromBmp($dimf) or &status_error("Image resize failed: $? $! ");
+	}
 
 	# Make an Icon
-	my $image = Image::Resize->new($dimf) or &status_error("Image resize failed: $? $! ");
+	my $image = Image::Resize->new($src) or &status_error("Image resize failed: $? $! ");
 	my $gd = $image->resize(100, 100);
 	open(FH, '>'.$domf);
 	print FH $gd->jpeg() or &status_error("Error: writing $domf image file: $error");
 	close(FH);
 
 	# Make a display image
-	my $display = Image::Resize->new($dimf) or &status_error("Image resize failed: $? $! ");
+	my $display = Image::Resize->new($src) or &status_error("Image resize failed: $? $! ");
 	my $gd = $image->resize(400, 400);
 	my $displayOutFile = $Site->{st_urlf}."files/images/".$iconname; # Need to set files/images dir in admin General
 	open(FH, '>'.$displayOutFile);
@@ -568,77 +614,15 @@ sub mime_type {
 
 	my ($url) = @_;
 
-	my $mime_table = {
-	      ai => "application/postscript",
-	      aiff => "audio/x-aiff",
-	      au => "audio/basic",
-	      avi => "video/x-msvideo",
-	      bck => "application/VMSBACKUP",
-	      bin => "application/x-octetstream",
-	      bleep => "application/bleeper",
-	      class => "application/octet-stream",
-	      com => "text/plain",
-	      crt => "application/x-x509-ca-cert",
-	      csh => "application/x-csh",
-	      dat => "text/plain",
-	      doc => "application/msword",
-	      docx => "application/msword",
-	      dot => "application/msword",
-	      dvi => "application/x-dvi",
-	      eps => "application/postscript",
-	      exe => "application/octet-stream",
-	      gif => "image/gif",
-	      gtar => "application/x-gtar",
-	      gz => "application/x-gzip",
-	      hlp => "text/plain",
-	      hqx => "application/mac-binhex40",
-	      htm => "text/html",
-	      html => "text/html",
-	      htmlx => "text/html",
-	      htx => "text/html",
-	      imagemap => "application/imagemap",
-	      jpe => "image/jpeg",
-	      jpeg => "image/jpeg",
-	      jpg => "image/jpeg",
-	      mcd => "application/mathcad",
-	      mid => "audio/midi",
-	      midi => "audio/midi",
-	      mov => "video/quicktime",
-	      movie => "video/x-sgi-movie",
-		mp3 => "audio/mpeg",
-	      mpeg => "video/mpeg",
-	      mpe => "video/mpeg",
-	      mpg => "video/mpeg",
-	      pdf => "application/pdf",
-	      png => "image/png",
-	      ppt => "application/vnd.ms-powerpoint",
-	      pptx => "application/vnd.ms-powerpoint",
-	      ps => "application/postscript",
-	      'ps-z' => "application/postscript",
-	      qt => "video/quicktime",
-	      rtf => "application/rtf",
-	      rtx => "text/richtext",
-	      sh => "application/x-sh",
-	      sit => "application/x-stuffit",
-	      tar => "application/x-tar",
-	      tif => "image/tiff",
-	      tiff => "image/tiff",
-	      txt => "text/plain",
-	      ua => "audio/basic",
-	      wav => "audio/x-wav",
-	      xls => "application/vnd.ms-excel",
-	      xbm => "image/x-xbitmap'",
-	      zip => "application/zip"
-	     };
-
-
 	my ($dirname,$atts) = split /\?/,$url;
-	my @slices = split /\//,$dirname;
-	my $filename = pop @slices;
-	my @harray = split /\./,$filename;
-	my $ext = pop @harray;
-	$ext = lc($ext);
-	my $mimetype = $mime_table->{$ext};
+
+	my $mimetype;
+	if (&new_module_load($query,"MIME::Types")) {
+		use MIME::Types;
+		my MIME::Types $types = MIME::Types->new;
+		my MIME::Type $m = $types->mimeTypeOf($dirname);
+		$mimetype = $m ? $m->type : undef;
+	}
 	unless ($mimetype) { $mimetype = "unknown"; }
 
 	return $mimetype;

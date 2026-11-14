@@ -437,6 +437,69 @@ sub record_unique {
 
 }
 
+	# -------  Normalize URL ------------------------------------------------------
+	#
+	# Reduce a URL to a canonical form for duplicate comparison: lowercase host,
+	# strip "www.", force https, drop trailing slash, drop query string and
+	# fragment entirely (tracking params vary too much across sources to
+	# denylist reliably - see plan notes)
+	#
+sub normalize_url {
+
+	my ($url) = @_;
+	return "" unless ($url);
+
+	use URI;
+	my $u = URI->new($url);
+	my $host = eval { $u->host };
+
+	unless ($host) {						# Not a parseable absolute URL - fall back
+		my $fallback = lc($url);
+		$fallback =~ s{\s+$}{};
+		return $fallback;
+	}
+
+	$host = lc($host);
+	$host =~ s/^www\.//;
+
+	my $path = $u->path || "/";
+	$path =~ s{(.)/+$}{$1};				# Strip trailing slash, but keep a bare "/"
+
+	return "https://".$host.$path;
+
+}
+
+	# -------  Find Duplicate Post ------------------------------------------------------
+	#
+	# Look for an existing post pointing at the same external resource (by
+	# normalized link). Returns a hashref {post_id,post_title} of the first
+	# match, or undef if no link given or none found. $exclude_id (optional)
+	# skips a given post - so re-saving a post's own link doesn't flag itself.
+	#
+sub find_duplicate_post {
+
+	my ($dbh,$url,$exclude_id) = @_;
+	return undef unless ($url);
+
+	my $target = &normalize_url($url);
+	return undef unless ($target);
+
+	my $host = eval { URI->new($url)->host } || $url;
+	$host =~ s/^www\.//i;
+
+	my $sth = $dbh->prepare("SELECT post_id, post_title, post_link FROM post WHERE post_link LIKE ? AND post_id != ?");
+	$sth->execute("%".$host."%", $exclude_id || 0);
+
+	while (my $row = $sth->fetchrow_hashref) {
+		if (&normalize_url($row->{post_link}) eq $target) {
+			return {post_id=>$row->{post_id}, post_title=>$row->{post_title}};
+		}
+	}
+
+	return undef;
+
+}
+
 	# -------  Save Record ------------------------------------------------------
 	#
 	# Save record (*update or create) and return record id

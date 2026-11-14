@@ -235,6 +235,11 @@ $Site->{st_stale_expire} = (72 * 60 * 60);
 
 		}
 
+											# Scheduled Social Media Posts
+
+		&log_cron(9,"Checking social media posting schedule");
+		&process_social_schedule($dbh);
+
 		# Need to add a task to refresh the log file
 
 		# Report cron completed

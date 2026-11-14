@@ -216,29 +216,72 @@
 
 		# Get Data for Today and Future Issues
 		my $date = &cal_date(time - (3600*24));	# ie., yesterday
-		my $issues = ();
+		my $issues = (); my @post_ids;
 		my $stmt = qq|SELECT * FROM post where post_pub_date >?|;
 		my $sthl = $dbh->prepare($stmt);
 		$sthl->execute($date);
 		my $count = 0;
 		while (my $post = $sthl -> fetchrow_hashref()) {
 			my $text = qq|<a href="?post=$post->{post_id}">$post->{post_title}</a>
-				[<a href="?action=edit&post=$post->{post_id}">Edit</a>]|;
-			push @{$issues->{$post->{post_pub_date}}},$text;
+				[<a href="?action=edit&post=$post->{post_id}">Edit</a>]
+				&nbsp; Pub date: |.&inline_pub_date_editor($post->{post_id},$post->{post_pub_date});
+			push @post_ids,$post->{post_id};
+			push @{$issues->{$post->{post_pub_date}}},{id=>$post->{post_id},text=>$text};
 			$count++; last if ($count>1000);
 		}
 
+		# Social-media schedule for these posts, grouped by post id
+		my %social_by_post;
+		if (@post_ids && &db_table_exist($dbh,"social_schedule")) {
+			my $ids = join(",", map { $_ + 0 } @post_ids);	# force numeric - these came from post_id, not user input
+			my $ssth = $dbh->prepare(qq|SELECT * FROM social_schedule
+				WHERE social_schedule_table='post' AND social_schedule_recordid IN ($ids)
+				ORDER BY social_schedule_time|);
+			$ssth->execute();
+			while (my $srow = $ssth->fetchrow_hashref()) {
+				push @{$social_by_post{$srow->{social_schedule_recordid}}},$srow;
+			}
+			$ssth->finish;
+		}
+
 		# Sort and Display Content
+		# Wrapped in a container div so a pub-date change can refresh just this
+		# listing in place (see inline_pub_date_editor()) instead of the whole page
+		print qq|<div id="rollup_listing">\n|;
 		my @index = sort keys %$issues;
 		foreach my $iss (@index) {
 			print "<p><b>ISSUE: $iss</b><br>\n";
 			foreach my $pp (@{$issues->{$iss}}) {
-				print "- $pp <br/>\n";
+				print "- $pp->{text} <br/>\n";
+				foreach my $srow (@{$social_by_post{$pp->{id}} || []}) {
+					print qq|&nbsp;&nbsp;&nbsp;&nbsp;$srow->{social_schedule_service}: $srow->{social_schedule_status}
+						(|.&cal_date($srow->{social_schedule_time},"min").qq|)<br/>\n|;
+				}
 			}
 			print "</p>\n";
 		}
+		print qq|</div>\n|;
 		print $Site->{footer};
 		exit;
+	}
+
+
+	# -----------------------------------   Inline Pub Date Editor   -----------------------------------------------
+	#
+	#   Small per-row datepicker for the schedule Rollup screen. Not form_date_select() - that
+	#   function hardcodes id="$col" as the DOM id, which collides when the same field (post_pub_date)
+	#   is rendered once per row on a list page like this one. Markup only - binding happens in
+	#   initRollupPubDateEditors() in grsshopper_admin.js.
+	#
+	# ------------------------------------------------------------------------------------------------------
+
+	sub inline_pub_date_editor {
+
+		my ($id,$value) = @_;
+		my $domid = "post_pub_date_".$id;
+
+		return qq|<input type="text" id="$domid" class="rollup-pubdate" data-id="$id" value="$value" size="10">
+			<span id="${domid}_result"></span>|;
 	}
 
 

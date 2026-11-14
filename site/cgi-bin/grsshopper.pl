@@ -113,6 +113,7 @@ sub load_modules {
 	require $dirname . "/services/mastodon.pl";
 	require $dirname . "/services/blsky.pl";
 	require $dirname . "/services/twitter.pl";
+	require $dirname . "/services/social_schedule.pl";
 	require $dirname . "/services/realfavicongenerator.pl";
 	require $dirname . "/services/webmentions.pl";
 	require $dirname . "/services/wikipedia.pl";

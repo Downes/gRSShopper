@@ -672,6 +672,14 @@ my $uploaded=0;
 			Leave blank to disable. (Credentials currently read from container .env; these fields are for future use.)|;
 
 
+		$content .= &admin_configtable($dbh,$query,"CList",
+			("API Token:clist_api_token","Author Person ID:clist_person_id"));
+		$content .= qq|Lets CList publish annotations to this site as 'post' records (post_type = 'link')
+			via api.cgi?cmd=clist_publish / cmd=clist_fetch. API Token is a shared secret CList sends with
+			each request. Author Person ID is the person_id (from the person table) that created/updated
+			posts are attributed to, since these requests carry no login session.|;
+
+
 		$content .= &admin_configtable($dbh,$query,"Badgr",
 			("Badgr API base URL:badgr_url","Badgr Account ID (email):badgr_account","Badgr Account Password:badgr_password","Access Key:badgr_cckey","Issuer ID:badgr_issuerid"));
     $content .= sprintf(qq|To create and award badges, <a href="https://badgr.io/auth/login">create a Badgr account</a> and input email address and password above. The Base URL is usually https://api.badgr.io and the Access key is automatically generated.
@@ -1212,6 +1220,7 @@ sub admin_update_grsshopper{
 				<!-- JQuery -->
 				<script src="$assets/js/jquery.min.js"></script>
 				<!-- JQuery UI -->
+				<link rel="stylesheet" href="$assets/css/jquery-ui.css">
 				<script src="$assets/js/jquery-ui.min.js"></script>
 				<!-- JQuery ToggleButton -->
 				<script src="$assets/js/select-togglebutton.js"></script>

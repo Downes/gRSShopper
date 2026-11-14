@@ -412,7 +412,7 @@ sub is_type { 		# Would like to make this a loadable list at some point
 	elsif (&is_audio($url) || $mimetype =~ /audio/i) {  $type = "audio"; }		# audio
 	elsif (&is_slides($url)) { $type = "slides"; }					# slideshare
 	elsif ($mimetype =~ /image/i) {	$type = "image"; }				# image
-	elsif ($mimetype =~ /pdf|msword|powerpoint/i) {	$type = "document"; }		# document
+	elsif ($mimetype =~ /pdf|msword|powerpoint|presentation|wordprocessingml|spreadsheetml/i) {	$type = "document"; }		# document
 	elsif ($mimetype =~ /zip|tar|binhex/i) { $type = "archive"; }			# archive
 	else {	$type = "link";	 }							# link
 	&diag(6,qq|is_type() determines type to be $type<br>|);

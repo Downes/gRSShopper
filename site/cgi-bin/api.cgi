@@ -68,6 +68,7 @@ use Sys::Syslog qw(:standard :macros);
 	require $dirname . "/api/hub_feed.pl";
 	require $dirname . "/api/hub_images.pl";
 	require $dirname . "/api/list.pl";
+	require $dirname . "/api/clist.pl";
 
 # Load modules and set query and vars
 
@@ -258,12 +259,9 @@ elsif ($vars->{cmd} eq "linkedin") {
 # Example: /cgi-bin/api.cgi?build_shards=1&scheme=100&dry_run=0
 elsif ($vars->{cmd} eq "build_shards") {
 
-    my $docroot = $vars->{st_urlf};
-    # OPTIONAL: protect this endpoint!
-    # e.g., require a shared secret or limit by IP
-    # my $secret = $q->param('secret') // '';
-    # return send_error($q,"Unauthorized") unless $secret eq 'something-long-and-random';
+    &status_error("Login required") unless ($session->param("~logged-in"));
 
+    my $docroot = $vars->{st_urlf};
     my $rd_base = "$docroot/_rd";                # host-scoped shard base
     my $scheme  = $vars->{scheme} // 100;    # 100 => 781/57 ; 1000 => 78/157
     my $dry_run = ($vars->{dry_run} // 0) ? 1 : 0;
@@ -277,6 +275,8 @@ elsif ($vars->{cmd} eq "build_shards") {
     exit 0;
 }
 elsif ($vars->{cmd} eq "print_all_records") {
+    &status_error("Login required") unless ($session->param("~logged-in"));
+
     my $itemlist = "";
     my $table = $vars->{table} // 'post';
     $table =~ m/^[a-z_]+$/i or die "Bad table name";
@@ -501,6 +501,16 @@ if ($vars->{cmd} eq "create") {
 }
 
 # -------------------------------------------------------------------------------------
+#          CList Functions
+#
+#          Token-authenticated publish/update/fetch for CList's annotation editor.
+#          See api/clist.pl.
+# -------------------------------------------------------------------------------------
+
+if ($vars->{cmd} eq "clist_publish") { &api_clist_publish(); }
+if ($vars->{cmd} eq "clist_fetch") { &api_clist_fetch(); }
+
+# -------------------------------------------------------------------------------------
 #          Graph Functions
 #
 #
@@ -567,9 +577,20 @@ if ($vars->{cmd} eq "edit") {
 	my $tabs = [];
 
 	if ($vars->{autopost} > 0) { &api_autopost($vars->{autopost}); }
-	if ($vars->{table} eq "person" && $vars->{id} eq "me") { 
+	if ($vars->{table} eq "person" && $vars->{id} eq "me") {
 		$vars->{id} = $Person->{person_id}};		# Edit myself
-	if ($vars->{id} eq "new") {
+
+	# Check for a duplicate before creating anything - the hub bookmarklet/feed
+	# paths already know the target URL at this point, so we can detect a
+	# duplicate and skip creating a blank record entirely
+	my $dup;
+	if ($vars->{table} eq "post" && $vars->{id} eq "new" && $vars->{url}
+		&& ($vars->{hub} eq "yes" || $vars->{hub} eq "feed")) {
+		$dup = &find_duplicate_post($dbh,$vars->{url});
+	}
+	if ($dup) {
+		$vars->{id} = $dup->{post_id};
+	} elsif ($vars->{id} eq "new") {
 		$vars->{id} = &make_new_record($vars->{table});
 	}
 	# Candidate images gathered client-side (bookmarklet DOM scan, feed
@@ -583,14 +604,19 @@ if ($vars->{cmd} eq "edit") {
 	}
 
 	my $report;
-	if ($vars->{hub} eq "yes") {				# Autopost from bookmarklet - scrape the source page
-		$report = &api_hub_bookmarklet($vars->{id},$vars->{url},$images);
-	} elsif ($vars->{hub} eq "feed") {			# Autopost from feed reader - use feed metadata, no page fetch
-		$report = &api_hub_feed($vars->{id});
+	unless ($dup) {
+		if ($vars->{hub} eq "yes") {				# Autopost from bookmarklet - scrape the source page
+			$report = &api_hub_bookmarklet($vars->{id},$vars->{url},$images);
+		} elsif ($vars->{hub} eq "feed") {			# Autopost from feed reader - use feed metadata, no page fetch
+			$report = &api_hub_feed($vars->{id});
+		}
 	}
 	$images = &sanitize_images($images);
 
 	my $starting_tab = $vars->{starting_tab} || "Edit";
+	if ($dup) {
+		print qq|<div class="notice duplicate-notice">This looks like a duplicate of an existing post: <strong>$dup->{post_title}</strong>. Showing that post instead of creating a new one.</div>|;
+	}
 	print &main_window($tabs,$starting_tab,$vars->{table},"$vars->{id}",$vars);
 print &render_image_picker($vars->{id},$images);
 print qq|<textarea cols=80 rows=20>$report</textarea>|;

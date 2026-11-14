@@ -233,7 +233,7 @@ sub api_list {
 	# Header: table-specific first, fall back to generic list_header
 	my $header_text = &db_get_template($dbh, $table."_list_header")
 	               || &db_get_template($dbh, "list_header");
-	print &apply_list_template($header_text, $meta) if $header_text;
+	my $body = $header_text ? &apply_list_template($header_text, $meta) : "";
 
 	# Format each record via the view table
 	while (my $record = $sth->fetchrow_hashref()) {
@@ -244,13 +244,27 @@ sub api_list {
 		}
 
 		my $formatted = &format_record($dbh, $query, $table, $format, $record, 1);
-		print $formatted if $formatted;
+		$body .= $formatted if $formatted;
 	}
 
 	# Footer: table-specific first, fall back to generic list_footer
 	my $footer_text = &db_get_template($dbh, $table."_list_footer")
 	               || &db_get_template($dbh, "list_footer");
-	print &apply_list_template($footer_text, $meta) if $footer_text;
+	$body .= &apply_list_template($footer_text, $meta) if $footer_text;
+
+	# "search" is reached by a real full-page browser navigation (the search
+	# box and the "Posts" nav link), unlike the other template formats here
+	# (rss/opml/admin html), which are consumed as fragments/feeds by other
+	# code. Wrap it in the site's normal full-page chrome so it doesn't land
+	# the visitor on an unstyled, chrome-less fragment.
+	if ($format eq "search") {
+		my $wp = {page_content =>
+			&db_get_template($dbh, "responsive_header") . $body . &db_get_template($dbh, "responsive_footer")};
+		&format_content($dbh, $query, $options, $wp);
+		print $wp->{page_content};
+	} else {
+		print $body;
+	}
 
 	exit;
 }

@@ -98,7 +98,8 @@ sub api_save_file {
 
 
 		my $filename = $file->{file_title};
-		my $filedir = $Site->{st_urlf}.$Site->{up_image};
+		# Thumbnail from wherever the file was actually stored (not always up_image)
+		my $filedir = $Site->{st_urlf}.$file->{file_dir};
 
 		my $icondir = $Site->{st_urlf}."files/icons/";
 		my $iconname = $vars->{graph_table}."_".$vars->{graph_id}.".jpg";

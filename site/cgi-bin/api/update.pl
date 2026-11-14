@@ -21,14 +21,18 @@ sub api_textfield_update {
 		
 	&status_error("Field $field does not exist") unless (&__check_field($vars->{table},$vars->{field}));
 	
-	# Check for duplicates
-	if ($vars->{value} && ($vars->{col_name} // '') =~ /_title|_name|_url|_link/) {
-		if (my $l = &db_locate($dbh,$vars->{table_name},{$vars->{col_name} => $vars->{value}})) {
-			&status_error(qq|<p>Duplicate Entry. This $vars->{col_name} will not be saved.<br/>
-			If you would like to edit the existing $vars->{table_name} then please
-			<span title="Edit" onclick="openDiv('$Site->{st_cgi}api.cgi','main','edit','$vars->{table_name}','$l','Edit');"> <i class="fa fa-edit"> Click Here</i></span></p>|);
+	# Check for duplicates - same external resource already posted, by normalized link
+	if ($vars->{table} eq "post" && $field eq "post_link" && $vars->{value}) {
+		if (my $dup = &find_duplicate_post($dbh,$vars->{value},$vars->{id})) {
+			my $existing_title = &db_get_single_value($dbh,"post","post_title",$vars->{id});
+			unless ($existing_title) {
+				# Still a blank New-Post stub (no title yet) - safe to discard rather
+				# than leave an empty duplicate row behind
+				&db_delete($dbh,"post","post_id",$vars->{id});
+			}
+			&status_error(qq|<p>This looks like a duplicate of "$dup->{post_title}".<br/>
+			<span onclick="openDiv('$Site->{st_cgi}api.cgi','editor','edit','post','$dup->{post_id}','Edit')"><i class="fa fa-edit"></i> Click here to edit it instead</span></p>|);
 		}
-
 	}
 
 	# Submit the data
@@ -38,6 +42,12 @@ sub api_textfield_update {
 	if ($id_number) {
 
 $vars->{message} .= "Successfully updated $id_number";
+
+		# If the post's publication date changed, move any pending social-media
+		# schedule rows for it to match (see services/social_schedule.pl)
+		if ($vars->{table} eq "post" && $field eq "post_pub_date") {
+			&reschedule_social_posts_for_post($dbh,$vars->{table},$vars->{id},$vars->{value});
+		}
 
 		# If table is optlist, update search forms
 		if ($vars->{table} eq "optlist") {

@@ -38,7 +38,13 @@ sub render_image_picker {
 	foreach my $u (@$images) {
 		my $esc = $u;
 		$esc =~ s/"/&quot;/g;
-		$html .= qq|<img src="$esc" onerror="this.remove()" style="width:100px;height:75px;object-fit:cover;cursor:pointer;border:2px solid transparent;" onclick="hubAttachImage(this,'$esc')">|;
+
+		# Strip apostrophes for the onclick value - a raw ' would break out of
+		# the single-quoted JS string literal
+		my $jsesc = $u;
+		$jsesc =~ s/'//g;
+
+		$html .= qq|<img src="$esc" onerror="this.remove()" style="width:100px;height:75px;object-fit:cover;cursor:pointer;border:2px solid transparent;" onclick="hubAttachImage(this,'$jsesc')">|;
 	}
 
 	$html .= qq|</div><div id="hub_image_status" style="font-family:sans-serif;font-size:12px;color:#666;margin-top:6px;"></div></div>
@@ -54,7 +60,14 @@ function hubAttachImage(el, url) {
 		headers: {'Content-Type': 'application/json'},
 		body: JSON.stringify({cmd:'update', table:'post', id:'$id', type:'file_url', value:url})
 	}).then(function(r){ return r.text(); }).then(function(t){
+		// api.cgi reports failures as JSON with status "Error" (HTTP 200)
+		if (/"status"\\s*:\\s*"Error"/.test(t)) {
+			var m = t.match(/"message"\\s*:\\s*"([^"]*)"/);
+			status.textContent = 'Failed: ' + (m ? m[1] : 'server error');
+			return;
+		}
 		status.textContent = 'Attached \\u2713';
+		jQuery('#preview-record-summary').load('/cgi-bin/api.cgi?cmd=show&table=post&id=$id&format=summary');
 	}).catch(function(e){
 		status.textContent = 'Failed: ' + e.message;
 	});

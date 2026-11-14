@@ -147,14 +147,10 @@ sub bluesky_post {
 
     my $response_data = decode_json($response->decoded_content);
 
-    print $response_data->{url};
-   
-
-
-    # Check if the response contains 'response' and 'status' keys with value 'OK'
+    # Check if the response contains a 'uri' key - that's Bluesky's success signal
     if ( $response_data->{uri}) {
-        status_ok();
-       # print "Post created successfully!\n";
+        my ($rkey) = $response_data->{uri} =~ m{/([^/]+)$};
+        return "https://bsky.app/profile/".$Site->{blue_handle}."/post/".$rkey;
     } else {
         &status_error("Failed! $response->{status} $response->{reason}")
     }
