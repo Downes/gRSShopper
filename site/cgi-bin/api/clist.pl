@@ -9,14 +9,23 @@
 #          record_defaults/record_save behave exactly as for a logged-in editor.
 # -------------------------------------------------------------------------------------
 
+# Like status_error(), but also sends a non-200 HTTP status, so CList's fetch()
+# can detect failure via response.ok rather than having to inspect the JSON body.
+# Scoped to this file only - status_error() itself is shared by ~175 call sites
+# across the app and is left alone.
+sub api_clist_error {
+	print "Status: 400 Bad Request\r\n";
+	&status_error(@_);
+}
+
 sub api_clist_authenticate {
 
-	&status_error("CList integration not configured (no token set)") unless ($Site->{clist_api_token});
-	&status_error("Invalid or missing token") unless ($vars->{token} && $vars->{token} eq $Site->{clist_api_token});
+	&api_clist_error("CList integration not configured (no token set)") unless ($Site->{clist_api_token});
+	&api_clist_error("Invalid or missing token") unless ($vars->{token} && $vars->{token} eq $Site->{clist_api_token});
 
-	&status_error("CList integration not configured (no person set)") unless ($Site->{clist_person_id});
+	&api_clist_error("CList integration not configured (no person set)") unless ($Site->{clist_person_id});
 	my $p = &db_get_record($dbh,"person",{person_id=>$Site->{clist_person_id}});
-	&status_error("CList integration person not found") unless ($p);
+	&api_clist_error("CList integration person not found") unless ($p);
 	%$Person = %$p;
 }
 
@@ -24,9 +33,9 @@ sub api_clist_publish {
 
 	&api_clist_authenticate();
 
-	&status_error("Title required") unless ($vars->{title});
-	&status_error("Description required") unless ($vars->{description});
-	&status_error("Link required") unless ($vars->{link});
+	&api_clist_error("Title required") unless ($vars->{title});
+	&api_clist_error("Description required") unless ($vars->{description});
+	&api_clist_error("Link required") unless ($vars->{link});
 
 	my $record = {
 		post_type        => "link",
@@ -47,7 +56,7 @@ sub api_clist_publish {
 	if ($id) { &record_update_info("post",$record); } else { &record_creation_info("post",$record); }
 
 	$id = &record_save($dbh,$record,"post",$record);
-	&status_error("Could not save post") unless ($id);
+	&api_clist_error("Could not save post") unless ($id);
 
 	use JSON;
 	print to_json({ status => "OK", post_id => $id+0, url => $Site->{st_url}."post/".$id });
@@ -58,10 +67,10 @@ sub api_clist_fetch {
 
 	&api_clist_authenticate();
 
-	&status_error("Post id required") unless ($vars->{id});
+	&api_clist_error("Post id required") unless ($vars->{id});
 
 	my $post = &db_get_record($dbh,"post",{post_id=>$vars->{id}});
-	&status_error("Post not found") unless ($post);
+	&api_clist_error("Post not found") unless ($post);
 
 	use JSON;
 	print to_json({
