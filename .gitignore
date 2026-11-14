@@ -19,3 +19,7 @@ site/news/*.xml
 # Dead code archive — not executed, just kept for reference
 site/cgi-bin/dead-api.cgi
 *.log
+
+# Ad-hoc debug scripts, not app code
+site/cgi-bin/test_cgi_upload.cgi
+site/cgi-bin/test_upload.cgi
